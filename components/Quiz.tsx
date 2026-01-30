@@ -1,107 +1,284 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MATH_QUESTIONS } from '../constants';
-import { UserResponse } from '../types';
-import { ChevronRight, Send, AlertCircle } from 'lucide-react';
+import { UserResponse, Question } from '../types';
+import { ChevronRight, ChevronLeft, Send, AlertCircle, Clock, CheckCircle, Menu, X } from 'lucide-react';
 
 interface QuizProps {
   userName: string;
+  timeLeft: number;
   onComplete: (responses: UserResponse[]) => void;
 }
 
-export const Quiz: React.FC<QuizProps> = ({ userName, onComplete }) => {
+export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentAnswer, setCurrentAnswer] = useState('');
-  const [responses, setResponses] = useState<UserResponse[]>([]);
+  const [allAnswers, setAllAnswers] = useState<Record<number, string>>({});
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const currentQuestion = MATH_QUESTIONS[currentIndex];
-  const progress = ((currentIndex + 1) / MATH_QUESTIONS.length) * 100;
+  const answeredCount = Object.keys(allAnswers).filter(id => allAnswers[Number(id)].trim() !== '').length;
+  const progress = (answeredCount / MATH_QUESTIONS.length) * 100;
+
+  const categories = useMemo(() => {
+    const groups: Record<string, Question[]> = {};
+    MATH_QUESTIONS.forEach((q) => {
+      if (!groups[q.category]) groups[q.category] = [];
+      groups[q.category].push(q);
+    });
+    return groups;
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleNavigate = (index: number) => {
+    if (index === currentIndex) return;
+    setDirection(index > currentIndex ? 'next' : 'prev');
+    setIsAnimating(true);
+    setSidebarOpen(false);
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setIsAnimating(false);
+    }, 200);
+  };
 
   const handleNext = () => {
-    if (!currentAnswer.trim()) return;
-
-    const newResponse: UserResponse = {
-      questionId: currentQuestion.id,
-      answer: currentAnswer.trim()
-    };
-
-    const newResponses = [...responses, newResponse];
-    setResponses(newResponses);
-
     if (currentIndex < MATH_QUESTIONS.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setCurrentAnswer('');
-    } else {
-      onComplete(newResponses);
+      handleNavigate(currentIndex + 1);
     }
   };
 
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      handleNavigate(currentIndex - 1);
+    }
+  };
+
+  const onInputChange = (val: string) => {
+    setAllAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: val
+    }));
+  };
+
+  const handleSubmit = () => {
+    const responses: UserResponse[] = MATH_QUESTIONS.map(q => ({
+      questionId: q.id,
+      answer: allAnswers[q.id] || ''
+    }));
+    onComplete(responses);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Progress Bar */}
-      <div className="h-1.5 w-full bg-slate-100">
-        <div 
-          className="h-full bg-indigo-600 transition-all duration-500 ease-out"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
-
-      <div className="p-8 md:p-12">
-        <div className="flex justify-between items-center mb-8">
-          <span className="text-sm font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-            Question {currentIndex + 1} of {MATH_QUESTIONS.length}
-          </span>
-          <span className="text-sm text-slate-400 font-medium">
-            Student: {userName}
-          </span>
+    <div className="flex flex-1 h-full bg-white min-h-0 overflow-hidden">
+      {/* Main Question Area */}
+      <div className="flex-1 flex flex-col relative min-w-0">
+        {/* Compact Progress Bar */}
+        <div className="h-1.5 w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
+          <div 
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-700"
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
 
-        <div className="min-h-[140px] flex items-center justify-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center leading-relaxed">
-            {currentQuestion.question}
-          </h2>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <input
-              type={currentQuestion.type === 'number' ? 'text' : 'text'}
-              autoFocus
-              value={currentAnswer}
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              placeholder={currentQuestion.placeholder}
-              className="w-full px-6 py-4 rounded-xl border-2 border-slate-100 focus:border-indigo-500 focus:outline-none transition-all text-xl text-center placeholder:text-slate-300 shadow-sm"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && currentAnswer.trim()) handleNext();
-              }}
-            />
-          </div>
-
-          {currentQuestion.hint && (
-            <div className="flex items-start gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg text-sm italic">
-              <AlertCircle size={16} className="mt-0.5 shrink-0" />
-              <span>Hint: {currentQuestion.hint}</span>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={handleNext}
-              disabled={!currentAnswer.trim()}
-              className={`flex items-center gap-2 font-semibold py-4 px-10 rounded-xl shadow-lg transition-all transform active:scale-95 text-lg
-                ${!currentAnswer.trim() 
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 hover:-translate-y-0.5'}`}
+        {/* Header - More Compact */}
+        <header className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 hover:bg-slate-100 rounded-lg text-slate-500"
             >
-              {currentIndex === MATH_QUESTIONS.length - 1 ? (
-                <>Finish Quiz <Send size={20} /></>
-              ) : (
-                <>Next Question <ChevronRight size={20} /></>
-              )}
+              <Menu size={20} />
             </button>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Candidate</span>
+              <span className="text-sm font-bold text-slate-800">{userName}</span>
+            </div>
+          </div>
+
+          <div className={`flex items-center gap-2 px-4 py-1.5 rounded-xl font-mono text-base font-black border transition-all duration-300 shadow-sm
+            ${timeLeft < 300 ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-slate-50 text-indigo-700 border-slate-100'}`}>
+            <Clock size={16} className={timeLeft < 300 ? 'animate-spin-slow' : ''} />
+            {formatTime(timeLeft)}
+          </div>
+
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Questions</span>
+            <span className="text-sm font-bold text-green-600">{answeredCount}/{MATH_QUESTIONS.length} Done</span>
+          </div>
+        </header>
+
+        {/* Content - Responsive Padding */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center custom-scrollbar">
+          <div className={`w-full max-w-2xl transition-all duration-300 transform
+            ${isAnimating 
+              ? (direction === 'next' ? 'opacity-0 -translate-x-8' : 'opacity-0 translate-x-8') 
+              : 'opacity-100 translate-x-0'}`}>
+            
+            <div className="mb-4 flex justify-center">
+              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-1 rounded-full border border-indigo-100/30">
+                {currentQuestion.category}
+              </span>
+            </div>
+
+            <div className="bg-slate-50/50 rounded-[2rem] p-6 md:p-10 border border-slate-100 flex items-center justify-center min-h-[160px] shadow-sm mb-8 relative group">
+               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-indigo-500 rounded-r-full"></div>
+               <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform">
+                 {currentQuestion.question}
+               </h2>
+            </div>
+
+            <div className="max-w-md mx-auto space-y-6">
+              <div className="relative">
+                <input
+                  type="text"
+                  autoFocus
+                  value={allAnswers[currentQuestion.id] || ''}
+                  onChange={(e) => onInputChange(e.target.value)}
+                  placeholder={currentQuestion.placeholder || "Answer..."}
+                  className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all text-2xl text-center placeholder:text-slate-200 font-bold text-indigo-600 shadow-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (allAnswers[currentQuestion.id] || '').trim()) handleNext();
+                  }}
+                />
+                {allAnswers[currentQuestion.id] && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500 animate-in fade-in zoom-in">
+                    <CheckCircle size={24} fill="currentColor" className="text-white bg-green-500 rounded-full" />
+                  </div>
+                )}
+              </div>
+
+              {currentQuestion.hint && (
+                <div className="flex items-start gap-3 text-indigo-700 bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/20 text-xs font-semibold italic">
+                  <AlertCircle size={14} className="text-indigo-400 mt-0.5 shrink-0" />
+                  <span>Tip: {currentQuestion.hint}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </main>
+
+        {/* Footer - Compact Controls */}
+        <footer className="p-4 md:px-6 bg-white border-t border-slate-50 flex items-center justify-between gap-4 shrink-0">
+          <button
+            onClick={handlePrev}
+            disabled={currentIndex === 0 || isAnimating}
+            className={`flex items-center gap-2 font-black py-2.5 px-4 rounded-xl transition-all active:scale-95 text-sm
+              ${currentIndex === 0 
+                ? 'opacity-0 pointer-events-none' 
+                : 'text-slate-400 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-100'}`}
+          >
+            <ChevronLeft size={18} /> Prev
+          </button>
+
+          <div className="flex gap-3">
+            {currentIndex < MATH_QUESTIONS.length - 1 ? (
+              <button
+                onClick={handleNext}
+                disabled={isAnimating}
+                className="flex items-center gap-2 font-black py-3 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all transform hover:-translate-y-0.5 active:scale-95 text-base"
+              >
+                Next <ChevronRight size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isAnimating}
+                className="flex items-center gap-2 font-black py-3 px-10 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-100 transition-all transform hover:-translate-y-0.5 active:scale-95 text-base"
+              >
+                Submit <Send size={18} />
+              </button>
+            )}
+          </div>
+        </footer>
+      </div>
+
+      {/* Navigation Sidebar - Integrated */}
+      <aside className={`fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-0 lg:w-72 bg-white lg:border-l border-slate-100 flex flex-col transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+        
+        <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-white shrink-0">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Navigator</h3>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1.5 hover:bg-slate-50 rounded-lg text-slate-500"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-slate-50/20">
+          <div className="space-y-6">
+            {(Object.entries(categories) as [string, Question[]][]).map(([categoryName, questions]) => (
+              <div key={categoryName} className="space-y-2.5">
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">{categoryName}</h4>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {questions.map((q) => {
+                    const idx = MATH_QUESTIONS.findIndex(item => item.id === q.id);
+                    const isCurrent = idx === currentIndex;
+                    const isAnswered = allAnswers[q.id] && allAnswers[q.id].trim() !== '';
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => handleNavigate(idx)}
+                        className={`w-full aspect-square rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center border
+                          ${isCurrent 
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 z-10 scale-105' 
+                            : isAnswered 
+                              ? 'bg-green-50 border-green-200 text-green-600' 
+                              : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-300'}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+
+        <div className="p-5 bg-white border-t border-slate-50 shrink-0">
+           <div className="flex items-center justify-between px-2">
+              <div className="flex flex-col">
+                <span className="text-lg font-black text-slate-800 leading-none">{answeredCount}</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Done</span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-lg font-black text-slate-800 leading-none">{MATH_QUESTIONS.length - answeredCount}</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Left</span>
+              </div>
+           </div>
+        </div>
+      </aside>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #F1F5F9;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #E2E8F0;
+        }
+        .animate-spin-slow {
+          animation: spin 6s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
