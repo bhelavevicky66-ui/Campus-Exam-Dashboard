@@ -2,8 +2,6 @@ import React from 'react';
 import {
     Home,
     Layers,
-    Calendar,
-    Search,
     Plus,
     Zap,
     MoreHorizontal,
@@ -86,19 +84,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                 {/* Header */}
                 <header className="px-10 py-8 flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold text-[#11142D]">My Workspace</h2>
+                        <h2 className="text-2xl font-bold text-[#11142D]">Test Dashboard</h2>
                         <p className="text-slate-500 font-medium mt-1">Focus on what's important today</p>
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search tasks..."
-                                className="pl-12 pr-4 py-3 bg-white rounded-full text-sm font-semibold text-slate-700 placeholder:text-slate-400 w-64 focus:outline-none focus:ring-2 focus:ring-[#6C5DD3]/20 transition-all shadow-sm"
-                            />
-                        </div>
+
 
                         <div className="flex items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                             <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
@@ -156,10 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-6 text-[#11142D] font-bold text-lg">
-                        <Calendar size={20} className="text-[#6C5DD3]" />
-                        <h3>Daily Comparison</h3>
-                    </div>
+
 
                     {/* MODULE CARDS ( styled as "Comparison" cards ) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
