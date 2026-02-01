@@ -193,31 +193,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         {/* Card 1: Screen Test (Light Style) */}
                         <div
                             onClick={() => onStart('screen-test')}
-                            className="bg-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-slate-50"
+                            className="bg-[#11142D] p-6 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden"
                         >
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Yesterday</div>
-                                    <h4 className="text-xl font-bold text-[#11142D] group-hover:text-[#6C5DD3] transition-colors">Screen Test</h4>
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h4 className="text-xl font-bold text-white">Screen Test</h4>
+                                    </div>
+                                    <div className="bg-[#E2FBD7] text-[#34B53A] px-3 py-1 rounded-lg text-xs font-bold">Jan 31, 2026</div>
                                 </div>
-                                <div className="bg-[#E2FBD7] text-[#34B53A] px-3 py-1 rounded-lg text-xs font-bold">Jan 31, 2026</div>
-                            </div>
 
-                            <div className="flex justify-between items-end mb-6">
-                                <div>
-                                    <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Done</div>
-                                    <div className="text-3xl font-black text-[#11142D]">0%</div>
+                                <div className="flex justify-between items-end mb-6">
+                                    <div>
+                                        <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Done</div>
+                                        <div className="text-3xl font-black text-white">0%</div>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Failed</div>
-                                    <div className="text-3xl font-black text-[#11142D]">0%</div>
-                                </div>
-                            </div>
 
-                            <div className="h-2 w-full bg-rose-50 rounded-full overflow-hidden">
-                                <div className="h-full bg-rose-200 w-full rounded-full"></div>
+                                <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                                    <div className="h-full bg-rose-400 w-0 rounded-full"></div>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-3 font-medium">0 tasks logged yesterday</p>
                             </div>
-                            <p className="text-xs text-slate-400 mt-3 font-medium">0 tasks logged yesterday</p>
                         </div>
 
                         {/* Card 2: Module 1 (Dark Style) */}
@@ -228,7 +225,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Today</div>
                                         <h4 className="text-xl font-bold text-white">Module 1 Test</h4>
                                     </div>
                                     <div className="flex text-yellow-500">
@@ -242,14 +238,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                                         <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Done</div>
                                         <div className="text-3xl font-black text-white">0%</div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Remaining</div>
-                                        <div className="text-3xl font-black text-white">100%</div>
-                                    </div>
                                 </div>
 
                                 <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-3">
-                                    <div className="h-full bg-[#6C5DD3] w-[5%] rounded-full shadow-[0_0_10px_#6C5DD3]"></div>
+                                    <div className="h-full bg-[#6C5DD3] w-0 rounded-full shadow-[0_0_10px_#6C5DD3]"></div>
                                 </div>
                                 <p className="text-xs text-slate-500 font-medium">0 active tasks today</p>
                             </div>
@@ -258,33 +250,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         {/* Card 3: Module 0 (Light Style) */}
                         <div
                             onClick={() => onStart('module-0')}
-                            className="bg-white p-6 rounded-[2rem] shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-slate-50 relative overflow-hidden"
+                            className="bg-[#11142D] p-6 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all cursor-pointer group border border-slate-50/10 relative overflow-hidden"
                         >
                             {/* Decorative Circle */}
-                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-pink-50 rounded-full"></div>
+                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#6C5DD3] opacity-10 rounded-full"></div>
 
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Performance</div>
-                                        <h4 className="text-xl font-bold text-[#11142D] group-hover:text-[#6C5DD3] transition-colors">Module 0 Test</h4>
+                                        <h4 className="text-xl font-bold text-white">Module 0 Test</h4>
                                     </div>
-                                    <MoreHorizontal className="text-slate-300" />
+                                    <MoreHorizontal className="text-slate-500" />
                                 </div>
 
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-pink-500">
-                                        <CheckCircle2 size={24} />
-                                    </div>
+                                <div className="flex justify-between items-end mb-6">
                                     <div>
-                                        <div className="text-2xl font-black text-[#11142D]">1/10</div>
-                                        <div className="text-xs font-bold text-slate-400">Questions Answered</div>
+                                        <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Done</div>
+                                        <div className="text-3xl font-black text-white">0%</div>
                                     </div>
                                 </div>
 
-                                <button className="w-full py-3 rounded-xl bg-slate-50 text-slate-600 font-bold text-sm group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                                    Continue
-                                </button>
+                                <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-3">
+                                    <div className="h-full bg-[#6C5DD3] w-0 rounded-full shadow-[0_0_10px_#6C5DD3]"></div>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium">0 active tasks today</p>
                             </div>
                         </div>
 

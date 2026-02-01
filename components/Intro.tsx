@@ -1,11 +1,12 @@
 import React from 'react';
-import { BookOpen, Clock, Award, Play } from 'lucide-react';
+import { BookOpen, Clock, Award, Play, ChevronLeft } from 'lucide-react';
 
 interface IntroProps {
   onStart: (name: string) => void;
+  onBack: () => void;
 }
 
-export const Intro: React.FC<IntroProps> = ({ onStart }) => {
+export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
   return (
     <div className="flex flex-col h-full bg-white font-sans overflow-hidden items-center justify-center p-6 md:p-12 relative">
 
@@ -15,10 +16,21 @@ export const Intro: React.FC<IntroProps> = ({ onStart }) => {
         <div className="absolute top-40 -left-20 w-72 h-72 bg-blue-100 rounded-full blur-[60px] opacity-40"></div>
       </div>
 
+      {/* Back Button - Absolute Top Left */}
+      <button
+        onClick={onBack}
+        className="absolute left-6 top-6 md:left-10 md:top-10 z-20 flex items-center gap-2 text-slate-500 hover:text-[#6C5DD3] font-bold transition-colors group"
+      >
+        <div className="p-2 bg-slate-50/80 backdrop-blur-sm rounded-lg group-hover:bg-[#6C5DD3]/10 transition-colors border border-slate-100/50">
+          <ChevronLeft size={20} />
+        </div>
+        <span>Back to Dashboard</span>
+      </button>
+
       <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
 
         {/* Header Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 mt-12 md:mt-0">
           <h1 className="text-4xl md:text-5xl font-black text-[#6C5DD3] tracking-tight mb-3">
             To Campus Exam Dashboard
           </h1>
@@ -27,48 +39,80 @@ export const Intro: React.FC<IntroProps> = ({ onStart }) => {
           </p>
         </div>
 
-        {/* Info Cards Grid */}
+        {/* Info Cards Grid - DARK THEME APPLIED */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-12">
 
           {/* Card 1: Total Questions */}
-          <div className="bg-white rounded-3xl p-8 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <span className="text-sm font-bold text-[#11142D] uppercase tracking-wide">Total Questions</span>
-              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500">
+          <div className="bg-[#11142D] rounded-3xl p-8 shadow-2xl shadow-indigo-500/10 flex flex-col justify-between hover:-translate-y-1 transition-transform relative overflow-hidden group">
+            {/* Decor Gradient - Subtle internal glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Questions</span>
+              <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400">
                 <BookOpen size={20} />
               </div>
             </div>
-            <div>
-              <div className="text-4xl font-black text-[#11142D] mb-1">30</div>
-              <div className="text-sm font-bold text-slate-400">Across 3 categories</div>
+
+            <div className="relative z-10">
+              <div className="flex items-baseline gap-1 mb-1">
+                <div className="text-4xl font-black text-white">30</div>
+                <div className="text-xs font-bold text-slate-500">Qs</div>
+              </div>
+              <div className="text-sm font-bold text-slate-400 mb-6">Across 3 categories</div>
+
+              {/* Progress Bar */}
+              <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500 w-full rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+              </div>
             </div>
           </div>
 
           {/* Card 2: Time Limit */}
-          <div className="bg-white rounded-3xl p-8 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <span className="text-sm font-bold text-[#11142D] uppercase tracking-wide">Time Limit</span>
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-500">
+          <div className="bg-[#11142D] rounded-3xl p-8 shadow-2xl shadow-purple-500/10 flex flex-col justify-between hover:-translate-y-1 transition-transform relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Time Limit</span>
+              <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400">
                 <Clock size={20} />
               </div>
             </div>
-            <div>
-              <div className="text-4xl font-black text-[#11142D] mb-1">60m</div>
-              <div className="text-sm font-bold text-slate-400">To complete the exam</div>
+
+            <div className="relative z-10">
+              <div className="flex items-baseline gap-1 mb-1">
+                <div className="text-4xl font-black text-white">60</div>
+                <div className="text-xs font-bold text-slate-500">min</div>
+              </div>
+              <div className="text-sm font-bold text-slate-400 mb-6">To complete the exam</div>
+
+              <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 w-full rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+              </div>
             </div>
           </div>
 
           {/* Card 3: Passing Score */}
-          <div className="bg-white rounded-3xl p-8 shadow-[0_10px_40px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <span className="text-sm font-bold text-[#11142D] uppercase tracking-wide">Passing Score</span>
-              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-500">
+          <div className="bg-[#11142D] rounded-3xl p-8 shadow-2xl shadow-emerald-500/10 flex flex-col justify-between hover:-translate-y-1 transition-transform relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Passing Score</span>
+              <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
                 <Award size={20} />
               </div>
             </div>
-            <div>
-              <div className="text-4xl font-black text-[#11142D] mb-1">75%</div>
-              <div className="text-sm font-bold text-slate-400">Required to pass</div>
+
+            <div className="relative z-10">
+              <div className="flex items-baseline gap-1 mb-1">
+                <div className="text-4xl font-black text-white">75</div>
+                <div className="text-xs font-bold text-slate-500">%</div>
+              </div>
+              <div className="text-sm font-bold text-slate-400 mb-6">Required to pass</div>
+
+              <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+              </div>
             </div>
           </div>
 
