@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Layout } from './components/Layout';
+import { Dashboard } from './components/Dashboard';
 import { Intro } from './components/Intro';
 import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
@@ -11,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
 const App: React.FC = () => {
-  const [state, setState] = useState<QuizState>(QuizState.INTRO);
+  const [state, setState] = useState<QuizState>(QuizState.DASHBOARD);
   const [userName, setUserName] = useState('');
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +24,7 @@ const App: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setIsSubmitting(true);
     const timeTaken = TOTAL_TIME - timeLeft;
-    
+
     try {
       const result = await submitQuiz(finalResponses, timeTaken);
       setQuizResult(result);
@@ -35,6 +36,10 @@ const App: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [timeLeft]);
+
+  const handleDashboardStart = () => {
+    setState(QuizState.INTRO);
+  };
 
   const handleStart = (name: string) => {
     setUserName(name);
@@ -62,7 +67,7 @@ const App: React.FC = () => {
   const handleRestart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setQuizResult(null);
-    setState(QuizState.INTRO);
+    setState(QuizState.DASHBOARD);
   };
 
   // Cleanup timer on unmount
@@ -87,12 +92,13 @@ const App: React.FC = () => {
         </div>
       ) : (
         <>
+          {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} />}
           {state === QuizState.INTRO && <Intro onStart={handleStart} />}
           {state === QuizState.QUIZ && (
-            <Quiz 
-              userName={userName} 
+            <Quiz
+              userName={userName}
               timeLeft={timeLeft}
-              onComplete={handleComplete} 
+              onComplete={handleComplete}
             />
           )}
           {state === QuizState.RESULT && quizResult && (

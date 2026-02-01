@@ -1,5 +1,6 @@
 
 export enum QuizState {
+  DASHBOARD = 'DASHBOARD',
   INTRO = 'INTRO',
   QUIZ = 'QUIZ',
   RESULT = 'RESULT'
