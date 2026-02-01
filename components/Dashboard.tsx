@@ -11,7 +11,8 @@ import {
     Clock,
     CheckCircle2,
     ChevronDown,
-    Monitor
+    Monitor,
+    BookOpen
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -68,42 +69,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         </div>
                         <span>Module 0 Test</span>
                     </button>
+
+                    <button onClick={() => onStart('practice-questions')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-purple-50 text-purple-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <BookOpen size={18} />
+                        </div>
+                        <span>Practice Questions</span>
+                    </button>
                 </nav>
 
-                {/* Sidebar Stats */}
-                <div className="p-6 mt-auto">
-                    <div className="bg-slate-50 rounded-2xl p-5 mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Daily Streak</span>
-                            <Clock size={16} className="text-slate-400" />
-                        </div>
-                        <div className="text-2xl font-black text-slate-800">0</div>
-                    </div>
-
-                    <div className="bg-slate-50 rounded-2xl p-5">
-                        <div className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4">Board Performance</div>
-
-                        <div className="mb-3">
-                            <div className="flex justify-between text-xs font-bold mb-1">
-                                <span className="text-slate-600">Complete</span>
-                                <span className="text-emerald-500">72%</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 w-[72%] rounded-full"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between text-xs font-bold mb-1">
-                                <span className="text-slate-600">Incomplete</span>
-                                <span className="text-red-400">28%</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-red-400 w-[28%] rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </aside>
 
             {/* MAIN CONTENT */}
