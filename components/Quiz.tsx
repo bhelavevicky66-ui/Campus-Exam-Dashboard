@@ -1,34 +1,33 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { MATH_QUESTIONS } from '../constants';
 import { UserResponse, Question } from '../types';
 import { ChevronRight, ChevronLeft, Send, AlertCircle, Clock, CheckCircle, Menu, X } from 'lucide-react';
 
 interface QuizProps {
   userName: string;
   timeLeft: number;
+  questions: Question[]; // Added questions prop
   onComplete: (responses: UserResponse[]) => void;
 }
 
-export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) => {
+export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onComplete }) => { // Added questions to props
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allAnswers, setAllAnswers] = useState<Record<number, string>>({});
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  const currentQuestion = MATH_QUESTIONS[currentIndex];
+
+  const currentQuestion = questions[currentIndex]; // Use questions prop
   const answeredCount = Object.keys(allAnswers).filter(id => allAnswers[Number(id)].trim() !== '').length;
-  const progress = (answeredCount / MATH_QUESTIONS.length) * 100;
+  const progress = (answeredCount / questions.length) * 100; // Use questions prop
 
   const categories = useMemo(() => {
     const groups: Record<string, Question[]> = {};
-    MATH_QUESTIONS.forEach((q) => {
+    questions.forEach((q) => { // Use questions prop
       if (!groups[q.category]) groups[q.category] = [];
       groups[q.category].push(q);
     });
     return groups;
-  }, []);
+  }, [questions]); // Dependency on questions prop
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -48,7 +47,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
   };
 
   const handleNext = () => {
-    if (currentIndex < MATH_QUESTIONS.length - 1) {
+    if (currentIndex < questions.length - 1) { // Use questions prop
       handleNavigate(currentIndex + 1);
     }
   };
@@ -67,7 +66,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
   };
 
   const handleSubmit = () => {
-    const responses: UserResponse[] = MATH_QUESTIONS.map(q => ({
+    const responses: UserResponse[] = questions.map(q => ({ // Use questions prop
       questionId: q.id,
       answer: allAnswers[q.id] || ''
     }));
@@ -80,7 +79,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
       <div className="flex-1 flex flex-col relative min-w-0">
         {/* Compact Progress Bar */}
         <div className="h-1.5 w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-700"
             style={{ width: `${progress}%` }}
           ></div>
@@ -89,7 +88,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
         {/* Header - More Compact */}
         <header className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 hover:bg-slate-100 rounded-lg text-slate-500"
             >
@@ -109,17 +108,17 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
 
           <div className="hidden sm:flex flex-col items-end">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Questions</span>
-            <span className="text-sm font-bold text-green-600">{answeredCount}/{MATH_QUESTIONS.length} Done</span>
+            <span className="text-sm font-bold text-green-600">{answeredCount}/{questions.length} Done</span>
           </div>
         </header>
 
         {/* Content - Responsive Padding */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center custom-scrollbar">
           <div className={`w-full max-w-2xl transition-all duration-300 transform
-            ${isAnimating 
-              ? (direction === 'next' ? 'opacity-0 -translate-x-8' : 'opacity-0 translate-x-8') 
+            ${isAnimating
+              ? (direction === 'next' ? 'opacity-0 -translate-x-8' : 'opacity-0 translate-x-8')
               : 'opacity-100 translate-x-0'}`}>
-            
+
             <div className="mb-4 flex justify-center">
               <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-1 rounded-full border border-indigo-100/30">
                 {currentQuestion.category}
@@ -127,10 +126,10 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
             </div>
 
             <div className="bg-slate-50/50 rounded-[2rem] p-6 md:p-10 border border-slate-100 flex items-center justify-center min-h-[160px] shadow-sm mb-8 relative group">
-               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-indigo-500 rounded-r-full"></div>
-               <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform">
-                 {currentQuestion.question}
-               </h2>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-indigo-500 rounded-r-full"></div>
+              <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform">
+                {currentQuestion.question}
+              </h2>
             </div>
 
             <div className="max-w-md mx-auto space-y-6">
@@ -169,15 +168,15 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
             onClick={handlePrev}
             disabled={currentIndex === 0 || isAnimating}
             className={`flex items-center gap-2 font-black py-2.5 px-4 rounded-xl transition-all active:scale-95 text-sm
-              ${currentIndex === 0 
-                ? 'opacity-0 pointer-events-none' 
+              ${currentIndex === 0
+                ? 'opacity-0 pointer-events-none'
                 : 'text-slate-400 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-100'}`}
           >
             <ChevronLeft size={18} /> Prev
           </button>
 
           <div className="flex gap-3">
-            {currentIndex < MATH_QUESTIONS.length - 1 ? (
+            {currentIndex < questions.length - 1 ? (
               <button
                 onClick={handleNext}
                 disabled={isAnimating}
@@ -201,10 +200,10 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
       {/* Navigation Sidebar - Integrated */}
       <aside className={`fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-0 lg:w-72 bg-white lg:border-l border-slate-100 flex flex-col transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-        
+
         <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-white shrink-0">
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Navigator</h3>
-          <button 
+          <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1.5 hover:bg-slate-50 rounded-lg text-slate-500"
           >
@@ -219,7 +218,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
                 <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">{categoryName}</h4>
                 <div className="grid grid-cols-5 gap-1.5">
                   {questions.map((q) => {
-                    const idx = MATH_QUESTIONS.findIndex(item => item.id === q.id);
+                    const idx = questions.findIndex(item => item.id === q.id);
                     const isCurrent = idx === currentIndex;
                     const isAnswered = allAnswers[q.id] && allAnswers[q.id].trim() !== '';
                     return (
@@ -227,10 +226,10 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
                         key={q.id}
                         onClick={() => handleNavigate(idx)}
                         className={`w-full aspect-square rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center border
-                          ${isCurrent 
-                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 z-10 scale-105' 
-                            : isAnswered 
-                              ? 'bg-green-50 border-green-200 text-green-600' 
+                          ${isCurrent
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 z-10 scale-105'
+                            : isAnswered
+                              ? 'bg-green-50 border-green-200 text-green-600'
                               : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-300'}`}
                       >
                         {idx + 1}
@@ -244,16 +243,16 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, onComplete }) =>
         </div>
 
         <div className="p-5 bg-white border-t border-slate-50 shrink-0">
-           <div className="flex items-center justify-between px-2">
-              <div className="flex flex-col">
-                <span className="text-lg font-black text-slate-800 leading-none">{answeredCount}</span>
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Done</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-lg font-black text-slate-800 leading-none">{MATH_QUESTIONS.length - answeredCount}</span>
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Left</span>
-              </div>
-           </div>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex flex-col">
+              <span className="text-lg font-black text-slate-800 leading-none">{answeredCount}</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Done</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-lg font-black text-slate-800 leading-none">{questions.length - answeredCount}</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Left</span>
+            </div>
+          </div>
         </div>
       </aside>
 

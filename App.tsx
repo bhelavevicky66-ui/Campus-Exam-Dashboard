@@ -7,6 +7,7 @@ import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
+import { MODULES } from './constants';
 import { Loader2 } from 'lucide-react';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
@@ -14,6 +15,7 @@ const TOTAL_TIME = 3600; // 1 hour in seconds
 const App: React.FC = () => {
   const [state, setState] = useState<QuizState>(QuizState.DASHBOARD);
   const [userName, setUserName] = useState('');
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
@@ -37,13 +39,14 @@ const App: React.FC = () => {
     }
   }, [timeLeft]);
 
-  const handleDashboardStart = () => {
+  const handleDashboardStart = (moduleId: string) => {
+    setSelectedModuleId(moduleId);
     setState(QuizState.INTRO);
   };
 
   const handleStart = (name: string) => {
     setUserName(name);
-    setTimeLeft(TOTAL_TIME);
+    setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
     responsesRef.current = [];
     setState(QuizState.QUIZ);
 
@@ -67,6 +70,7 @@ const App: React.FC = () => {
   const handleRestart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setQuizResult(null);
+    setSelectedModuleId(null);
     setState(QuizState.DASHBOARD);
   };
 
@@ -76,6 +80,10 @@ const App: React.FC = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  const currentQuestions = selectedModuleId && MODULES[selectedModuleId as keyof typeof MODULES]
+    ? MODULES[selectedModuleId as keyof typeof MODULES].questions
+    : [];
 
   return (
     <Layout>
@@ -93,11 +101,12 @@ const App: React.FC = () => {
       ) : (
         <>
           {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} />}
-          {state === QuizState.INTRO && <Intro onStart={handleStart} />}
+          {state === QuizState.INTRO && <Intro onStart={handleStart} onBack={handleRestart} />}
           {state === QuizState.QUIZ && (
             <Quiz
               userName={userName}
               timeLeft={timeLeft}
+              questions={currentQuestions}
               onComplete={handleComplete}
             />
           )}

@@ -43,6 +43,30 @@ export const MATH_QUESTIONS: Question[] = [
   { id: 30, question: "If x = 4, find: 2x² − 3x", type: 'number', category: 'Basic Algebra', placeholder: 'Result' }
 ];
 
+export const SCREEN_TEST_QUESTIONS: Question[] = MATH_QUESTIONS.slice(0, 10);
+export const MODULE_0_QUESTIONS: Question[] = MATH_QUESTIONS.slice(10, 20);
+export const MODULE_1_QUESTIONS: Question[] = MATH_QUESTIONS.slice(20, 30);
+
+export const MODULES = {
+  'screen-test': {
+    title: 'First Screen Test',
+    questions: SCREEN_TEST_QUESTIONS,
+    time: 1200 // 20 mins
+  },
+  'module-0': {
+    title: 'Module 0 Test',
+    questions: MODULE_0_QUESTIONS,
+    time: 1200
+  },
+  'module-1': {
+    title: 'Module 1 Test',
+    questions: MODULE_1_QUESTIONS,
+    time: 1200
+  }
+};
+
+export const ALL_QUESTIONS = MATH_QUESTIONS; // Keep for backward compatibility if needed
+
 export const CORRECT_ANSWERS: Record<number, string> = {
   1: "14",
   2: "11",

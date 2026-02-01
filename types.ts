@@ -12,6 +12,7 @@ export interface Question {
   type: 'text' | 'number';
   placeholder?: string;
   hint?: string;
+  category?: string;
 }
 
 export interface QuizResult {
