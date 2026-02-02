@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { Intro } from './components/Intro';
 import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
+import { Phase1 } from './components/Phase1';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
 import { MODULES } from './constants';
@@ -41,7 +42,11 @@ const App: React.FC = () => {
 
   const handleDashboardStart = (moduleId: string) => {
     setSelectedModuleId(moduleId);
-    setState(QuizState.INTRO);
+    if (moduleId === 'module-5') {
+      setState(QuizState.PHASE1);
+    } else {
+      setState(QuizState.INTRO);
+    }
   };
 
   const handleStart = (name: string) => {
@@ -112,6 +117,9 @@ const App: React.FC = () => {
           )}
           {state === QuizState.RESULT && quizResult && (
             <Result userName={userName} result={quizResult} onRestart={handleRestart} />
+          )}
+          {state === QuizState.PHASE1 && (
+            <Phase1 onBack={handleRestart} />
           )}
         </>
       )}

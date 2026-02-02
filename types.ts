@@ -3,7 +3,8 @@ export enum QuizState {
   DASHBOARD = 'DASHBOARD',
   INTRO = 'INTRO',
   QUIZ = 'QUIZ',
-  RESULT = 'RESULT'
+  RESULT = 'RESULT',
+  PHASE1 = 'PHASE1'
 }
 
 export interface Question {
