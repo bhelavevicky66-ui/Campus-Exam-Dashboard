@@ -24,20 +24,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
             {/* SIDEBAR */}
             <aside className="w-72 bg-white flex flex-col border-r border-slate-100 flex-shrink-0">
                 {/* Logo */}
-                <div className="p-8 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#6C5DD3] rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                        <Zap className="text-white fill-current" size={20} />
-                    </div>
-                    <h1 className="text-2xl font-extrabold text-[#11142D] tracking-tight">ZenPlan</h1>
+                <div className="p-8 flex items-center">
+                    <img src="/navgurukul-logo.png" alt="NavGurukul" className="h-10 object-contain" />
                 </div>
 
-                {/* Main Navigation */}
-                <div className="px-6 mb-8">
-                    <button className="w-full py-4 bg-[#6C5DD3] hover:bg-[#5b4ec2] text-white rounded-2xl flex items-center justify-center gap-3 font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95">
-                        <Plus size={20} />
-                        Add New Task
-                    </button>
-                </div>
+
 
                 <nav className="flex-1 px-6 space-y-2">
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-4">Main Experience</div>
