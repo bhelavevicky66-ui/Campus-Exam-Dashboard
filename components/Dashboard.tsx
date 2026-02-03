@@ -17,7 +17,8 @@ import {
     FileCheck,
     GitBranch,
     LayoutDashboard,
-    Braces
+    Braces,
+    Palette
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -96,42 +97,42 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         <span>Phase 1</span>
                     </button>
 
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => onStart('module-6')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-purple-50 text-purple-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <Palette size={18} />
                         </div>
                         <span>Phase 2</span>
                     </button>
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => onStart('module-7')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-yellow-50 text-yellow-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <Zap size={18} />
                         </div>
                         <span>Phase 3</span>
                     </button>
 
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                    <button onClick={() => onStart('module-8')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
                         <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
                             <Code size={18} />
                         </div>
                         <span>Phase 4</span>
                     </button>
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => onStart('module-9')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-emerald-50 text-emerald-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <Terminal size={18} />
                         </div>
                         <span>Phase 5</span>
                     </button>
 
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => onStart('module-10')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-orange-50 text-orange-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <Layers size={18} />
                         </div>
                         <span>Phase 6</span>
                     </button>
 
-                    <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => onStart('module-11')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                        <div className="p-2 bg-violet-50 text-violet-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
+                            <Zap size={18} />
                         </div>
                         <span>Phase 7</span>
                     </button>

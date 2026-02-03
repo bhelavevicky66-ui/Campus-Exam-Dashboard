@@ -6,6 +6,12 @@ import { Intro } from './components/Intro';
 import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
 import { Phase1 } from './components/Phase1';
+import { Phase2 } from './components/Phase2';
+import { Phase3 } from './components/Phase3';
+import { Phase4 } from './components/Phase4';
+import { Phase5 } from './components/Phase5';
+import { Phase6 } from './components/Phase6';
+import { Phase7 } from './components/Phase7';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
 import { MODULES } from './constants';
@@ -44,6 +50,18 @@ const App: React.FC = () => {
     setSelectedModuleId(moduleId);
     if (moduleId === 'module-5') {
       setState(QuizState.PHASE1);
+    } else if (moduleId === 'module-6') {
+      setState(QuizState.PHASE2);
+    } else if (moduleId === 'module-7') {
+      setState(QuizState.PHASE3);
+    } else if (moduleId === 'module-8') {
+      setState(QuizState.PHASE4);
+    } else if (moduleId === 'module-9') {
+      setState(QuizState.PHASE5);
+    } else if (moduleId === 'module-10') {
+      setState(QuizState.PHASE6);
+    } else if (moduleId === 'module-11') {
+      setState(QuizState.PHASE7);
     } else {
       setState(QuizState.INTRO);
     }
@@ -120,6 +138,24 @@ const App: React.FC = () => {
           )}
           {state === QuizState.PHASE1 && (
             <Phase1 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE2 && (
+            <Phase2 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE3 && (
+            <Phase3 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE4 && (
+            <Phase4 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE5 && (
+            <Phase5 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE6 && (
+            <Phase6 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE7 && (
+            <Phase7 onBack={handleRestart} />
           )}
         </>
       )}

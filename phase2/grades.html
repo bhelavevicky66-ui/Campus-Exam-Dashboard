@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View your academic grades and track your progress">
+    <title>Grades - Student Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>🎓 Student Portal</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="feedback.html">Feedback</a></li>
+                <li><a href="grades.html" class="active">Grades</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="text-center">📊 Academic Grades</h1>
+        <p class="text-center mb-4">Track your academic performance across all enrolled courses</p>
+
+        <!-- Current Semester Grades -->
+        <section class="animate-fade-in">
+            <div class="grades-container">
+                <table>
+                    <caption>📚 Semester 5 - Academic Year 2024-25</caption>
+                    <thead>
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Credits</th>
+                            <th>Internal (30)</th>
+                            <th>External (70)</th>
+                            <th>Total (100)</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CS501</td>
+                            <td>Data Structures & Algorithms</td>
+                            <td>4</td>
+                            <td>28</td>
+                            <td>65</td>
+                            <td>93</td>
+                            <td class="grade-a">A+</td>
+                        </tr>
+                        <tr>
+                            <td>CS502</td>
+                            <td>Database Management Systems</td>
+                            <td>4</td>
+                            <td>27</td>
+                            <td>58</td>
+                            <td>85</td>
+                            <td class="grade-a">A</td>
+                        </tr>
+                        <tr>
+                            <td>CS503</td>
+                            <td>Web Technologies</td>
+                            <td>3</td>
+                            <td>29</td>
+                            <td>62</td>
+                            <td>91</td>
+                            <td class="grade-a">A+</td>
+                        </tr>
+                        <tr>
+                            <td>CS504</td>
+                            <td>Operating Systems</td>
+                            <td>4</td>
+                            <td>25</td>
+                            <td>53</td>
+                            <td>78</td>
+                            <td class="grade-b">B+</td>
+                        </tr>
+                        <tr>
+                            <td>CS505</td>
+                            <td>Computer Networks</td>
+                            <td>3</td>
+                            <td>26</td>
+                            <td>56</td>
+                            <td>82</td>
+                            <td class="grade-a">A</td>
+                        </tr>
+                        <tr>
+                            <td>CS506</td>
+                            <td>Software Engineering</td>
+                            <td>3</td>
+                            <td>28</td>
+                            <td>60</td>
+                            <td>88</td>
+                            <td class="grade-a">A</td>
+                        </tr>
+                        <tr>
+                            <td>HS501</td>
+                            <td>Professional Communication</td>
+                            <td>2</td>
+                            <td>24</td>
+                            <td>48</td>
+                            <td>72</td>
+                            <td class="grade-b">B</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Semester Summary -->
+        <section class="profile-section mt-4">
+            <h2>📈 Semester Summary</h2>
+            <ul>
+                <li><strong>Total Credits Earned:</strong> 23</li>
+                <li><strong>Semester GPA:</strong> 8.91</li>
+                <li><strong>Cumulative GPA (CGPA):</strong> 8.75</li>
+                <li><strong>Class Rank:</strong> 12 out of 120 students</li>
+                <li><strong>Attendance:</strong> 92%</li>
+            </ul>
+        </section>
+
+        <!-- Previous Semesters -->
+        <section class="mt-4">
+            <h2 class="text-center mb-3">📋 Previous Semester Performance</h2>
+            <div class="grades-container">
+                <table>
+                    <caption>Historical GPA Trend</caption>
+                    <thead>
+                        <tr>
+                            <th>Semester</th>
+                            <th>Year</th>
+                            <th>Credits</th>
+                            <th>SGPA</th>
+                            <th>CGPA</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Semester 1</td>
+                            <td>2022-23</td>
+                            <td>22</td>
+                            <td>8.45</td>
+                            <td>8.45</td>
+                            <td class="grade-a">Passed</td>
+                        </tr>
+                        <tr>
+                            <td>Semester 2</td>
+                            <td>2022-23</td>
+                            <td>23</td>
+                            <td>8.62</td>
+                            <td>8.54</td>
+                            <td class="grade-a">Passed</td>
+                        </tr>
+                        <tr>
+                            <td>Semester 3</td>
+                            <td>2023-24</td>
+                            <td>24</td>
+                            <td>8.78</td>
+                            <td>8.62</td>
+                            <td class="grade-a">Passed</td>
+                        </tr>
+                        <tr>
+                            <td>Semester 4</td>
+                            <td>2023-24</td>
+                            <td>24</td>
+                            <td>8.95</td>
+                            <td>8.70</td>
+                            <td class="grade-a">Passed</td>
+                        </tr>
+                        <tr>
+                            <td>Semester 5</td>
+                            <td>2024-25</td>
+                            <td>23</td>
+                            <td>8.91</td>
+                            <td>8.75</td>
+                            <td class="grade-b">In Progress</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Student Portal. All rights reserved. | Made with ❤️ for learners</p>
+    </footer>
+</body>
+
+</html>

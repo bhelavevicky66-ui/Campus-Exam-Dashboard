@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Share your feedback and help us improve the Student Portal experience">
+    <title>Feedback - Student Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>🎓 Student Portal</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="feedback.html" class="active">Feedback</a></li>
+                <li><a href="grades.html">Grades</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="text-center">📝 Share Your Feedback</h1>
+        <p class="text-center mb-4">We value your input! Help us improve your learning experience by sharing your
+            thoughts.</p>
+
+        <form class="feedback-form animate-fade-in" action="#" method="POST">
+            <!-- Personal Information -->
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="studentId">Student ID</label>
+                <input type="text" id="studentId" name="studentId" placeholder="e.g., CS2025001">
+            </div>
+
+            <!-- Feedback Category -->
+            <div class="form-group">
+                <label for="category">Feedback Category *</label>
+                <select id="category" name="category" required>
+                    <option value="">Select a category</option>
+                    <option value="courses">Course Content</option>
+                    <option value="website">Website Experience</option>
+                    <option value="faculty">Faculty & Teaching</option>
+                    <option value="facilities">Facilities</option>
+                    <option value="suggestions">General Suggestions</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <!-- Rating -->
+            <div class="form-group">
+                <label>Overall Experience Rating *</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="rating" value="5" required> ⭐⭐⭐⭐⭐ Excellent
+                    </label>
+                    <label>
+                        <input type="radio" name="rating" value="4"> ⭐⭐⭐⭐ Good
+                    </label>
+                    <label>
+                        <input type="radio" name="rating" value="3"> ⭐⭐⭐ Average
+                    </label>
+                    <label>
+                        <input type="radio" name="rating" value="2"> ⭐⭐ Below Average
+                    </label>
+                    <label>
+                        <input type="radio" name="rating" value="1"> ⭐ Poor
+                    </label>
+                </div>
+            </div>
+
+            <!-- Specific Course Feedback -->
+            <div class="form-group">
+                <label for="course">Which course is this feedback for? (Optional)</label>
+                <select id="course" name="course">
+                    <option value="">Select a course (if applicable)</option>
+                    <option value="html-css">HTML & CSS Fundamentals</option>
+                    <option value="javascript">JavaScript Programming</option>
+                    <option value="react">React.js Development</option>
+                    <option value="python">Python Programming</option>
+                    <option value="database">Database Management</option>
+                    <option value="fullstack">Full Stack Development</option>
+                </select>
+            </div>
+
+            <!-- Feedback Text -->
+            <div class="form-group">
+                <label for="feedback">Your Feedback *</label>
+                <textarea id="feedback" name="feedback"
+                    placeholder="Please share your detailed feedback, suggestions, or concerns..." required></textarea>
+            </div>
+
+            <!-- Additional Options -->
+            <div class="form-group">
+                <label>What areas would you like us to improve? (Select all that apply)</label>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" name="improvements" value="content"> Course Content
+                    </label>
+                    <label>
+                        <input type="checkbox" name="improvements" value="ui"> Website Design
+                    </label>
+                    <label>
+                        <input type="checkbox" name="improvements" value="support"> Student Support
+                    </label>
+                    <label>
+                        <input type="checkbox" name="improvements" value="resources"> Learning Resources
+                    </label>
+                </div>
+            </div>
+
+            <!-- Contact Preference -->
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="contactMe" value="yes">
+                    I would like to be contacted regarding my feedback
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">Submit Feedback</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Student Portal. All rights reserved. | Made with ❤️ for learners</p>
+    </footer>
+</body>
+
+</html>
