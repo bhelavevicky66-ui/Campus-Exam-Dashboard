@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { User } from 'firebase/auth';
 import {
     Home,
     Layers,
@@ -18,14 +19,18 @@ import {
     GitBranch,
     LayoutDashboard,
     Braces,
-    Palette
+    Palette,
+    LogOut
 } from 'lucide-react';
 
 interface DashboardProps {
     onStart: (moduleId: string) => void;
+    user?: User | null;
+    onLogout?: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout }) => {
+    const [showDropdown, setShowDropdown] = useState(false);
     return (
         <div className="flex w-full h-full bg-[#FAFBFF] text-slate-800 font-sans overflow-hidden">
 
@@ -153,15 +158,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                     <div className="flex items-center gap-6">
 
 
-                        <div className="flex items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                            <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+                        <div className="relative">
+                            <div
+                                onClick={() => setShowDropdown(!showDropdown)}
+                                className="flex items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+                                    <img
+                                        src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'User'}`}
+                                        alt="User"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="text-left">
+                                    <div className="text-xs font-bold text-[#11142D]">{user?.displayName || 'User'}</div>
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase">Premium Member</div>
+                                </div>
+                                <ChevronDown size={14} className={`text-slate-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
                             </div>
-                            <div className="text-left">
-                                <div className="text-xs font-bold text-[#11142D]">vicky bhelave</div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase">Premium Member</div>
-                            </div>
-                            <ChevronDown size={14} className="text-slate-400" />
+
+                            {/* Dropdown Menu */}
+                            {showDropdown && (
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
+                                    <div className="px-4 py-2 border-b border-slate-100">
+                                        <p className="text-xs text-slate-400">Signed in as</p>
+                                        <p className="text-sm font-medium text-slate-700 truncate">{user?.email}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setShowDropdown(false);
+                                            onLogout?.();
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                                    >
+                                        <LogOut size={16} />
+                                        Sign Out
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>

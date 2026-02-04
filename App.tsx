@@ -1,6 +1,9 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { auth } from './firebase';
 import { Layout } from './components/Layout';
+import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
 import { Intro } from './components/Intro';
 import { Quiz } from './components/Quiz';
@@ -22,6 +25,8 @@ import { Loader2 } from 'lucide-react';
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [state, setState] = useState<QuizState>(QuizState.DASHBOARD);
   const [userName, setUserName] = useState('');
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
@@ -30,6 +35,32 @@ const App: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const responsesRef = useRef<UserResponse[]>([]);
   const timerRef = useRef<number | null>(null);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+      if (currentUser) {
+        setUserName(currentUser.displayName || 'User');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLoginSuccess = () => {
+    // Auth state listener will handle the state update
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setState(QuizState.DASHBOARD);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   const finishQuiz = useCallback(async (finalResponses: UserResponse[]) => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -114,6 +145,23 @@ const App: React.FC = () => {
     ? MODULES[selectedModuleId as keyof typeof MODULES].questions
     : [];
 
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
+          <p className="text-purple-200">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <Layout>
       {isSubmitting ? (
@@ -129,7 +177,7 @@ const App: React.FC = () => {
         </div>
       ) : (
         <>
-          {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} />}
+          {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} user={user} onLogout={handleLogout} />}
           {state === QuizState.INTRO && <Intro onStart={handleStart} onBack={handleRestart} />}
           {state === QuizState.QUIZ && (
             <Quiz
