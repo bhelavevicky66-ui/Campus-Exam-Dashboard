@@ -125,9 +125,14 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
               </span>
             </div>
 
-            <div className="bg-slate-50/50 rounded-[2rem] p-6 md:p-10 border border-slate-100 flex items-center justify-center min-h-[160px] shadow-sm mb-8 relative group">
+            <div
+              className="bg-slate-50/50 rounded-[2rem] p-6 md:p-10 border border-slate-100 flex items-center justify-center min-h-[160px] shadow-sm mb-8 relative group no-select"
+              onContextMenu={(e) => e.preventDefault()}
+              onCopy={(e) => e.preventDefault()}
+              onCut={(e) => e.preventDefault()}
+            >
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-indigo-500 rounded-r-full"></div>
-              <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform">
+              <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform no-select">
                 {currentQuestion.question}
               </h2>
             </div>
@@ -277,6 +282,14 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        /* Anti-copy protection */
+        .no-select {
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+          -webkit-touch-callout: none;
         }
       `}</style>
     </div>

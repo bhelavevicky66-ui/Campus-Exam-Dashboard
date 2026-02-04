@@ -57,11 +57,12 @@ export const MODULE_1_NEW_QUESTIONS: Question[] = [
   { id: 109, question: "(72 ÷ 6 + 4) × 5 − 10", type: 'number', category: 'BODMAS', placeholder: 'Result' },
   { id: 110, question: "120 ÷ {3 × (4 + 6)}", type: 'number', category: 'BODMAS', placeholder: 'Result' },
 
-  // 🟦 Number Types – 4 Questions
+  // 🟦 Number Types – 5 Questions
   { id: 111, question: "Check whether 51 is prime or composite", type: 'text', category: 'Number Types', placeholder: 'Prime or Composite' },
   { id: 112, question: "Write three odd numbers between 20 and 30", type: 'text', category: 'Number Types', placeholder: 'e.g. 21, 23, 25' },
   { id: 113, question: "Is 0 a natural number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No' },
   { id: 114, question: "Find how many prime numbers are there between 1 and 50", type: 'number', category: 'Number Types', placeholder: 'Count' },
+  { id: 130, question: "What is the smallest even prime number?", type: 'number', category: 'Number Types', placeholder: 'Result' },
 
   // 🟦 Long Division – 5 Questions
   { id: 115, question: "864 ÷ 12", type: 'number', category: 'Long Division', placeholder: 'Result' },
@@ -103,7 +104,7 @@ export const MODULES = {
   'module-1': {
     title: 'Module 1 Test',
     questions: MODULE_1_QUESTIONS,
-    time: 1800 // 30 mins for 29 questions
+    time: 3600 // 1 hour for 30 questions
   }
 };
 
@@ -182,5 +183,8 @@ export const CORRECT_ANSWERS: Record<number, string> = {
   126: "13",    // y − 7 = 2y − 20 → -y = -13 → y = 13
   127: "5a",    // 4a + 3a − 2a = 5a
   128: "0",     // 2(x − 3) + 4 = 3x − 2 → 2x - 6 + 4 = 3x - 2 → 2x - 2 = 3x - 2 → x = 0
-  129: "4"      // 5x − 2 = 3x + 6 → 2x = 8 → x = 4
+  129: "4",     // 5x − 2 = 3x + 6 → 2x = 8 → x = 4
+
+  // Additional Number Types Answer
+  130: "2"      // Smallest even prime number = 2
 };
