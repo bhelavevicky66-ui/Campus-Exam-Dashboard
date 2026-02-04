@@ -43,9 +43,51 @@ export const MATH_QUESTIONS: Question[] = [
   { id: 30, question: "If x = 4, find: 2x² − 3x", type: 'number', category: 'Basic Algebra', placeholder: 'Result' }
 ];
 
+// ============= MODULE 1 NEW QUESTIONS =============
+export const MODULE_1_NEW_QUESTIONS: Question[] = [
+  // 🟦 BODMAS – 10 Questions
+  { id: 101, question: "18 + 6 × 4 − 8", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 102, question: "(20 − 5) × 3 ÷ 5", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 103, question: "36 ÷ 6 + 7 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 104, question: "50 − 30 ÷ 5 + 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 105, question: "(12 + 8) ÷ 4 × 3", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 106, question: "60 ÷ (5 + 5) × (8 − 2)", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 107, question: "(45 − 15) ÷ 3 + 6 × 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 108, question: "100 − (20 ÷ 5) × (6 + 4)", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 109, question: "(72 ÷ 6 + 4) × 5 − 10", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  { id: 110, question: "120 ÷ {3 × (4 + 6)}", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+
+  // 🟦 Number Types – 4 Questions
+  { id: 111, question: "Check whether 51 is prime or composite", type: 'text', category: 'Number Types', placeholder: 'Prime or Composite' },
+  { id: 112, question: "Write three odd numbers between 20 and 30", type: 'text', category: 'Number Types', placeholder: 'e.g. 21, 23, 25' },
+  { id: 113, question: "Is 0 a natural number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No' },
+  { id: 114, question: "Find how many prime numbers are there between 1 and 50", type: 'number', category: 'Number Types', placeholder: 'Count' },
+
+  // 🟦 Long Division – 5 Questions
+  { id: 115, question: "864 ÷ 12", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  { id: 116, question: "4.8 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  { id: 117, question: "625 ÷ 25", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  { id: 118, question: "7.5 ÷ 0.25", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  { id: 119, question: "18 ÷ 0.6", type: 'number', category: 'Long Division', placeholder: 'Result' },
+
+  // 🟦 HCF & LCM – 5 Questions
+  { id: 120, question: "Find HCF of 18 and 24", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+  { id: 121, question: "Find LCM of 6 and 14", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+  { id: 122, question: "Find HCF of 20 and 30", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+  { id: 123, question: "Find HCF and LCM of 24, 36, and 60 (Write as HCF, LCM)", type: 'text', category: 'HCF and LCM', placeholder: 'e.g. 12, 360' },
+  { id: 124, question: "Two numbers have HCF = 12 and LCM = 180. If one number is 36, find the other number", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+
+  // 🟦 Basic Algebra – 5 Questions
+  { id: 125, question: "Find x: 3x + 5 = 20", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
+  { id: 126, question: "Find y: y − 7 = 2y − 20", type: 'number', category: 'Basic Algebra', placeholder: 'y = ?' },
+  { id: 127, question: "Simplify: 4a + 3a − 2a", type: 'text', category: 'Basic Algebra', placeholder: 'Result (e.g. 5a)' },
+  { id: 128, question: "Find x: 2(x − 3) + 4 = 3x − 2", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
+  { id: 129, question: "If 5x − 2 = 3x + 6, find the value of x", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' }
+];
+
 export const SCREEN_TEST_QUESTIONS: Question[] = MATH_QUESTIONS.slice(0, 10);
 export const MODULE_0_QUESTIONS: Question[] = MATH_QUESTIONS.slice(10, 20);
-export const MODULE_1_QUESTIONS: Question[] = MATH_QUESTIONS.slice(20, 30);
+export const MODULE_1_QUESTIONS: Question[] = MODULE_1_NEW_QUESTIONS; // New questions for Module 1
 
 export const MODULES = {
   'screen-test': {
@@ -61,13 +103,14 @@ export const MODULES = {
   'module-1': {
     title: 'Module 1 Test',
     questions: MODULE_1_QUESTIONS,
-    time: 1200
+    time: 1800 // 30 mins for 29 questions
   }
 };
 
 export const ALL_QUESTIONS = MATH_QUESTIONS; // Keep for backward compatibility if needed
 
 export const CORRECT_ANSWERS: Record<number, string> = {
+  // Original Screen Test Answers
   1: "14",
   2: "11",
   3: "4",
@@ -78,6 +121,8 @@ export const CORRECT_ANSWERS: Record<number, string> = {
   8: "34",
   9: "25",
   10: "62",
+
+  // Original Module 0 Answers
   11: "even",
   12: "yes",
   13: "11, 13, 17, 19, 23",
@@ -97,5 +142,45 @@ export const CORRECT_ANSWERS: Record<number, string> = {
   27: "5",
   28: "6",
   29: "5",
-  30: "20"
+  30: "20",
+
+  // ============= MODULE 1 NEW ANSWERS =============
+  // BODMAS Answers
+  101: "34",    // 18 + 6 × 4 − 8 = 18 + 24 - 8 = 34
+  102: "9",     // (20 − 5) × 3 ÷ 5 = 15 × 3 ÷ 5 = 45 ÷ 5 = 9
+  103: "20",    // 36 ÷ 6 + 7 × 2 = 6 + 14 = 20
+  104: "48",    // 50 − 30 ÷ 5 + 4 = 50 - 6 + 4 = 48
+  105: "15",    // (12 + 8) ÷ 4 × 3 = 20 ÷ 4 × 3 = 5 × 3 = 15
+  106: "36",    // 60 ÷ (5 + 5) × (8 − 2) = 60 ÷ 10 × 6 = 6 × 6 = 36
+  107: "34",    // (45 − 15) ÷ 3 + 6 × 4 = 30 ÷ 3 + 24 = 10 + 24 = 34
+  108: "60",    // 100 − (20 ÷ 5) × (6 + 4) = 100 - 4 × 10 = 100 - 40 = 60
+  109: "70",    // (72 ÷ 6 + 4) × 5 − 10 = (12 + 4) × 5 - 10 = 16 × 5 - 10 = 80 - 10 = 70
+  110: "4",     // 120 ÷ {3 × (4 + 6)} = 120 ÷ (3 × 10) = 120 ÷ 30 = 4
+
+  // Number Types Answers
+  111: "composite",
+  112: "21, 23, 25",
+  113: "no",
+  114: "15",    // Primes between 1-50: 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47 = 15
+
+  // Long Division Answers
+  115: "72",    // 864 ÷ 12 = 72
+  116: "0.8",   // 4.8 ÷ 6 = 0.8
+  117: "25",    // 625 ÷ 25 = 25
+  118: "30",    // 7.5 ÷ 0.25 = 30
+  119: "30",    // 18 ÷ 0.6 = 30
+
+  // HCF & LCM Answers
+  120: "6",     // HCF of 18 and 24 = 6
+  121: "42",    // LCM of 6 and 14 = 42
+  122: "10",    // HCF of 20 and 30 = 10
+  123: "12, 360", // HCF = 12, LCM = 360 for 24, 36, 60
+  124: "60",    // HCF × LCM = Product → 12 × 180 = 36 × x → x = 2160/36 = 60
+
+  // Basic Algebra Answers
+  125: "5",     // 3x + 5 = 20 → 3x = 15 → x = 5
+  126: "13",    // y − 7 = 2y − 20 → -y = -13 → y = 13
+  127: "5a",    // 4a + 3a − 2a = 5a
+  128: "0",     // 2(x − 3) + 4 = 3x − 2 → 2x - 6 + 4 = 3x - 2 → 2x - 2 = 3x - 2 → x = 0
+  129: "4"      // 5x − 2 = 3x + 6 → 2x = 8 → x = 4
 };

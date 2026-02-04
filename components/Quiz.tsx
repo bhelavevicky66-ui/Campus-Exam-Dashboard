@@ -213,18 +213,19 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
 
         <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-slate-50/20">
           <div className="space-y-6">
-            {(Object.entries(categories) as [string, Question[]][]).map(([categoryName, questions]) => (
+            {(Object.entries(categories) as [string, Question[]][]).map(([categoryName, categoryQuestions]) => (
               <div key={categoryName} className="space-y-2.5">
                 <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">{categoryName}</h4>
                 <div className="grid grid-cols-5 gap-1.5">
-                  {questions.map((q) => {
-                    const idx = questions.findIndex(item => item.id === q.id);
-                    const isCurrent = idx === currentIndex;
+                  {categoryQuestions.map((q, qIndex) => {
+                    // Find the global index of this question in the main questions array
+                    const globalIdx = questions.findIndex(item => item.id === q.id);
+                    const isCurrent = globalIdx === currentIndex;
                     const isAnswered = allAnswers[q.id] && allAnswers[q.id].trim() !== '';
                     return (
                       <button
                         key={q.id}
-                        onClick={() => handleNavigate(idx)}
+                        onClick={() => handleNavigate(globalIdx)}
                         className={`w-full aspect-square rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center border
                           ${isCurrent
                             ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 z-10 scale-105'
@@ -232,7 +233,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
                               ? 'bg-green-50 border-green-200 text-green-600'
                               : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-300'}`}
                       >
-                        {idx + 1}
+                        {qIndex + 1}
                       </button>
                     );
                   })}

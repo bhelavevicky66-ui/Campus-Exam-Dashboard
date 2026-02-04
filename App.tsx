@@ -17,6 +17,7 @@ import { Phase7 } from './components/Phase7';
 import { PhaseDashboard } from './components/PhaseDashboard';
 import { NavGurukul } from './components/NavGurukul';
 import { AdminPanel } from './components/AdminPanel';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
 import { MODULES } from './constants';
@@ -33,6 +34,7 @@ const AppContent: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const responsesRef = useRef<UserResponse[]>([]);
   const timerRef = useRef<number | null>(null);
 
@@ -151,6 +153,16 @@ const AppContent: React.FC = () => {
   // Show login if not authenticated
   if (!user) {
     return <Login onLoginSuccess={() => { }} />;
+  }
+
+  // Show Welcome Screen after login
+  if (showWelcome) {
+    return (
+      <WelcomeScreen
+        userName={user?.displayName || 'User'}
+        onComplete={() => setShowWelcome(false)}
+      />
+    );
   }
 
   // Show Admin Panel
