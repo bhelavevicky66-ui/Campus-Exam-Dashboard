@@ -32,11 +32,15 @@ export const Result: React.FC<ResultProps> = ({ userName, result, onRestart }) =
       </div>
 
       <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2 font-montserrat">
-        Great Job, {userName}!
+        {result.correctCount >= 18 ? `Great Job, ${userName}! 🎉` : `Keep Trying, ${userName}! 💪`}
       </h2>
-      <p className="text-slate-500 mb-8 text-lg font-medium">{getMotivationalMessage(result.score)}</p>
+      <p className="text-slate-500 mb-8 text-lg font-medium">
+        {result.correctCount >= 18
+          ? getMotivationalMessage(result.score)
+          : "Don't give up! Practice makes perfect."}
+      </p>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-indigo-50 p-5 rounded-3xl border border-indigo-100 hover:shadow-md transition-shadow">
           <div className="text-3xl font-black text-indigo-600">{Math.round(result.score)}%</div>
           <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Accuracy</div>
@@ -58,6 +62,40 @@ export const Result: React.FC<ResultProps> = ({ userName, result, onRestart }) =
             <div className="text-xl font-black text-blue-600">{result.timeTaken}</div>
           </div>
           <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Duration</div>
+        </div>
+      </div>
+
+      {/* Pass/Fail Status */}
+      <div className={`mb-8 p-6 rounded-3xl border-2 ${result.correctCount >= 18
+        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+        : 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'}`}>
+        <div className="flex items-center justify-center gap-4">
+          {result.correctCount >= 18 ? (
+            <>
+              <div className="p-3 bg-green-500 rounded-full">
+                <CheckCircle2 size={32} className="text-white" />
+              </div>
+              <div>
+                <div className="text-4xl font-black text-green-600">PASS ✅</div>
+                <div className="text-sm text-green-600/70 font-medium">Congratulations! You passed the test!</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-3 bg-red-500 rounded-full">
+                <XCircle size={32} className="text-white" />
+              </div>
+              <div>
+                <div className="text-4xl font-black text-red-600">FAIL ❌</div>
+                <div className="text-sm text-red-600/70 font-medium">You need 18+ correct answers to pass. Keep practicing!</div>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="mt-4 text-center">
+          <span className={`text-sm font-bold ${result.correctCount >= 18 ? 'text-green-600' : 'text-red-600'}`}>
+            Passing criteria: 18/{result.correctCount + result.wrongCount} correct answers (60%)
+          </span>
         </div>
       </div>
 
