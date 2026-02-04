@@ -36,6 +36,21 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, role = 'user' }) => {
     const [showDropdown, setShowDropdown] = useState(false);
+
+    // Get greeting based on current time
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) {
+            return 'Good Morning! ☀️';
+        } else if (hour >= 12 && hour < 17) {
+            return 'Good Afternoon! 🌤️';
+        } else if (hour >= 17 && hour < 21) {
+            return 'Good Evening! 🌅';
+        } else {
+            return 'Good Night! 🌙';
+        }
+    };
+
     return (
         <div className="flex w-full h-full bg-[#FAFBFF] text-slate-800 font-sans overflow-hidden">
 
@@ -226,7 +241,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, r
 
                         <div className="relative z-10 flex items-center justify-between">
                             <div className="max-w-xl">
-                                <h2 className="text-4xl font-bold mb-4">Good Evening, Achiever!</h2>
+                                <p className="text-indigo-200 text-lg mb-1">Hello 👋</p>
+                                <h2 className="text-4xl font-bold mb-2">{user?.displayName || 'User'}</h2>
+                                <p className="text-2xl font-semibold text-indigo-100 mb-6">{getGreeting()}</p>
                                 <p className="text-indigo-100 text-lg mb-8 leading-relaxed opacity-90">
                                     Your overall completion rate is <strong className="text-white underline decoration-wavy underline-offset-4 decoration-purple-300">72%</strong>.
                                     Keep up the momentum!
