@@ -12,6 +12,8 @@ import { Phase4 } from './components/Phase4';
 import { Phase5 } from './components/Phase5';
 import { Phase6 } from './components/Phase6';
 import { Phase7 } from './components/Phase7';
+import { PhaseDashboard } from './components/PhaseDashboard';
+import { NavGurukul } from './components/NavGurukul';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
 import { MODULES } from './constants';
@@ -62,6 +64,10 @@ const App: React.FC = () => {
       setState(QuizState.PHASE6);
     } else if (moduleId === 'module-11') {
       setState(QuizState.PHASE7);
+    } else if (moduleId === 'phase-dashboard') {
+      setState(QuizState.PHASE_DASHBOARD);
+    } else if (moduleId === 'navgurukul-names') {
+      setState(QuizState.NAVGURUKUL);
     } else {
       setState(QuizState.INTRO);
     }
@@ -156,6 +162,12 @@ const App: React.FC = () => {
           )}
           {state === QuizState.PHASE7 && (
             <Phase7 onBack={handleRestart} />
+          )}
+          {state === QuizState.PHASE_DASHBOARD && (
+            <PhaseDashboard onBack={handleRestart} onPhaseClick={handleDashboardStart} />
+          )}
+          {state === QuizState.NAVGURUKUL && (
+            <NavGurukul onBack={handleRestart} />
           )}
         </>
       )}

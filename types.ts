@@ -10,7 +10,9 @@ export enum QuizState {
   PHASE4 = 'PHASE4',
   PHASE5 = 'PHASE5',
   PHASE6 = 'PHASE6',
-  PHASE7 = 'PHASE7'
+  PHASE7 = 'PHASE7',
+  PHASE_DASHBOARD = 'PHASE_DASHBOARD',
+  NAVGURUKUL = 'NAVGURUKUL'
 }
 
 export interface Question {

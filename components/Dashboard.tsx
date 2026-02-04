@@ -83,7 +83,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart }) => {
                         <span>Flowchart</span>
                     </button>
 
-                    <button onClick={() => onStart('practice-questions')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
+                    <button onClick={() => onStart('phase-dashboard')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
                         <div className="p-2 bg-purple-50 text-purple-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
                             <LayoutDashboard size={18} />
                         </div>
