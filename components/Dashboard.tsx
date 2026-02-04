@@ -20,16 +20,21 @@ import {
     LayoutDashboard,
     Braces,
     Palette,
-    LogOut
+    LogOut,
+    Crown,
+    Shield,
+    UserCircle
 } from 'lucide-react';
+import { UserRole } from '../roles';
 
 interface DashboardProps {
     onStart: (moduleId: string) => void;
     user?: User | null;
     onLogout?: () => void;
+    role?: UserRole;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, role = 'user' }) => {
     const [showDropdown, setShowDropdown] = useState(false);
     return (
         <div className="flex w-full h-full bg-[#FAFBFF] text-slate-800 font-sans overflow-hidden">
@@ -50,6 +55,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         <Home size={20} />
                         <span>Home Dashboard</span>
                     </a>
+
+                    {/* Admin Panel - Only for Super Admin */}
+                    {role === 'superadmin' && (
+                        <button onClick={() => onStart('admin-panel')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-yellow-50 hover:text-yellow-600 font-bold transition-colors group text-left">
+                            <div className="p-2 bg-yellow-50 text-yellow-500 rounded-lg group-hover:bg-yellow-500 group-hover:text-white transition-colors">
+                                <Crown size={18} />
+                            </div>
+                            <span>Admin Panel</span>
+                        </button>
+                    )}
 
                     <button onClick={() => onStart('navgurukul-names')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
                         <div className="p-2 bg-teal-50 text-teal-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
@@ -339,6 +354,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
 
                 </div>
             </main>
-        </div>
+        </div >
     );
 };

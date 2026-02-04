@@ -1,7 +1,6 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { auth } from './firebase';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
@@ -17,6 +16,7 @@ import { Phase6 } from './components/Phase6';
 import { Phase7 } from './components/Phase7';
 import { PhaseDashboard } from './components/PhaseDashboard';
 import { NavGurukul } from './components/NavGurukul';
+import { AdminPanel } from './components/AdminPanel';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
 import { MODULES } from './constants';
@@ -24,43 +24,24 @@ import { Loader2 } from 'lucide-react';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
-const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+const AppContent: React.FC = () => {
+  const { user, loading, role, logout } = useAuth();
   const [state, setState] = useState<QuizState>(QuizState.DASHBOARD);
   const [userName, setUserName] = useState('');
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const responsesRef = useRef<UserResponse[]>([]);
   const timerRef = useRef<number | null>(null);
 
-  // Listen for auth state changes
+  // Set username from user when logged in
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-      if (currentUser) {
-        setUserName(currentUser.displayName || 'User');
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLoginSuccess = () => {
-    // Auth state listener will handle the state update
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setState(QuizState.DASHBOARD);
-    } catch (error) {
-      console.error('Logout error:', error);
+    if (user?.displayName) {
+      setUserName(user.displayName);
     }
-  };
+  }, [user]);
 
   const finishQuiz = useCallback(async (finalResponses: UserResponse[]) => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -81,6 +62,10 @@ const App: React.FC = () => {
 
   const handleDashboardStart = (moduleId: string) => {
     setSelectedModuleId(moduleId);
+    if (moduleId === 'admin-panel') {
+      setShowAdminPanel(true);
+      return;
+    }
     if (moduleId === 'module-5') {
       setState(QuizState.PHASE1);
     } else if (moduleId === 'module-6') {
@@ -131,6 +116,12 @@ const App: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setQuizResult(null);
     setSelectedModuleId(null);
+    setShowAdminPanel(false);
+    setState(QuizState.DASHBOARD);
+  };
+
+  const handleLogout = async () => {
+    await logout();
     setState(QuizState.DASHBOARD);
   };
 
@@ -146,7 +137,7 @@ const App: React.FC = () => {
     : [];
 
   // Show loading while checking auth state
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
         <div className="text-center">
@@ -159,7 +150,12 @@ const App: React.FC = () => {
 
   // Show login if not authenticated
   if (!user) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    return <Login onLoginSuccess={() => { }} />;
+  }
+
+  // Show Admin Panel
+  if (showAdminPanel) {
+    return <AdminPanel onBack={handleRestart} />;
   }
 
   return (
@@ -177,7 +173,7 @@ const App: React.FC = () => {
         </div>
       ) : (
         <>
-          {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} user={user} onLogout={handleLogout} />}
+          {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} user={user} onLogout={handleLogout} role={role} />}
           {state === QuizState.INTRO && <Intro onStart={handleStart} onBack={handleRestart} />}
           {state === QuizState.QUIZ && (
             <Quiz
@@ -220,6 +216,14 @@ const App: React.FC = () => {
         </>
       )}
     </Layout>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

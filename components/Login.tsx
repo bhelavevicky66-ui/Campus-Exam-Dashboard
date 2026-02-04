@@ -39,12 +39,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-10 border border-white/20 shadow-2xl">
 
                     {/* Logo */}
-                    <div className="flex justify-center mb-8">
+                    <div className="flex flex-col items-center mb-8">
                         <img
                             src="/navgurukul-logo.png"
                             alt="NavGurukul"
-                            className="h-16 object-contain filter brightness-0 invert"
+                            className="h-20 object-contain mb-4"
                         />
+                        <h2 className="text-2xl font-bold text-white tracking-wide">NavGurukul</h2>
+                        <p className="text-purple-300/60 text-sm mt-1">Test Dashboard</p>
                     </div>
 
                     {/* Title */}

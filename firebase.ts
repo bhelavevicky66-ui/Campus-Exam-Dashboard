@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,5 +20,63 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// Initialize Firestore
+export const db = getFirestore(app);
+
+// Admin management functions
+const ADMINS_DOC = 'config/admins';
+
+// Get list of admin emails from Firestore
+export const getAdminEmails = async (): Promise<string[]> => {
+    try {
+        const docRef = doc(db, ADMINS_DOC);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return docSnap.data().emails || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error getting admin emails:', error);
+        return [];
+    }
+};
+
+// Add an admin email to Firestore
+export const addAdminEmail = async (email: string): Promise<boolean> => {
+    try {
+        const docRef = doc(db, ADMINS_DOC);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            await updateDoc(docRef, {
+                emails: arrayUnion(email.toLowerCase())
+            });
+        } else {
+            await setDoc(docRef, {
+                emails: [email.toLowerCase()]
+            });
+        }
+        return true;
+    } catch (error) {
+        console.error('Error adding admin email:', error);
+        return false;
+    }
+};
+
+// Remove an admin email from Firestore
+export const removeAdminEmail = async (email: string): Promise<boolean> => {
+    try {
+        const docRef = doc(db, ADMINS_DOC);
+        await updateDoc(docRef, {
+            emails: arrayRemove(email.toLowerCase())
+        });
+        return true;
+    } catch (error) {
+        console.error('Error removing admin email:', error);
+        return false;
+    }
+};
 
 export default app;
