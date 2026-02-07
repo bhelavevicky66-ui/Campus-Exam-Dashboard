@@ -4,23 +4,27 @@
 
 /* Custom Scrollbar Styles */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     /* slate-300 */
     border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-    /* slate-400 */
+    background: #e2e8f0;
+    /* slate-200 */
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 /* Ensure body doesn't invoke native scroll if app handles it */

@@ -89,7 +89,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto custom-scrollbar">
+        <div className="h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto custom-scrollbar">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-[#0f0c29]/90 backdrop-blur-lg border-b border-white/10 shadow-xl">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -122,8 +122,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                     <button
                         onClick={() => setActiveTab('questions')}
                         className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'questions'
-                                ? 'border-green-400 text-green-400'
-                                : 'border-transparent text-slate-400 hover:text-white'
+                            ? 'border-green-400 text-green-400'
+                            : 'border-transparent text-slate-400 hover:text-white'
                             }`}
                     >
                         <div className="flex items-center gap-2">
@@ -136,8 +136,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         <button
                             onClick={() => setActiveTab('admins')}
                             className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'admins'
-                                    ? 'border-purple-400 text-purple-400'
-                                    : 'border-transparent text-slate-400 hover:text-white'
+                                ? 'border-purple-400 text-purple-400'
+                                : 'border-transparent text-slate-400 hover:text-white'
                                 }`}
                         >
                             <div className="flex items-center gap-2">

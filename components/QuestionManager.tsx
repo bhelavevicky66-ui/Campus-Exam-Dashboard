@@ -12,6 +12,7 @@ export const QuestionManager: React.FC = () => {
     const [isBulk, setIsBulk] = useState(false);
     const [bulkText, setBulkText] = useState('');
     const [isAdding, setIsAdding] = useState(false);
+    const [selectedModule, setSelectedModule] = useState<string | 'all'>('all');
 
     // Form State
     const [questionText, setQuestionText] = useState('');
@@ -189,8 +190,102 @@ export const QuestionManager: React.FC = () => {
         }
     };
 
+    // Filter questions by selected module
+    const filteredQuestions = selectedModule === 'all'
+        ? questions
+        : questions.filter(q => {
+            // Handle both dynamic questions (with moduleId) and static questions (check against MODULES)
+            if (typeof q.id === 'string') {
+                return q.moduleId === selectedModule;
+            } else {
+                // For static questions, check which module contains this question
+                const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
+                    module.questions?.some(mq => mq.id === q.id)
+                );
+                return moduleEntry?.[0] === selectedModule;
+            }
+        });
+
+    const moduleStats = {
+        'screen-test': questions.filter(q => {
+            if (typeof q.id === 'string') return q.moduleId === 'screen-test';
+            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
+                module.questions?.some(mq => mq.id === q.id)
+            );
+            return moduleEntry?.[0] === 'screen-test';
+        }).length,
+        'module-0': questions.filter(q => {
+            if (typeof q.id === 'string') return q.moduleId === 'module-0';
+            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
+                module.questions?.some(mq => mq.id === q.id)
+            );
+            return moduleEntry?.[0] === 'module-0';
+        }).length,
+        'module-1': questions.filter(q => {
+            if (typeof q.id === 'string') return q.moduleId === 'module-1';
+            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
+                module.questions?.some(mq => mq.id === q.id)
+            );
+            return moduleEntry?.[0] === 'module-1';
+        }).length,
+    };
+
     return (
         <div className="space-y-8">
+            {/* Module Filter Cards */}
+            <div className="grid grid-cols-3 gap-4">
+                <button
+                    onClick={() => setSelectedModule('screen-test')}
+                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'screen-test'
+                            ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-blue-500/50'
+                        }`}
+                >
+                    <div className="text-center">
+                        <h3 className="text-lg font-bold text-white mb-1">Screening Test</h3>
+                        <p className="text-3xl font-black text-blue-400">{moduleStats['screen-test']}</p>
+                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
+                    </div>
+                </button>
+
+                <button
+                    onClick={() => setSelectedModule('module-0')}
+                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-0'
+                            ? 'bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-orange-500/50'
+                        }`}
+                >
+                    <div className="text-center">
+                        <h3 className="text-lg font-bold text-white mb-1">Module 0</h3>
+                        <p className="text-3xl font-black text-orange-400">{moduleStats['module-0']}</p>
+                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
+                    </div>
+                </button>
+
+                <button
+                    onClick={() => setSelectedModule('module-1')}
+                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-1'
+                            ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-emerald-500/50'
+                        }`}
+                >
+                    <div className="text-center">
+                        <h3 className="text-lg font-bold text-white mb-1">Module 1</h3>
+                        <p className="text-3xl font-black text-emerald-400">{moduleStats['module-1']}</p>
+                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
+                    </div>
+                </button>
+            </div>
+
+            {/* Show All Button */}
+            {selectedModule !== 'all' && (
+                <button
+                    onClick={() => setSelectedModule('all')}
+                    className="w-full py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl font-semibold text-purple-300 transition-colors"
+                >
+                    Show All Questions ({questions.length})
+                </button>
+            )}
             {/* Toggle Add Method */}
             <div className="flex gap-4 mb-6">
                 <button
@@ -329,7 +424,11 @@ A: Paris`}
             <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                     <FileQuestion size={22} className="text-blue-400" />
-                    Existing Questions ({questions.length})
+                    {selectedModule === 'all' ? 'All Questions' :
+                        selectedModule === 'screen-test' ? 'Screening Test Questions' :
+                            selectedModule === 'module-0' ? 'Module 0 Questions' :
+                                'Module 1 Questions'
+                    } ({filteredQuestions.length})
                 </h3>
 
                 {loading ? (
@@ -337,14 +436,14 @@ A: Paris`}
                         <Loader2 size={32} className="animate-spin mx-auto mb-2" />
                         <p>Loading questions...</p>
                     </div>
-                ) : questions.length === 0 ? (
+                ) : filteredQuestions.length === 0 ? (
                     <div className="text-center py-8 text-purple-300/50">
                         <FileQuestion size={48} className="mx-auto mb-3 opacity-50" />
-                        <p>No custom questions added yet.</p>
+                        <p>{selectedModule === 'all' ? 'No questions added yet.' : 'No questions in this module.'}</p>
                     </div>
                 ) : (
-                    <div className="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-                        {questions.map((q) => (
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                        {filteredQuestions.map((q) => (
                             <div key={q.id} className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="flex-1">
