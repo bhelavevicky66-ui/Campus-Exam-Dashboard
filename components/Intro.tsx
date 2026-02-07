@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, Clock, Award, Play, ChevronLeft } from 'lucide-react';
 import { OTPModal } from './OTPModal';
 import { createOTP, verifyOTP } from '../services/otpService';
-import { sendOTPEmail, getAdminEmail } from '../services/emailService';
+import { sendOTPEmail, getStandardAdminEmails } from '../services/emailService';
 import { useAuth } from '../contexts/AuthContext';
 
 interface IntroProps {
@@ -14,25 +14,44 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
   const { user } = useAuth();
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sessionId, setSessionId] = useState('');
-  const adminEmail = getAdminEmail();
+  const [isSending, setIsSending] = useState(false);
+  const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
 
   const handleStartClick = async () => {
     // Generate unique session ID
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     setSessionId(newSessionId);
 
+    setIsSending(true);
     try {
-      // Generate OTP
-      const otp = await createOTP(adminEmail, newSessionId);
+      // Get all standard admins
+      const standardAdmins = await getStandardAdminEmails();
+      setRecipientEmails(standardAdmins.length > 0 ? standardAdmins : ['admin@navgurukul.org']);
 
-      // Send OTP to admin email (simulated)
-      await sendOTPEmail(adminEmail, otp, user?.displayName || 'User');
+      // Use the first admin as the primary recipient for session tracking, 
+      // or a placeholder if no admins exist yet
+      const primaryAdmin = standardAdmins.length > 0 ? standardAdmins[0] : 'admin-required';
+
+      // Generate OTP
+      const otp = await createOTP(primaryAdmin, newSessionId);
+
+      // Send OTP to ALL standard admins found
+      if (standardAdmins.length > 0) {
+        await Promise.all(standardAdmins.map(email =>
+          sendOTPEmail(email, otp, user?.displayName || 'User')
+        ));
+      } else {
+        // Log simulation if no real admins yet
+        await sendOTPEmail('simulated-admin@navgurukul.org', otp, user?.displayName || 'User');
+      }
 
       // Show OTP modal
       setShowOTPModal(true);
     } catch (error) {
       console.error('Error generating OTP:', error);
       alert('Failed to generate OTP. Please try again.');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -56,11 +75,21 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
   const handleResendOTP = async (): Promise<void> => {
     try {
-      // Generate new OTP with same session ID
-      const otp = await createOTP(adminEmail, sessionId);
+      // Get standard admins and resend
+      const standardAdmins = await getStandardAdminEmails();
+      const primaryAdmin = standardAdmins.length > 0 ? standardAdmins[0] : 'admin-required';
 
-      // Send new OTP
-      await sendOTPEmail(adminEmail, otp, user?.displayName || 'User');
+      // Generate new OTP with same session ID
+      const otp = await createOTP(primaryAdmin, sessionId);
+
+      // Send new OTP to all admins
+      if (standardAdmins.length > 0) {
+        await Promise.all(standardAdmins.map(email =>
+          sendOTPEmail(email, otp, user?.displayName || 'User')
+        ));
+      } else {
+        await sendOTPEmail('simulated-admin@navgurukul.org', otp, user?.displayName || 'User');
+      }
     } catch (error) {
       console.error('Error resending OTP:', error);
       throw error;
@@ -193,10 +222,20 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
           <button
             onClick={handleStartClick}
-            className="relative z-10 bg-white text-[#6C5DD3] px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg shadow-indigo-900/20 hover:shadow-xl active:scale-95 whitespace-nowrap"
+            disabled={isSending}
+            className="relative z-10 bg-white text-[#6C5DD3] px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg shadow-indigo-900/20 hover:shadow-xl active:scale-95 whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Start Test
-            <Play fill="currentColor" size={16} />
+            {isSending ? (
+              <>
+                Sending OTP...
+                <div className="w-4 h-4 border-2 border-[#6C5DD3]/30 border-t-[#6C5DD3] rounded-full animate-spin"></div>
+              </>
+            ) : (
+              <>
+                Start Test
+                <Play fill="currentColor" size={16} />
+              </>
+            )}
           </button>
         </div>
 
@@ -207,7 +246,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
         isOpen={showOTPModal}
         onVerify={handleVerifyOTP}
         onResend={handleResendOTP}
-        adminEmail={adminEmail}
+        adminEmail={recipientEmails.join(', ')}
       />
     </div>
   );

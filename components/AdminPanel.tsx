@@ -1,17 +1,270 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search } from 'lucide-react';
+import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search, Clock, Mail, Settings, Save, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SUPER_ADMIN_EMAILS } from '../roles';
 import { QuestionManager } from './QuestionManager';
 import { getAllLoggedUsers, LoggedUser } from '../services/loggedUsersService';
+import { collection, query, orderBy, limit, onSnapshot, getDoc, doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { EmailLog } from '../services/emailService';
 
 interface AdminPanelProps {
     onBack: () => void;
 }
 
+const OTPLogViewer: React.FC = () => {
+    const [logs, setLogs] = useState<EmailLog[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const q = query(
+            collection(db, 'email_logs'),
+            orderBy('sentAt', 'desc'),
+            limit(20)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const newLogs = snapshot.docs.map(doc => doc.data() as EmailLog);
+            setLogs(newLogs);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching OTP logs:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const formatTime = (timestamp: number) => {
+        const now = Date.now();
+        const diff = now - timestamp;
+
+        if (diff < 60000) return 'Just now';
+
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-10 h-10 text-orange-400 animate-spin mb-4" />
+                <p className="text-purple-200/60">Loading OTP requests...</p>
+            </div>
+        );
+    }
+
+    if (logs.length === 0) {
+        return (
+            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/10">
+                <Mail size={48} className="mx-auto mb-4 text-slate-500" />
+                <h3 className="text-xl font-bold mb-2">No OTP Requests</h3>
+                <p className="text-purple-200/60">Recent OTP requests will appear here in real-time</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            {logs.map((log, index) => (
+                <div
+                    key={index}
+                    className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/10 transition-all animate-in fade-in"
+                >
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-400 flex-shrink-0">
+                            <Shield size={24} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-bold text-lg">{log.otp}</span>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${log.status === 'sent' ? 'bg-green-500/20 text-green-300' :
+                                    log.status === 'failed' ? 'bg-red-500/20 text-red-300' :
+                                        'bg-orange-500/20 text-orange-300'
+                                    }`}>
+                                    {log.status || 'Simulated'}
+                                </span>
+                            </div>
+                            <p className="text-purple-200/70 text-sm">
+                                Requested by <span className="text-white font-medium">{log.to}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-right w-full md:w-auto border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
+                        <div className="flex-1 md:flex-none">
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Requested At</div>
+                            <div className="flex items-center gap-1.5 text-purple-200/80 font-medium justify-end md:justify-start">
+                                <Clock size={14} />
+                                {formatTime(log.sentAt)}
+                            </div>
+                        </div>
+                        <div className="flex-1 md:flex-none">
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</div>
+                            <div className="text-green-400 text-sm font-bold">READY</div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+
+            <p className="text-center text-xs text-purple-200/40 mt-8">
+                Showing last 20 OTP requests. Codes expire automatically after 5 minutes.
+            </p>
+        </div>
+    );
+};
+
+const EmailSettingsForm: React.FC = () => {
+    const [config, setConfig] = useState({
+        serviceId: '',
+        templateId: '',
+        publicKey: '',
+        adminEmail: 'vickybhelave25@navgurukul.org'
+    });
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const docRef = doc(db, 'config', 'emailjs');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setConfig(docSnap.data() as any);
+                }
+            } catch (error) {
+                console.error("Error fetching email config:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchConfig();
+    }, []);
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        setMessage({ type: '', text: '' });
+        try {
+            await setDoc(doc(db, 'config', 'emailjs'), config);
+            setMessage({ type: 'success', text: 'Settings saved successfully! Real emails are now active.' });
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to save settings. Check your permissions.' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
+                <p className="text-purple-200/60">Loading configuration...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 max-w-2xl mx-auto shadow-2xl">
+            <form onSubmit={handleSave} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">EmailJS Service ID</label>
+                        <input
+                            type="text"
+                            value={config.serviceId}
+                            onChange={(e) => setConfig({ ...config, serviceId: e.target.value })}
+                            placeholder="e.g. service_gmail"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">EmailJS Template ID</label>
+                        <input
+                            type="text"
+                            value={config.templateId}
+                            onChange={(e) => setConfig({ ...config, templateId: e.target.value })}
+                            placeholder="e.g. template_abc123"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">EmailJS Public Key</label>
+                        <input
+                            type="text"
+                            value={config.publicKey}
+                            onChange={(e) => setConfig({ ...config, publicKey: e.target.value })}
+                            placeholder="Get from Account -> Public Key"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Admin Recipient Email (Backup)</label>
+                        <input
+                            type="email"
+                            value={config.adminEmail}
+                            onChange={(e) => setConfig({ ...config, adminEmail: e.target.value })}
+                            placeholder="vickybhelave25@navgurukul.org"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
+                            required
+                        />
+                    </div>
+                </div>
+
+                {message.text && (
+                    <div className={`p-4 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                        }`}>
+                        {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                        <span className="text-sm font-medium">{message.text}</span>
+                    </div>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={saving}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                    {saving ? (
+                        <>
+                            <Loader2 size={20} className="animate-spin" />
+                            Saving Configuration...
+                        </>
+                    ) : (
+                        <>
+                            <Save size={20} />
+                            Save Email Settings
+                        </>
+                    )}
+                </button>
+            </form>
+
+            <div className="mt-8 p-6 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                <h4 className="text-indigo-300 font-bold text-sm mb-2 flex items-center gap-2">
+                    <Shield size={16} />
+                    Setup Instructions:
+                </h4>
+                <ul className="text-xs text-purple-200/60 space-y-2 list-disc pl-4">
+                    <li>Create a free account at <strong>emailjs.com</strong></li>
+                    <li>Connect your Gmail in "Email Services" tab.</li>
+                    <li>Create an email template and copy the <strong>Template ID</strong>.</li>
+                    <li>Copy your <strong>Public Key</strong> from the Account settings.</li>
+                </ul>
+            </div>
+        </div>
+    );
+};
+
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
-    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students'>('questions');
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'settings'>('questions');
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -238,6 +491,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             All Login Students
                         </div>
                     </button>
+
+                    <button
+                        onClick={() => setActiveTab('otps')}
+                        className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'otps'
+                            ? 'border-orange-400 text-orange-400'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Shield size={18} />
+                            OTP Requests
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('settings')}
+                        className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'settings'
+                            ? 'border-indigo-400 text-indigo-400'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Settings size={18} />
+                            Email Settings
+                        </div>
+                    </button>
                 </div>
             </div>
 
@@ -378,6 +657,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                 </div>
                             )}
                         </div>
+                    </div>
+                ) : activeTab === 'otps' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-orange-400">OTP Request Logs</h1>
+                            <p className="text-purple-200/60">Live OTP codes for students starting tests</p>
+                        </div>
+                        <OTPLogViewer />
+                    </div>
+                ) : activeTab === 'settings' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-indigo-400">Email Configuration</h1>
+                            <p className="text-purple-200/60">Connect your Gmail to send real OTP emails</p>
+                        </div>
+                        <EmailSettingsForm />
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
