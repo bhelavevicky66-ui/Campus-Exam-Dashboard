@@ -12,6 +12,11 @@ export interface TestResultHistory {
     passed: boolean;
     date: string;
     timestamp: number;
+    wrongAnswers?: {
+        question: string;
+        userAnswer: string;
+        correctAnswer: string;
+    }[];
 }
 
 export interface UserTestHistory {

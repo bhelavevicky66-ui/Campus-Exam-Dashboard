@@ -25,7 +25,8 @@ import {
     Shield,
     UserCircle,
     XCircle,
-    Lock
+    Lock,
+    AlertCircle
 } from 'lucide-react';
 import { UserRole } from '../roles';
 import { getLatestResult, getPassCount, getFailCount, getStarRating, TestResultHistory } from '../services/testHistoryService';
@@ -597,64 +598,127 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, r
                     onClick={() => setShowResultModal(false)}
                 >
                     <div
-                        className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all"
+                        className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto custom-scrollbar"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header */}
-                        <div className="text-center mb-6">
-                            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${selectedResult.passed ? 'bg-green-100' : 'bg-red-100'}`}>
-                                {selectedResult.passed ? (
-                                    <CheckCircle2 size={32} className="text-green-600" />
-                                ) : (
-                                    <XCircle size={32} className="text-red-600" />
-                                )}
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-800">{selectedResult.moduleName}</h3>
-                            <p className="text-slate-500 mt-1">{selectedResult.date}</p>
-                        </div>
+                        {/* Toggle View State */}
+                        {selectedResult.wrongAnswers && selectedResult.wrongAnswers.length > 0 && (selectedResult as any).showMistakes ? (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-slate-800">Mistakes Review</h3>
+                                    <button
+                                        onClick={() => {
+                                            const updatedResult = { ...selectedResult };
+                                            delete (updatedResult as any).showMistakes;
+                                            setSelectedResult(updatedResult);
+                                        }}
+                                        className="text-slate-400 hover:text-slate-600"
+                                    >
+                                        <XCircle size={24} />
+                                    </button>
+                                </div>
 
-                        {/* Result Badge */}
-                        <div className={`text-center py-4 rounded-2xl mb-6 ${selectedResult.passed ? 'bg-green-50' : 'bg-red-50'}`}>
-                            <div className={`text-4xl font-black ${selectedResult.passed ? 'text-green-600' : 'text-red-600'}`}>
-                                {selectedResult.passed ? '✅ PASS' : '❌ FAIL'}
-                            </div>
-                        </div>
+                                <div className="space-y-4 mb-6">
+                                    {selectedResult.wrongAnswers.map((item, idx) => (
+                                        <div key={idx} className="bg-red-50 rounded-xl p-4 border border-red-100">
+                                            <p className="font-bold text-slate-800 text-sm mb-2">{idx + 1}. {item.question}</p>
+                                            <div className="flex flex-col gap-2 text-xs">
+                                                <div className="flex items-center gap-2 text-red-600 font-medium">
+                                                    <XCircle size={14} />
+                                                    <span>Your Answer: {item.userAnswer || '(Skipped)'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-green-600 font-medium">
+                                                    <CheckCircle2 size={14} />
+                                                    <span>Correct Answer: {item.correctAnswer}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
 
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="bg-slate-50 rounded-2xl p-4 text-center">
-                                <div className="text-3xl font-black text-slate-800">{Math.round(selectedResult.score)}%</div>
-                                <div className="text-xs text-slate-500 font-medium">Score</div>
+                                <button
+                                    onClick={() => {
+                                        const updatedResult = { ...selectedResult };
+                                        delete (updatedResult as any).showMistakes;
+                                        setSelectedResult(updatedResult);
+                                    }}
+                                    className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                                >
+                                    Back to Result
+                                </button>
                             </div>
-                            <div className="bg-slate-50 rounded-2xl p-4 text-center">
-                                <div className="text-3xl font-black text-green-600">{selectedResult.correctCount}</div>
-                                <div className="text-xs text-slate-500 font-medium">Correct</div>
-                            </div>
-                            <div className="bg-slate-50 rounded-2xl p-4 text-center">
-                                <div className="text-3xl font-black text-red-600">{selectedResult.wrongCount}</div>
-                                <div className="text-xs text-slate-500 font-medium">Wrong</div>
-                            </div>
-                            <div className="bg-slate-50 rounded-2xl p-4 text-center">
-                                <div className="text-3xl font-black text-slate-800">{selectedResult.timeTaken}</div>
-                                <div className="text-xs text-slate-500 font-medium">Time Taken</div>
-                            </div>
-                        </div>
+                        ) : (
+                            <>
+                                {/* Header */}
+                                <div className="text-center mb-6">
+                                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${selectedResult.passed ? 'bg-green-100' : 'bg-red-100'}`}>
+                                        {selectedResult.passed ? (
+                                            <CheckCircle2 size={32} className="text-green-600" />
+                                        ) : (
+                                            <XCircle size={32} className="text-red-600" />
+                                        )}
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-800">{selectedResult.moduleName}</h3>
+                                    <p className="text-slate-500 mt-1">{selectedResult.date}</p>
+                                </div>
 
-                        {/* Star Rating */}
-                        <div className="flex justify-center mb-6">
-                            {renderStars(selectedResult.score)}
-                        </div>
+                                {/* Result Badge */}
+                                <div className={`text-center py-4 rounded-2xl mb-6 ${selectedResult.passed ? 'bg-green-50' : 'bg-red-50'}`}>
+                                    <div className={`text-4xl font-black ${selectedResult.passed ? 'text-green-600' : 'text-red-600'}`}>
+                                        {selectedResult.passed ? '✅ PASS' : '❌ FAIL'}
+                                    </div>
+                                </div>
 
-                        {/* Close Button */}
-                        <button
-                            onClick={() => setShowResultModal(false)}
-                            className="w-full bg-[#6C5DD3] text-white py-3 rounded-xl font-bold hover:bg-[#5a4eb8] transition-colors"
-                        >
-                            Close
-                        </button>
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-slate-50 rounded-2xl p-4 text-center">
+                                        <div className="text-3xl font-black text-slate-800">{Math.round(selectedResult.score)}%</div>
+                                        <div className="text-xs text-slate-500 font-medium">Score</div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-2xl p-4 text-center">
+                                        <div className="text-3xl font-black text-green-600">{selectedResult.correctCount}</div>
+                                        <div className="text-xs text-slate-500 font-medium">Correct</div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-2xl p-4 text-center">
+                                        <div className="text-3xl font-black text-red-600">{selectedResult.wrongCount}</div>
+                                        <div className="text-xs text-slate-500 font-medium">Wrong</div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-2xl p-4 text-center">
+                                        <div className="text-3xl font-black text-slate-800">{selectedResult.timeTaken}</div>
+                                        <div className="text-xs text-slate-500 font-medium">Time Taken</div>
+                                    </div>
+                                </div>
+
+                                {/* Star Rating */}
+                                <div className="flex justify-center mb-6">
+                                    {renderStars(selectedResult.score)}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="space-y-3">
+                                    {selectedResult.wrongAnswers && selectedResult.wrongAnswers.length > 0 && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedResult({ ...selectedResult, showMistakes: true } as any);
+                                            }}
+                                            className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <AlertCircle size={18} />
+                                            Review Mistakes
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setShowResultModal(false)}
+                                        className="w-full bg-[#6C5DD3] text-white py-3 rounded-xl font-bold hover:bg-[#5a4eb8] transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     );
 };

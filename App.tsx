@@ -68,7 +68,14 @@ const AppContent: React.FC = () => {
           timeTaken: result.timeTaken,
           passed: result.correctCount >= 18, // 60% passing criteria
           date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          wrongAnswers: result.details
+            .filter(d => !d.isCorrect)
+            .map(d => ({
+              question: moduleInfo?.questions.find(q => q.id === d.questionId)?.question || "Unknown Question",
+              userAnswer: d.userAnswer,
+              correctAnswer: d.correctAnswer
+            }))
         };
         saveTestResult(user.email, historyResult);
       }
