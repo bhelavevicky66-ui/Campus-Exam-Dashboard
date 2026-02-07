@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, getAdminEmails, addAdminEmail, removeAdminEmail } from '../firebase';
 import { UserRole, isSuperAdminEmail, ROLE_PERMISSIONS } from '../roles';
+import { recordUserLogin } from '../services/loggedUsersService';
 
 interface AuthContextType {
     user: User | null;
@@ -75,6 +76,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const emails = await getAdminEmails();
                 setAdminEmails(emails);
                 setRole(determineRole(currentUser.email, emails));
+
+                // Record user login
+                if (currentUser.email && currentUser.displayName) {
+                    await recordUserLogin(
+                        currentUser.email,
+                        currentUser.displayName,
+                        currentUser.photoURL || undefined
+                    );
+                }
             } else {
                 setRole('user');
             }

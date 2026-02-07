@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, LayoutGrid } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SUPER_ADMIN_EMAILS } from '../roles';
 import { QuestionManager } from './QuestionManager';
+import { getAllLoggedUsers, LoggedUser } from '../services/loggedUsersService';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -10,7 +11,7 @@ interface AdminPanelProps {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin } = useAuth();
-    const [activeTab, setActiveTab] = useState<'questions' | 'admins'>('questions');
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students'>('questions');
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -18,6 +19,53 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [removingEmail, setRemovingEmail] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+
+    // Logged Students State
+    const [loggedStudents, setLoggedStudents] = useState<LoggedUser[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Load logged students when tab is selected
+    useEffect(() => {
+        if (activeTab === 'students') {
+            loadLoggedStudents();
+        }
+    }, [activeTab]);
+
+    const loadLoggedStudents = async () => {
+        setLoadingStudents(true);
+        try {
+            const students = await getAllLoggedUsers();
+            setLoggedStudents(students);
+        } catch (error) {
+            console.error('Error loading students:', error);
+        } finally {
+            setLoadingStudents(false);
+        }
+    };
+
+    // Filter students based on search query
+    const filteredStudents = loggedStudents.filter(student => {
+        if (!searchQuery.trim()) return true;
+
+        const query = searchQuery.toLowerCase();
+        return (
+            student.displayName.toLowerCase().includes(query) ||
+            student.email.toLowerCase().includes(query)
+        );
+    });
+
+    // Format timestamp to readable date
+    const formatDate = (timestamp: number) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     // If not admin at all, show access denied
     if (!isAdmin && !isSuperAdmin) {
@@ -146,6 +194,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             </div>
                         </button>
                     )}
+
+                    <button
+                        onClick={() => setActiveTab('students')}
+                        className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'students'
+                            ? 'border-blue-400 text-blue-400'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Users size={18} />
+                            All Login Students
+                        </div>
+                    </button>
                 </div>
             </div>
 
@@ -158,6 +219,94 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             <p className="text-purple-200/60">Add and manage questions for different modules</p>
                         </div>
                         <QuestionManager />
+                    </div>
+                ) : activeTab === 'students' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2">All Logged In Students</h1>
+                            <p className="text-purple-200/60">View all students who have logged into the system</p>
+                        </div>
+
+                        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    <Users size={22} className="text-blue-400" />
+                                    Students ({loggedStudents.length})
+                                </h3>
+                                <button
+                                    onClick={loadLoggedStudents}
+                                    disabled={loadingStudents}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl font-semibold flex items-center gap-2 transition-colors text-sm"
+                                >
+                                    {loadingStudents ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            Loading...
+                                        </>
+                                    ) : (
+                                        'Refresh'
+                                    )}
+                                </button>
+                            </div>
+
+                            {loadingStudents && loggedStudents.length === 0 ? (
+                                <div className="text-center py-8 text-purple-300/50">
+                                    <Loader2 size={48} className="mx-auto mb-3 animate-spin" />
+                                    <p>Loading students...</p>
+                                </div>
+                            ) : loggedStudents.length === 0 ? (
+                                <div className="text-center py-8 text-purple-300/50">
+                                    <Users size={48} className="mx-auto mb-3 opacity-50" />
+                                    <p>No students have logged in yet</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-white/10">
+                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">#</th>
+                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Name</th>
+                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Email</th>
+                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Last Login</th>
+                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Total Logins</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {loggedStudents.map((student, index) => (
+                                                <tr key={student.email} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                                    <td className="py-4 px-4 text-purple-200/80">{index + 1}</td>
+                                                    <td className="py-4 px-4">
+                                                        <div className="flex items-center gap-3">
+                                                            {student.photoURL ? (
+                                                                <img
+                                                                    src={student.photoURL}
+                                                                    alt={student.displayName}
+                                                                    className="w-8 h-8 rounded-full"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center">
+                                                                    <span className="text-blue-400 font-bold text-sm">
+                                                                        {student.displayName.charAt(0).toUpperCase()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            <span className="font-medium">{student.displayName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-4 text-purple-200/80 text-sm">{student.email}</td>
+                                                    <td className="py-4 px-4 text-purple-200/80 text-sm">{formatDate(student.lastLogin)}</td>
+                                                    <td className="py-4 px-4">
+                                                        <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            {student.totalLogins}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

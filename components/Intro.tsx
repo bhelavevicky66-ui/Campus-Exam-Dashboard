@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BookOpen, Clock, Award, Play, ChevronLeft } from 'lucide-react';
+import { OTPModal } from './OTPModal';
+import { createOTP, verifyOTP } from '../services/otpService';
+import { sendOTPEmail, getAdminEmail } from '../services/emailService';
+import { useAuth } from '../contexts/AuthContext';
 
 interface IntroProps {
   onStart: (name: string) => void;
@@ -7,6 +11,62 @@ interface IntroProps {
 }
 
 export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
+  const { user } = useAuth();
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [sessionId, setSessionId] = useState('');
+  const adminEmail = getAdminEmail();
+
+  const handleStartClick = async () => {
+    // Generate unique session ID
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+
+    try {
+      // Generate OTP
+      const otp = await createOTP(adminEmail, newSessionId);
+
+      // Send OTP to admin email (simulated)
+      await sendOTPEmail(adminEmail, otp, user?.displayName || 'User');
+
+      // Show OTP modal
+      setShowOTPModal(true);
+    } catch (error) {
+      console.error('Error generating OTP:', error);
+      alert('Failed to generate OTP. Please try again.');
+    }
+  };
+
+  const handleVerifyOTP = async (otp: string): Promise<boolean> => {
+    try {
+      const isValid = await verifyOTP(sessionId, otp);
+
+      if (isValid) {
+        setShowOTPModal(false);
+        // Start the test
+        onStart(user?.displayName || "User");
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      return false;
+    }
+  };
+
+  const handleResendOTP = async (): Promise<void> => {
+    try {
+      // Generate new OTP with same session ID
+      const otp = await createOTP(adminEmail, sessionId);
+
+      // Send new OTP
+      await sendOTPEmail(adminEmail, otp, user?.displayName || 'User');
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+      throw error;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white font-sans overflow-hidden items-center justify-center p-6 md:p-12 relative">
 
@@ -132,7 +192,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
           </div>
 
           <button
-            onClick={() => onStart("Vicky Bhelave")} // Assuming user is logged in
+            onClick={handleStartClick}
             className="relative z-10 bg-white text-[#6C5DD3] px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg shadow-indigo-900/20 hover:shadow-xl active:scale-95 whitespace-nowrap"
           >
             Start Test
@@ -141,6 +201,14 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
         </div>
 
       </div>
+
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onVerify={handleVerifyOTP}
+        onResend={handleResendOTP}
+        adminEmail={adminEmail}
+      />
     </div>
   );
 };
