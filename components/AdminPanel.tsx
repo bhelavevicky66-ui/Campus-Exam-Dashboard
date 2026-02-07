@@ -25,6 +25,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Admin List Search State
+    const [adminSearchQuery, setAdminSearchQuery] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     // Load logged students when tab is selected
     useEffect(() => {
         if (activeTab === 'students') {
@@ -54,6 +58,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             student.email.toLowerCase().includes(query)
         );
     });
+
+    // Filter admins based on search query
+    const filteredAdmins = adminEmails.filter(email =>
+        email.toLowerCase().includes(adminSearchQuery.toLowerCase())
+    );
+
+    // Suggestions for adding new admin
+    const adminSuggestions = loggedStudents.filter(student => {
+        if (newEmail.length < 2) return false;
+        const query = newEmail.toLowerCase();
+        return (
+            student.displayName.toLowerCase().includes(query) ||
+            student.email.toLowerCase().includes(query)
+        ) && !adminEmails.includes(student.email.toLowerCase())
+            && !SUPER_ADMIN_EMAILS.includes(student.email.toLowerCase());
+    }).slice(0, 5);
 
     // Format timestamp to readable date
     const formatDate = (timestamp: number) => {
@@ -180,7 +200,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         </div>
                     </button>
 
-                    {isSuperAdmin && (
+                    {(isSuperAdmin || isAdmin) && (
                         <button
                             onClick={() => setActiveTab('admins')}
                             className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'admins'
@@ -249,6 +269,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                 </button>
                             </div>
 
+                            {/* Search Input */}
+                            <div className="mb-6">
+                                <div className="relative">
+                                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-300/50" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search by name or email..."
+                                        className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-blue-500 transition-colors"
+                                    />
+                                    {searchQuery && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-purple-300/70">
+                                            {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             {loadingStudents && loggedStudents.length === 0 ? (
                                 <div className="text-center py-8 text-purple-300/50">
                                     <Loader2 size={48} className="mx-auto mb-3 animate-spin" />
@@ -259,6 +298,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                     <Users size={48} className="mx-auto mb-3 opacity-50" />
                                     <p>No students have logged in yet</p>
                                 </div>
+                            ) : filteredStudents.length === 0 ? (
+                                <div className="text-center py-8 text-purple-300/50">
+                                    <Search size={48} className="mx-auto mb-3 opacity-50" />
+                                    <p>No students found matching "{searchQuery}"</p>
+                                </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
@@ -268,11 +312,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Name</th>
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Email</th>
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Last Login</th>
-                                                <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Total Logins</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {loggedStudents.map((student, index) => (
+                                            {filteredStudents.map((student, index) => (
                                                 <tr key={student.email} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                                                     <td className="py-4 px-4 text-purple-200/80">{index + 1}</td>
                                                     <td className="py-4 px-4">
@@ -295,11 +338,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                     </td>
                                                     <td className="py-4 px-4 text-purple-200/80 text-sm">{student.email}</td>
                                                     <td className="py-4 px-4 text-purple-200/80 text-sm">{formatDate(student.lastLogin)}</td>
-                                                    <td className="py-4 px-4">
-                                                        <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            {student.totalLogins}
-                                                        </span>
-                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -333,30 +371,65 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* Left Col: Add & Super Admins */}
                             <div className="space-y-8">
-                                {/* Add Admin Form */}
-                                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-                                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                        <UserPlus size={22} className="text-green-400" />
-                                        Add New Admin
-                                    </h3>
-                                    <form onSubmit={handleAddAdmin} className="flex gap-3">
-                                        <input
-                                            type="email"
-                                            value={newEmail}
-                                            onChange={(e) => setNewEmail(e.target.value)}
-                                            placeholder="Enter email address..."
-                                            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500 transition-colors"
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={isAdding}
-                                            className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl font-semibold flex items-center gap-2 transition-colors"
-                                        >
-                                            {isAdding ? <Loader2 size={20} className="animate-spin" /> : <UserPlus size={20} />}
-                                            Add
-                                        </button>
-                                    </form>
-                                </div>
+                                {isSuperAdmin && (
+                                    <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                            <UserPlus size={22} className="text-green-400" />
+                                            Add New Admin
+                                        </h3>
+                                        <form onSubmit={handleAddAdmin} className="relative">
+                                            <div className="flex gap-3">
+                                                <input
+                                                    type="email"
+                                                    value={newEmail}
+                                                    onChange={(e) => {
+                                                        setNewEmail(e.target.value);
+                                                        setShowSuggestions(true);
+                                                    }}
+                                                    onFocus={() => setShowSuggestions(true)}
+                                                    placeholder="Enter student email..."
+                                                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500 transition-colors"
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    disabled={isAdding}
+                                                    className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl font-semibold flex items-center gap-2 transition-colors"
+                                                >
+                                                    {isAdding ? <Loader2 size={20} className="animate-spin" /> : <UserPlus size={20} />}
+                                                    Add
+                                                </button>
+                                            </div>
+
+                                            {/* Autocomplete Suggestions */}
+                                            {showSuggestions && adminSuggestions.length > 0 && (
+                                                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1645] border border-white/10 rounded-xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                                    <div className="p-2 border-b border-white/5 text-[10px] uppercase tracking-wider text-purple-300/50 font-bold">
+                                                        Suggested Students
+                                                    </div>
+                                                    {adminSuggestions.map(student => (
+                                                        <button
+                                                            key={student.email}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setNewEmail(student.email);
+                                                                setShowSuggestions(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 p-3 hover:bg-white/5 text-left transition-colors"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center text-xs font-bold text-blue-400">
+                                                                {student.displayName.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-bold text-sm truncate">{student.displayName}</div>
+                                                                <div className="text-xs text-purple-300/50 truncate">{student.email}</div>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </form>
+                                    </div>
+                                )}
 
                                 {/* Super Admins List */}
                                 <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
@@ -381,19 +454,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
                             {/* Right Col: Admin List */}
                             <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 h-fit">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                    <Shield size={22} className="text-blue-400" />
-                                    Admins ({adminEmails.length})
+                                <h3 className="text-xl font-bold mb-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Shield size={22} className="text-blue-400" />
+                                        Admins ({adminEmails.length})
+                                    </div>
                                 </h3>
+
+                                {/* Admin Search Input */}
+                                <div className="mb-4 relative">
+                                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/50" />
+                                    <input
+                                        type="text"
+                                        value={adminSearchQuery}
+                                        onChange={(e) => setAdminSearchQuery(e.target.value)}
+                                        placeholder="Search admins..."
+                                        className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-purple-300/30 focus:outline-none focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
 
                                 {adminEmails.length === 0 ? (
                                     <div className="text-center py-8 text-purple-300/50">
                                         <Shield size={48} className="mx-auto mb-3 opacity-50" />
                                         <p>No admins added yet</p>
                                     </div>
+                                ) : filteredAdmins.length === 0 ? (
+                                    <div className="text-center py-8 text-purple-300/50">
+                                        <Search size={32} className="mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">No admins match "{adminSearchQuery}"</p>
+                                    </div>
                                 ) : (
                                     <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
-                                        {adminEmails.map((email) => (
+                                        {filteredAdmins.map((email) => (
                                             <div key={email} className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center">
@@ -401,13 +493,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                     </div>
                                                     <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none">{email}</span>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleRemoveAdmin(email)}
-                                                    disabled={removingEmail === email}
-                                                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors disabled:opacity-50"
-                                                >
-                                                    {removingEmail === email ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                                </button>
+                                                {isSuperAdmin && (
+                                                    <button
+                                                        onClick={() => handleRemoveAdmin(email)}
+                                                        disabled={removingEmail === email}
+                                                        className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                                                    >
+                                                        {removingEmail === email ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
