@@ -7,23 +7,29 @@ interface Phase7Props {
 
 export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
     return (
-        <div className="h-screen overflow-y-auto bg-gradient-to-br from-slate-900 to-indigo-900 p-6 md:p-10">
+        <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}
-            <div className="max-w-5xl mx-auto">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-slate-300 hover:text-white font-semibold mb-6 transition-colors"
-                >
-                    <ArrowLeft size={20} />
-                    Back to Dashboard
-                </button>
+            <div className="sticky top-0 z-50 bg-[#0f0c29]/80 backdrop-blur-lg border-b border-white/10">
+                <div className="max-w-5xl mx-auto px-6 py-4">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-purple-300 hover:text-white transition-all group"
+                    >
+                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        <span className="font-semibold">Back to Dashboard</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-5xl mx-auto px-6 py-12">
 
                 {/* Title Section */}
-                <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-3xl p-8 text-white mb-8 shadow-2xl relative overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-3xl p-8 text-white mb-8 shadow-2xl relative overflow-hidden border border-white/10">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-4">
-                            <span className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold">CAPSTONE PROJECT</span>
+                            <span className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold border border-white/10">CAPSTONE PROJECT</span>
                             <Rocket size={24} className="text-yellow-300" />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold mb-2">Phase 7: Final Full-Stack Project with AI Integration</h1>
@@ -35,13 +41,13 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                 <div className="space-y-8">
 
                     {/* Project Description */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-violet-500 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🚀</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-violet-500 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🚀</span>
                             Project Description
                         </h2>
 
-                        <p className="text-slate-300 mb-6 leading-relaxed">
+                        <p className="text-purple-100/90 mb-6 leading-relaxed">
                             <strong className="text-white">CollabSphere</strong> is a dynamic and intelligent platform designed to streamline developer collaboration and project management. It's a mini-version of popular tools like <strong className="text-purple-300">GitHub</strong> (for project and code management) and <strong className="text-purple-300">Notion</strong> (for documentation and notes), supercharged with <strong className="text-yellow-300">Google's Gemini AI</strong>.
                         </p>
 
@@ -54,18 +60,18 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                                 { icon: <Bot size={20} />, text: "AI auto-generate documentation & explain code" },
                                 { icon: <Share2 size={20} />, text: "Create public shareable project pages" }
                             ].map((item, index) => (
-                                <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                                <div key={index} className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
                                     <span className="text-purple-400">{item.icon}</span>
-                                    <span className="text-slate-300 text-sm">{item.text}</span>
+                                    <span className="text-purple-100/80 text-sm">{item.text}</span>
                                 </div>
                             ))}
                         </div>
                     </section>
 
                     {/* Why Placement Worthy */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-yellow-500 to-orange-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🎯</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-yellow-500 to-orange-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🎯</span>
                             Why This Project Is Placement Worthy
                         </h2>
 
@@ -77,99 +83,99 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                                 { title: "Showcases Versatility", desc: "Connects various technologies into a cohesive and functional product." },
                                 { title: "AI Integration is Key Differentiator", desc: "Positions you at the forefront of modern web development trends." }
                             ].map((item, index) => (
-                                <div key={index} className="p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl border border-yellow-500/20">
+                                <div key={index} className="p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl border border-yellow-500/20 hover:border-yellow-500/40 transition-colors">
                                     <h3 className="font-bold text-yellow-300 mb-1">{item.title}</h3>
-                                    <p className="text-slate-400 text-sm">{item.desc}</p>
+                                    <p className="text-purple-100/70 text-sm">{item.desc}</p>
                                 </div>
                             ))}
                         </div>
                     </section>
 
                     {/* Core Features */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-emerald-500 to-teal-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🔧</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-emerald-500 to-teal-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🔧</span>
                             Core Features
                         </h2>
 
                         <div className="space-y-4">
                             {/* Auth */}
-                            <div className="p-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20">
+                            <div className="p-6 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl border border-blue-500/20">
                                 <h3 className="font-bold text-blue-300 mb-2 flex items-center gap-2">
                                     <Shield size={18} />
                                     User Authentication (JWT, bcrypt)
                                 </h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Secure user registration and login</li>
-                                    <li>• Password hashing using bcrypt</li>
-                                    <li>• JWT for managing sessions and protecting routes</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 ml-6 list-disc">
+                                    <li>Secure user registration and login</li>
+                                    <li>Password hashing using bcrypt</li>
+                                    <li>JWT for managing sessions and protecting routes</li>
                                 </ul>
                             </div>
 
                             {/* Project Collaboration */}
-                            <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+                            <div className="p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl border border-purple-500/20">
                                 <h3 className="font-bold text-purple-300 mb-2 flex items-center gap-2">
                                     <Users size={18} />
                                     Project Collaboration
                                 </h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Create new projects (e.g., "MyWebApp", "DataAnalysisScript")</li>
-                                    <li>• Add other users as members to projects</li>
-                                    <li>• Dashboard to view all projects</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 ml-6 list-disc">
+                                    <li>Create new projects (e.g., "MyWebApp", "DataAnalysisScript")</li>
+                                    <li>Add other users as members to projects</li>
+                                    <li>Dashboard to view all projects</li>
                                 </ul>
                             </div>
 
                             {/* Markdown Notes */}
-                            <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-xl border border-emerald-500/20">
+                            <div className="p-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl border border-emerald-500/20">
                                 <h3 className="font-bold text-emerald-300 mb-2 flex items-center gap-2">
                                     <FileCode size={18} />
                                     Markdown Notes with Gemini AI
                                 </h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Rich text editor (SimpleMDE) for Markdown</li>
-                                    <li>• Save and retrieve notes from database</li>
-                                    <li>• <span className="text-yellow-300">Gemini:</span> "Explain this note" & "Suggest improvements"</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 ml-6 list-disc">
+                                    <li>Rich text editor (SimpleMDE) for Markdown</li>
+                                    <li>Save and retrieve notes from database</li>
+                                    <li><span className="text-yellow-300">Gemini:</span> "Explain this note" & "Suggest improvements"</li>
                                 </ul>
                             </div>
 
                             {/* File Upload */}
-                            <div className="p-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl border border-orange-500/20">
+                            <div className="p-6 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-2xl border border-orange-500/20">
                                 <h3 className="font-bold text-orange-300 mb-2 flex items-center gap-2">
                                     <Upload size={18} />
                                     File Upload & Preview
                                 </h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Upload files (code, design assets) to projects</li>
-                                    <li>• Store via Cloudinary or server-side</li>
-                                    <li>• <span className="text-yellow-300">Gemini:</span> "Explain this code" for .js, .py files</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 ml-6 list-disc">
+                                    <li>Upload files (code, design assets) to projects</li>
+                                    <li>Store via Cloudinary or server-side</li>
+                                    <li><span className="text-yellow-300">Gemini:</span> "Explain this code" for .js, .py files</li>
                                 </ul>
                             </div>
 
                             {/* Analytics & Sharing */}
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl border border-cyan-500/20">
+                                <div className="p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/20">
                                     <h3 className="font-bold text-cyan-300 mb-2 flex items-center gap-2">
                                         <BarChart3 size={18} />
                                         Contribution Analytics
                                     </h3>
-                                    <p className="text-slate-400 text-sm">Track activity (notes, files) per member with simple summary dashboard.</p>
+                                    <p className="text-purple-100/70 text-sm">Track activity (notes, files) per member with simple summary dashboard.</p>
                                 </div>
-                                <div className="p-4 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-pink-500/20">
+                                <div className="p-6 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-2xl border border-pink-500/20">
                                     <h3 className="font-bold text-pink-300 mb-2 flex items-center gap-2">
                                         <Globe size={18} />
                                         Public Shareable Page
                                     </h3>
-                                    <p className="text-slate-400 text-sm">Make projects publicly viewable via unique link (read-only).</p>
+                                    <p className="text-purple-100/70 text-sm">Make projects publicly viewable via unique link (read-only).</p>
                                 </div>
                             </div>
 
                             {/* Gemini API Endpoints */}
-                            <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-xl border border-yellow-500/20">
+                            <div className="p-6 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-2xl border border-yellow-500/20">
                                 <h3 className="font-bold text-yellow-300 mb-2 flex items-center gap-2">
                                     <Bot size={18} />
                                     Gemini API Endpoints
                                 </h3>
-                                <div className="bg-slate-800/50 p-3 rounded-lg font-mono text-sm text-slate-300 space-y-1">
+                                <div className="bg-black/40 p-3 rounded-lg font-mono text-sm text-purple-100 space-y-2 border border-white/5">
                                     <div><span className="text-green-400">/api/gemini/explain</span> - Returns explanation for code/notes</div>
                                     <div><span className="text-green-400">/api/gemini/docs</span> - Auto-generates documentation</div>
                                     <div><span className="text-green-400">/api/gemini/readme</span> - Helps generate README files</div>
@@ -179,59 +185,59 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                     </section>
 
                     {/* Tech Stack */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-cyan-500 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🛠</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-cyan-500 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🛠</span>
                             Tech Stack
                         </h2>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
                                 <h3 className="font-bold text-blue-300 mb-2">Frontend</h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• HTML5, CSS3</li>
-                                    <li>• JavaScript (ES6+)</li>
-                                    <li>• React/Vue/Angular (recommended)</li>
-                                    <li>• Tailwind CSS/Bootstrap</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 list-disc ml-4">
+                                    <li>HTML5, CSS3</li>
+                                    <li>JavaScript (ES6+)</li>
+                                    <li>React/Vue/Angular (recommended)</li>
+                                    <li>Tailwind CSS/Bootstrap</li>
                                 </ul>
                             </div>
                             <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
                                 <h3 className="font-bold text-green-300 mb-2">Backend</h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Node.js, Express.js</li>
-                                    <li>• MongoDB, Mongoose</li>
-                                    <li>• bcrypt.js, JWT</li>
-                                    <li>• Multer (file uploads)</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 list-disc ml-4">
+                                    <li>Node.js, Express.js</li>
+                                    <li>MongoDB, Mongoose</li>
+                                    <li>bcrypt.js, JWT</li>
+                                    <li>Multer (file uploads)</li>
                                 </ul>
                             </div>
                             <div className="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
                                 <h3 className="font-bold text-yellow-300 mb-2">AI</h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Google Gemini API</li>
-                                    <li>• Documentation generation</li>
-                                    <li>• Code explanation</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 list-disc ml-4">
+                                    <li>Google Gemini API</li>
+                                    <li>Documentation generation</li>
+                                    <li>Code explanation</li>
                                 </ul>
                             </div>
                             <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
                                 <h3 className="font-bold text-purple-300 mb-2">Deployment</h3>
-                                <ul className="text-slate-400 text-sm space-y-1">
-                                    <li>• Vercel/Netlify (Frontend)</li>
-                                    <li>• Heroku/AWS (Backend)</li>
-                                    <li>• MongoDB Atlas (DB)</li>
+                                <ul className="text-purple-100/70 text-sm space-y-1 list-disc ml-4">
+                                    <li>Vercel/Netlify (Frontend)</li>
+                                    <li>Heroku/AWS (Backend)</li>
+                                    <li>MongoDB Atlas (DB)</li>
                                 </ul>
                             </div>
                         </div>
                     </section>
 
                     {/* Folder Structure */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-pink-500 to-rose-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">📂</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-pink-500 to-rose-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">📂</span>
                             Suggested Folder Structure
                         </h2>
 
-                        <div className="bg-slate-800/50 p-4 rounded-xl font-mono text-sm overflow-x-auto">
-                            <pre className="text-slate-300">
+                        <div className="bg-black/40 p-6 rounded-xl font-mono text-sm overflow-x-auto border border-white/5">
+                            <pre className="text-purple-100/80">
                                 {`collabsphere/
 ├── client/                    # Frontend
 │   ├── public/
@@ -276,13 +282,13 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                     </section>
 
                     {/* Video Submission */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-red-500 to-pink-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🎥</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-red-500 to-pink-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🎥</span>
                             Video Submission Requirements
                         </h2>
 
-                        <p className="text-slate-300 mb-6">Submit <strong className="text-white">minimum 7 videos</strong> demonstrating the functionality of CollabSphere:</p>
+                        <p className="text-purple-100/90 mb-6">Submit <strong className="text-white">minimum 7 videos</strong> demonstrating the functionality of CollabSphere:</p>
 
                         <div className="grid md:grid-cols-2 gap-4 mb-6">
                             {[
@@ -295,32 +301,32 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                                 { num: 7, title: "Public Shareable Page & Gemini README", color: "pink" }
                             ].map((video) => (
                                 <div key={video.num} className={`p-4 bg-${video.color}-500/10 rounded-xl border border-${video.color}-500/20 flex items-start gap-3`}>
-                                    <span className="bg-white/20 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">{video.num}</span>
-                                    <span className="text-slate-300 text-sm">{video.title}</span>
+                                    <span className="bg-white/10 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 border border-white/10">{video.num}</span>
+                                    <span className="text-purple-100/80 text-sm">{video.title}</span>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                        <div className="p-6 bg-amber-500/10 rounded-xl border border-amber-500/20">
                             <h3 className="font-bold text-amber-300 mb-2">📝 Video Content Guidelines:</h3>
-                            <ul className="text-slate-400 text-sm space-y-1">
-                                <li>• <strong className="text-white">What was built:</strong> Briefly explain the feature(s)</li>
-                                <li>• <strong className="text-white">How Gemini was used:</strong> Show API endpoints and interaction</li>
-                                <li>• <strong className="text-white">Working Demo:</strong> Showcase feature in action</li>
-                                <li>• <strong className="text-white">No Reading:</strong> Speak naturally and confidently</li>
-                                <li>• <strong className="text-white">Duration:</strong> 2-5 minutes per video</li>
+                            <ul className="text-purple-100/70 text-sm space-y-1 list-disc ml-5">
+                                <li><strong className="text-white">What was built:</strong> Briefly explain the feature(s)</li>
+                                <li><strong className="text-white">How Gemini was used:</strong> Show API endpoints and interaction</li>
+                                <li><strong className="text-white">Working Demo:</strong> Showcase feature in action</li>
+                                <li><strong className="text-white">No Reading:</strong> Speak naturally and confidently</li>
+                                <li><strong className="text-white">Duration:</strong> 2-5 minutes per video</li>
                             </ul>
                         </div>
                     </section>
 
                     {/* Learning Outcomes */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-emerald-500 to-green-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🎓</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-emerald-500 to-green-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🎓</span>
                             Learning Outcomes
                         </h2>
 
-                        <div className="grid md:grid-cols-2 gap-3">
+                        <div className="grid md:grid-cols-2 gap-4">
                             {[
                                 "Design, develop, and deploy a full-stack web application",
                                 "Implement secure authentication with JWT and bcrypt",
@@ -336,74 +342,74 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                             ].map((outcome, index) => (
                                 <div key={index} className="flex items-start gap-3 p-2">
                                     <CheckCircle className="text-green-400 mt-1 flex-shrink-0" size={16} />
-                                    <span className="text-slate-300 text-sm">{outcome}</span>
+                                    <span className="text-purple-100/80 text-sm">{outcome}</span>
                                 </div>
                             ))}
                         </div>
                     </section>
 
                     {/* Resources */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-blue-500 to-cyan-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">📚</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-blue-500 to-cyan-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">📚</span>
                             Resources
                         </h2>
 
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-white/5 rounded-xl">
-                                <h3 className="font-bold text-blue-300 mb-3">Core Technologies</h3>
-                                <div className="space-y-2">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                <h3 className="font-bold text-blue-300 mb-4">Core Technologies</h3>
+                                <div className="space-y-3">
                                     {[
                                         { name: "Node.js Docs", url: "https://nodejs.org/en/docs/" },
                                         { name: "Express.js Guide", url: "https://expressjs.com/en/starter/installing.html" },
                                         { name: "MongoDB Docs", url: "https://www.mongodb.com/docs/" },
                                         { name: "Mongoose Guide", url: "https://mongoosejs.com/docs/guide.html" }
                                     ].map((link, i) => (
-                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-blue-300 text-sm transition-colors">
+                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-200/60 hover:text-blue-300 text-sm transition-colors">
                                             <ExternalLink size={14} />
                                             {link.name}
                                         </a>
                                     ))}
                                 </div>
                             </div>
-                            <div className="p-4 bg-white/5 rounded-xl">
-                                <h3 className="font-bold text-yellow-300 mb-3">AI Integration</h3>
-                                <div className="space-y-2">
+                            <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                <h3 className="font-bold text-yellow-300 mb-4">AI Integration</h3>
+                                <div className="space-y-3">
                                     {[
                                         { name: "Google Gemini API Docs", url: "https://ai.google.dev/docs" },
                                         { name: "AI Studio (Test Prompts)", url: "https://aistudio.google.com/" }
                                     ].map((link, i) => (
-                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-yellow-300 text-sm transition-colors">
+                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-200/60 hover:text-yellow-300 text-sm transition-colors">
                                             <ExternalLink size={14} />
                                             {link.name}
                                         </a>
                                     ))}
                                 </div>
                             </div>
-                            <div className="p-4 bg-white/5 rounded-xl">
-                                <h3 className="font-bold text-green-300 mb-3">Auth & Security</h3>
-                                <div className="space-y-2">
+                            <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                <h3 className="font-bold text-green-300 mb-4">Auth & Security</h3>
+                                <div className="space-y-3">
                                     {[
                                         { name: "bcrypt.js Package", url: "https://www.npmjs.com/package/bcrypt" },
                                         { name: "jsonwebtoken Package", url: "https://www.npmjs.com/package/jsonwebtoken" },
                                         { name: "Multer (File Uploads)", url: "https://www.npmjs.com/package/multer" }
                                     ].map((link, i) => (
-                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-green-300 text-sm transition-colors">
+                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-200/60 hover:text-green-300 text-sm transition-colors">
                                             <ExternalLink size={14} />
                                             {link.name}
                                         </a>
                                     ))}
                                 </div>
                             </div>
-                            <div className="p-4 bg-white/5 rounded-xl">
-                                <h3 className="font-bold text-purple-300 mb-3">Deployment</h3>
-                                <div className="space-y-2">
+                            <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                <h3 className="font-bold text-purple-300 mb-4">Deployment</h3>
+                                <div className="space-y-3">
                                     {[
                                         { name: "MongoDB Atlas", url: "https://www.mongodb.com/cloud/atlas/register" },
                                         { name: "Vercel Docs", url: "https://vercel.com/docs" },
                                         { name: "Heroku Dev Center", url: "https://devcenter.heroku.com/start" }
                                     ].map((link, i) => (
-                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-purple-300 text-sm transition-colors">
+                                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-200/60 hover:text-purple-300 text-sm transition-colors">
                                             <ExternalLink size={14} />
                                             {link.name}
                                         </a>
@@ -414,82 +420,82 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                     </section>
 
                     {/* Mini Projects */}
-                    <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="bg-gradient-to-r from-orange-500 to-amber-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">🧪</span>
+                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl">
+                        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-orange-500 to-amber-500 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">🧪</span>
                             3 Mini Projects Before Final Build
                         </h2>
 
-                        <p className="text-slate-300 mb-6">Practice key features in isolation before integrating them into CollabSphere:</p>
+                        <p className="text-purple-100/90 mb-8">Practice key features in isolation before integrating them into CollabSphere:</p>
 
                         {/* Mini Project 1 */}
-                        <div className="mb-6 p-5 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20">
+                        <div className="mb-6 p-6 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl border border-blue-500/20">
                             <h3 className="text-xl font-bold text-blue-300 mb-2 flex items-center gap-2">
                                 <Shield size={20} />
                                 Mini Project 1: User Authentication System
                             </h3>
-                            <p className="text-slate-400 mb-3"><strong className="text-white">Objective:</strong> Build a standalone Node.js/Express application with user registration and login.</p>
+                            <p className="text-purple-100/80 mb-4"><strong className="text-white">Objective:</strong> Build a standalone Node.js/Express application with user registration and login.</p>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Features:</p>
-                                    <ul className="text-slate-400 text-sm space-y-1">
-                                        <li>• User registration form (email, password)</li>
-                                        <li>• Password hashing using bcrypt</li>
-                                        <li>• JWT generation upon login</li>
-                                        <li>• Protected routes with JWT validation</li>
+                                    <p className="text-white text-sm font-semibold mb-2">Features:</p>
+                                    <ul className="text-purple-100/70 text-sm space-y-1 ml-4 list-disc">
+                                        <li>User registration form (email, password)</li>
+                                        <li>Password hashing using bcrypt</li>
+                                        <li>JWT generation upon login</li>
+                                        <li>Protected routes with JWT validation</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Tech Stack:</p>
-                                    <p className="text-slate-400 text-sm">Node.js, Express, MongoDB, Mongoose, bcrypt, JWT</p>
+                                    <p className="text-white text-sm font-semibold mb-2">Tech Stack:</p>
+                                    <p className="text-purple-100/70 text-sm">Node.js, Express, MongoDB, Mongoose, bcrypt, JWT</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Mini Project 2 */}
-                        <div className="mb-6 p-5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-xl border border-emerald-500/20">
+                        <div className="mb-6 p-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl border border-emerald-500/20">
                             <h3 className="text-xl font-bold text-emerald-300 mb-2 flex items-center gap-2">
                                 <FileCode size={20} />
                                 Mini Project 2: Collaborative Markdown Note App
                             </h3>
-                            <p className="text-slate-400 mb-3"><strong className="text-white">Objective:</strong> Create a web app for creating, editing, and saving Markdown notes.</p>
+                            <p className="text-purple-100/80 mb-4"><strong className="text-white">Objective:</strong> Create a web app for creating, editing, and saving Markdown notes.</p>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Features:</p>
-                                    <ul className="text-slate-400 text-sm space-y-1">
-                                        <li>• Integrate SimpleMDE Markdown editor</li>
-                                        <li>• Save notes to MongoDB</li>
-                                        <li>• View list of all notes</li>
-                                        <li>• (Optional) Basic multi-user viewing</li>
+                                    <p className="text-white text-sm font-semibold mb-2">Features:</p>
+                                    <ul className="text-purple-100/70 text-sm space-y-1 ml-4 list-disc">
+                                        <li>Integrate SimpleMDE Markdown editor</li>
+                                        <li>Save notes to MongoDB</li>
+                                        <li>View list of all notes</li>
+                                        <li>(Optional) Basic multi-user viewing</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Tech Stack:</p>
-                                    <p className="text-slate-400 text-sm">HTML, CSS, JS, Node.js, Express, MongoDB, SimpleMDE</p>
+                                    <p className="text-white text-sm font-semibold mb-2">Tech Stack:</p>
+                                    <p className="text-purple-100/70 text-sm">HTML, CSS, JS, Node.js, Express, MongoDB, SimpleMDE</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Mini Project 3 */}
-                        <div className="p-5 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl border border-yellow-500/20">
+                        <div className="p-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl border border-yellow-500/20">
                             <h3 className="text-xl font-bold text-yellow-300 mb-2 flex items-center gap-2">
                                 <Bot size={20} />
                                 Mini Project 3: Gemini-powered README Generator
                             </h3>
-                            <p className="text-slate-400 mb-3"><strong className="text-white">Objective:</strong> Build an app that generates README.md using Gemini API.</p>
+                            <p className="text-purple-100/80 mb-4"><strong className="text-white">Objective:</strong> Build an app that generates README.md using Gemini API.</p>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Features:</p>
-                                    <ul className="text-slate-400 text-sm space-y-1">
-                                        <li>• Form to collect project details</li>
-                                        <li>• Backend endpoint for Gemini API</li>
-                                        <li>• Generate README content</li>
-                                        <li>• Display generated Markdown</li>
+                                    <p className="text-white text-sm font-semibold mb-2">Features:</p>
+                                    <ul className="text-purple-100/70 text-sm space-y-1 ml-4 list-disc">
+                                        <li>Form to collect project details</li>
+                                        <li>Backend endpoint for Gemini API</li>
+                                        <li>Generate README content</li>
+                                        <li>Display generated Markdown</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <p className="text-slate-300 text-sm font-semibold mb-2">Tech Stack:</p>
-                                    <p className="text-slate-400 text-sm">HTML, CSS, JS, Node.js, Express, Gemini API</p>
+                                    <p className="text-white text-sm font-semibold mb-2">Tech Stack:</p>
+                                    <p className="text-purple-100/70 text-sm">HTML, CSS, JS, Node.js, Express, Gemini API</p>
                                 </div>
                             </div>
                         </div>
@@ -498,11 +504,11 @@ export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
                     {/* Footer */}
                     <div className="text-center py-8">
                         <p className="text-2xl font-bold text-white mb-2">Good luck, and enjoy building CollabSphere! ✨</p>
-                        <p className="text-slate-400">This project is a fantastic opportunity to consolidate your learning and create a portfolio piece that truly shines.</p>
-                        <div className="mt-6 flex justify-center gap-4">
-                            <span className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full text-white font-semibold text-sm">Full-Stack</span>
-                            <span className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-white font-semibold text-sm">AI-Powered</span>
-                            <span className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-white font-semibold text-sm">Placement Ready</span>
+                        <p className="text-purple-200/60">This project is a fantastic opportunity to consolidate your learning and create a portfolio piece that truly shines.</p>
+                        <div className="mt-8 flex flex-wrap justify-center gap-4">
+                            <span className="px-6 py-2 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full text-white font-semibold text-sm shadow-lg shadow-purple-900/50">Full-Stack</span>
+                            <span className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-white font-semibold text-sm shadow-lg shadow-orange-900/50">AI-Powered</span>
+                            <span className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-white font-semibold text-sm shadow-lg shadow-emerald-900/50">Placement Ready</span>
                         </div>
                     </div>
 

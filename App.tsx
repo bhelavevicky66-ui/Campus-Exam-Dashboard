@@ -20,6 +20,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { QuizState, UserResponse, QuizResult } from './types';
 import { submitQuiz } from './services/quizService';
+import { saveTestResult, TestResultHistory } from './services/testHistoryService';
 import { MODULES } from './constants';
 import { Loader2 } from 'lucide-react';
 
@@ -53,6 +54,25 @@ const AppContent: React.FC = () => {
     try {
       const result = await submitQuiz(finalResponses, timeTaken);
       setQuizResult(result);
+
+      // Save test result to history
+      if (user?.email && selectedModuleId) {
+        const moduleInfo = MODULES[selectedModuleId as keyof typeof MODULES];
+        const historyResult: TestResultHistory = {
+          moduleId: selectedModuleId,
+          moduleName: moduleInfo?.title || selectedModuleId,
+          score: result.score,
+          correctCount: result.correctCount,
+          wrongCount: result.wrongCount,
+          totalQuestions: result.correctCount + result.wrongCount,
+          timeTaken: result.timeTaken,
+          passed: result.correctCount >= 18, // 60% passing criteria
+          date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+          timestamp: Date.now()
+        };
+        saveTestResult(user.email, historyResult);
+      }
+
       setState(QuizState.RESULT);
     } catch (error) {
       console.error("Submission failed", error);
@@ -60,7 +80,7 @@ const AppContent: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [timeLeft]);
+  }, [timeLeft, user, selectedModuleId]);
 
   const handleDashboardStart = (moduleId: string) => {
     setSelectedModuleId(moduleId);

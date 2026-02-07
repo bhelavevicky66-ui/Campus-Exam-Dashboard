@@ -29,6 +29,7 @@ export interface QuizResult {
   total: number;
   correctCount: number;
   wrongCount: number;
+  timeTaken: string;
   details: {
     questionId: number;
     userAnswer: string;

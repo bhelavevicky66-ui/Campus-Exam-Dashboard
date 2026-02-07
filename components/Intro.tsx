@@ -135,7 +135,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
             onClick={() => onStart("Vicky Bhelave")} // Assuming user is logged in
             className="relative z-10 bg-white text-[#6C5DD3] px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg shadow-indigo-900/20 hover:shadow-xl active:scale-95 whitespace-nowrap"
           >
-            Start New Exam
+            Start Test
             <Play fill="currentColor" size={16} />
           </button>
         </div>
