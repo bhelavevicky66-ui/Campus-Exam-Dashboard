@@ -79,7 +79,7 @@ export const QuestionManager: React.FC = () => {
                 }
                 currentQ = {
                     question: qMatch[1],
-                    moduleId,
+                    moduleId: '', // Will be set in handleBulkSubmit
                     type: 'text',
                     category: 'General',
                 };
@@ -98,7 +98,7 @@ export const QuestionManager: React.FC = () => {
                     }
                     currentQ = {
                         question: numMatch[1],
-                        moduleId,
+                        moduleId: '', // Will be set in handleBulkSubmit
                         type: 'text',
                         category: 'General',
                     };
@@ -121,11 +121,13 @@ export const QuestionManager: React.FC = () => {
             return;
         }
 
-        if (!confirm(`Found ${parsed.length} questions. Import them?`)) return;
+        const targetModule = selectedModule === 'all' ? 'screen-test' : selectedModule;
+        if (!confirm(`Found ${parsed.length} questions. Add them to ${targetModule === 'screen-test' ? 'Screening Test' : targetModule === 'module-0' ? 'Module 0' : 'Module 1'}?`)) return;
 
         setIsAdding(true);
         let count = 0;
         for (const q of parsed) {
+            q.moduleId = targetModule; // Override with selected module
             const successId = await addQuestion(q);
             if (successId) count++;
         }
@@ -138,13 +140,14 @@ export const QuestionManager: React.FC = () => {
 
     const handleAddQuestion = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!questionText || !answer || !moduleId) return;
+        const targetModule = selectedModule === 'all' ? 'screen-test' : selectedModule;
+        if (!questionText || !answer || !targetModule) return;
 
         setIsAdding(true);
         const newQuestion: Omit<Question, 'id'> = {
             question: questionText,
             type,
-            moduleId,
+            moduleId: targetModule,
             answer,
             category: category || 'General',
             hint: hint || undefined,
@@ -237,8 +240,8 @@ export const QuestionManager: React.FC = () => {
                 <button
                     onClick={() => setSelectedModule('screen-test')}
                     className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'screen-test'
-                            ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/30'
-                            : 'bg-white/5 border-white/10 hover:border-blue-500/50'
+                        ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/30'
+                        : 'bg-white/5 border-white/10 hover:border-blue-500/50'
                         }`}
                 >
                     <div className="text-center">
@@ -251,8 +254,8 @@ export const QuestionManager: React.FC = () => {
                 <button
                     onClick={() => setSelectedModule('module-0')}
                     className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-0'
-                            ? 'bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/30'
-                            : 'bg-white/5 border-white/10 hover:border-orange-500/50'
+                        ? 'bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/30'
+                        : 'bg-white/5 border-white/10 hover:border-orange-500/50'
                         }`}
                 >
                     <div className="text-center">
@@ -265,8 +268,8 @@ export const QuestionManager: React.FC = () => {
                 <button
                     onClick={() => setSelectedModule('module-1')}
                     className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-1'
-                            ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
-                            : 'bg-white/5 border-white/10 hover:border-emerald-500/50'
+                        ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+                        : 'bg-white/5 border-white/10 hover:border-emerald-500/50'
                         }`}
                 >
                     <div className="text-center">
@@ -325,18 +328,17 @@ A: Paris`}
                             </p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-purple-200 mb-1">Target Module for All Questions</label>
-                            <select
-                                value={moduleId}
-                                onChange={(e) => setModuleId(e.target.value)}
-                                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 mb-4"
-                            >
-                                <option value="screen-test" className="text-black">Screening Test</option>
-                                <option value="module-0" className="text-black">Module 0</option>
-                                <option value="module-1" className="text-black">Module 1</option>
-                            </select>
+                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200 text-sm mb-4">
+                            <p className="font-bold">📌 Target Module: <span className="text-white">
+                                {selectedModule === 'all' ? 'Screening Test (default)' :
+                                    selectedModule === 'screen-test' ? 'Screening Test' :
+                                        selectedModule === 'module-0' ? 'Module 0' :
+                                            'Module 1'}
+                            </span></p>
+                            <p className="text-xs mt-1 opacity-70">Click a module card above to change the target module</p>
+                        </div>
 
+                        <div>
                             <textarea
                                 value={bulkText}
                                 onChange={(e) => setBulkText(e.target.value)}
@@ -356,19 +358,17 @@ A: Paris`}
                     </div>
                 ) : (
                     <form onSubmit={handleAddQuestion} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">Module</label>
-                                <select
-                                    value={moduleId}
-                                    onChange={(e) => setModuleId(e.target.value)}
-                                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                                >
-                                    <option value="screen-test" className="text-black">Screening Test</option>
-                                    <option value="module-0" className="text-black">Module 0</option>
-                                    <option value="module-1" className="text-black">Module 1</option>
-                                </select>
-                            </div>
+                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200 text-sm mb-4">
+                            <p className="font-bold">📌 Target Module: <span className="text-white">
+                                {selectedModule === 'all' ? 'Screening Test (default)' :
+                                    selectedModule === 'screen-test' ? 'Screening Test' :
+                                        selectedModule === 'module-0' ? 'Module 0' :
+                                            'Module 1'}
+                            </span></p>
+                            <p className="text-xs mt-1 opacity-70">Click a module card above to change the target module</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Question Type</label>
                                 <select
