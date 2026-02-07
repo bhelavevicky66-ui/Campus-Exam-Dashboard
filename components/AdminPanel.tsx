@@ -1,19 +1,39 @@
 import React, { useState } from 'react';
-import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SUPER_ADMIN_EMAILS } from '../roles';
+import { QuestionManager } from './QuestionManager';
 
 interface AdminPanelProps {
     onBack: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
-    const { adminEmails, addAdmin, removeAdmin, isSuperAdmin } = useAuth();
+    const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin } = useAuth();
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins'>('questions');
+
+    // Admin Management State
     const [newEmail, setNewEmail] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [removingEmail, setRemovingEmail] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+
+    // If not admin at all, show access denied
+    if (!isAdmin && !isSuperAdmin) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
+                <div className="text-center text-white">
+                    <Shield size={64} className="mx-auto mb-4 text-red-400" />
+                    <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+                    <p className="text-purple-200/70">You don't have permission to access this page</p>
+                    <button onClick={onBack} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl transition-colors">
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const handleAddAdmin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,14 +45,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             return;
         }
 
-        // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(newEmail)) {
             setError('Please enter a valid email address');
             return;
         }
 
-        // Check if already an admin or super admin
         if (SUPER_ADMIN_EMAILS.includes(newEmail.toLowerCase())) {
             setError('This email is already a Super Admin');
             return;
@@ -70,29 +88,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         }
     };
 
-    if (!isSuperAdmin) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
-                <div className="text-center text-white">
-                    <Shield size={64} className="mx-auto mb-4 text-red-400" />
-                    <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-                    <p className="text-purple-200/70">You don't have permission to access this page</p>
-                    <button
-                        onClick={onBack}
-                        className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl transition-colors"
-                    >
-                        Go Back
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-auto">
+        <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto custom-scrollbar">
             {/* Header */}
-            <div className="sticky top-0 z-50 bg-[#0f0c29]/80 backdrop-blur-lg border-b border-white/10">
-                <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="sticky top-0 z-50 bg-[#0f0c29]/90 backdrop-blur-lg border-b border-white/10 shadow-xl">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                     <button
                         onClick={onBack}
                         className="flex items-center gap-2 text-purple-300 hover:text-white transition-all group"
@@ -101,142 +101,172 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         <span className="font-semibold">Back to Dashboard</span>
                     </button>
 
-                    <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full">
-                        <Crown size={18} className="text-yellow-400" />
-                        <span className="text-yellow-400 font-semibold text-sm">Super Admin</span>
+                    <div className="flex items-center gap-3">
+                        {isSuperAdmin && (
+                            <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full border border-yellow-500/20">
+                                <Crown size={16} className="text-yellow-400" />
+                                <span className="text-yellow-400 font-bold text-xs uppercase tracking-wider">Super Admin</span>
+                            </div>
+                        )}
+                        {!isSuperAdmin && isAdmin && (
+                            <div className="flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-full border border-blue-500/20">
+                                <ShieldCheck size={16} className="text-blue-400" />
+                                <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">Admin</span>
+                            </div>
+                        )}
                     </div>
+                </div>
+
+                {/* Navigation Tabs */}
+                <div className="max-w-6xl mx-auto px-6 flex gap-6 mt-2">
+                    <button
+                        onClick={() => setActiveTab('questions')}
+                        className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'questions'
+                                ? 'border-green-400 text-green-400'
+                                : 'border-transparent text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <FileQuestion size={18} />
+                            Manage Questions
+                        </div>
+                    </button>
+
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => setActiveTab('admins')}
+                            className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'admins'
+                                    ? 'border-purple-400 text-purple-400'
+                                    : 'border-transparent text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck size={18} />
+                                Manage Admins
+                            </div>
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-4xl mx-auto px-6 py-12">
-                <div className="text-center mb-12">
-                    <div className="inline-flex items-center gap-3 bg-purple-500/20 px-6 py-3 rounded-full border border-purple-500/30 mb-6">
-                        <ShieldCheck size={24} className="text-purple-400" />
-                        <span className="text-lg font-medium">Admin Management</span>
+            <div className="max-w-6xl mx-auto px-6 py-8">
+                {activeTab === 'questions' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2">Question Bank</h1>
+                            <p className="text-purple-200/60">Add and manage questions for different modules</p>
+                        </div>
+                        <QuestionManager />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4">Manage Administrators</h1>
-                    <p className="text-purple-200/70">Add or remove admin access for users</p>
-                </div>
+                ) : (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Admin Management Content */}
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2">Admin Access</h1>
+                            <p className="text-purple-200/60">Manage who has access to the admin panel</p>
+                        </div>
 
-                {/* Alerts */}
-                {error && (
-                    <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-300">
-                        <AlertCircle size={20} />
-                        {error}
-                    </div>
-                )}
-                {success && (
-                    <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center gap-3 text-green-300">
-                        <ShieldCheck size={20} />
-                        {success}
-                    </div>
-                )}
+                        {/* Alerts */}
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-300">
+                                <AlertCircle size={20} />
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center gap-3 text-green-300">
+                                <ShieldCheck size={20} />
+                                {success}
+                            </div>
+                        )}
 
-                {/* Add Admin Form */}
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 mb-8">
-                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <UserPlus size={22} className="text-green-400" />
-                        Add New Admin
-                    </h3>
-                    <form onSubmit={handleAddAdmin} className="flex gap-3">
-                        <input
-                            type="email"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
-                            placeholder="Enter email address..."
-                            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500 transition-colors"
-                        />
-                        <button
-                            type="submit"
-                            disabled={isAdding}
-                            className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl font-semibold flex items-center gap-2 transition-colors"
-                        >
-                            {isAdding ? (
-                                <Loader2 size={20} className="animate-spin" />
-                            ) : (
-                                <UserPlus size={20} />
-                            )}
-                            Add Admin
-                        </button>
-                    </form>
-                </div>
-
-                {/* Super Admins List */}
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 mb-8">
-                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Crown size={22} className="text-yellow-400" />
-                        Super Admins (Cannot be removed)
-                    </h3>
-                    <div className="space-y-3">
-                        {SUPER_ADMIN_EMAILS.map((email) => (
-                            <div
-                                key={email}
-                                className="flex items-center justify-between p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-yellow-500/30 flex items-center justify-center">
-                                        <Crown size={18} className="text-yellow-400" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">{email}</p>
-                                        <p className="text-xs text-yellow-400/70">Super Admin</p>
-                                    </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Left Col: Add & Super Admins */}
+                            <div className="space-y-8">
+                                {/* Add Admin Form */}
+                                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                        <UserPlus size={22} className="text-green-400" />
+                                        Add New Admin
+                                    </h3>
+                                    <form onSubmit={handleAddAdmin} className="flex gap-3">
+                                        <input
+                                            type="email"
+                                            value={newEmail}
+                                            onChange={(e) => setNewEmail(e.target.value)}
+                                            placeholder="Enter email address..."
+                                            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500 transition-colors"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={isAdding}
+                                            className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl font-semibold flex items-center gap-2 transition-colors"
+                                        >
+                                            {isAdding ? <Loader2 size={20} className="animate-spin" /> : <UserPlus size={20} />}
+                                            Add
+                                        </button>
+                                    </form>
                                 </div>
-                                <div className="px-3 py-1 bg-yellow-500/20 rounded-lg text-yellow-400 text-xs font-bold">
-                                    PROTECTED
+
+                                {/* Super Admins List */}
+                                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                        <Crown size={22} className="text-yellow-400" />
+                                        Super Admins
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {SUPER_ADMIN_EMAILS.map((email) => (
+                                            <div key={email} className="flex items-center justify-between p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-yellow-500/30 flex items-center justify-center">
+                                                        <Crown size={14} className="text-yellow-400" />
+                                                    </div>
+                                                    <span className="font-medium text-sm">{email}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
 
-                {/* Admins List */}
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Shield size={22} className="text-blue-400" />
-                        Admins ({adminEmails.length})
-                    </h3>
+                            {/* Right Col: Admin List */}
+                            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 h-fit">
+                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <Shield size={22} className="text-blue-400" />
+                                    Admins ({adminEmails.length})
+                                </h3>
 
-                    {adminEmails.length === 0 ? (
-                        <div className="text-center py-8 text-purple-300/50">
-                            <Shield size={48} className="mx-auto mb-3 opacity-50" />
-                            <p>No admins added yet</p>
-                            <p className="text-sm">Add admin emails above to grant admin access</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {adminEmails.map((email) => (
-                                <div
-                                    key={email}
-                                    className="flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center">
-                                            <Shield size={18} className="text-blue-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">{email}</p>
-                                            <p className="text-xs text-blue-400/70">Admin</p>
-                                        </div>
+                                {adminEmails.length === 0 ? (
+                                    <div className="text-center py-8 text-purple-300/50">
+                                        <Shield size={48} className="mx-auto mb-3 opacity-50" />
+                                        <p>No admins added yet</p>
                                     </div>
-                                    <button
-                                        onClick={() => handleRemoveAdmin(email)}
-                                        disabled={removingEmail === email}
-                                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
-                                    >
-                                        {removingEmail === email ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                        ) : (
-                                            <Trash2 size={16} />
-                                        )}
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
+                                ) : (
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                                        {adminEmails.map((email) => (
+                                            <div key={email} className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center">
+                                                        <Shield size={14} className="text-blue-400" />
+                                                    </div>
+                                                    <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none">{email}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRemoveAdmin(email)}
+                                                    disabled={removingEmail === email}
+                                                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                                                >
+                                                    {removingEmail === email ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

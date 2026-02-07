@@ -1,17 +1,20 @@
 
-import { UserResponse, QuizResult } from '../types';
-import { MATH_QUESTIONS, CORRECT_ANSWERS } from '../constants';
+import { UserResponse, QuizResult, Question } from '../types';
+import { CORRECT_ANSWERS } from '../constants';
 
-export const submitQuiz = async (responses: UserResponse[], timeTakenSeconds: number): Promise<QuizResult> => {
+export const submitQuiz = async (responses: UserResponse[], questions: Question[], timeTakenSeconds: number): Promise<QuizResult> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
 
   let correctCount = 0;
-  const details = MATH_QUESTIONS.map(q => {
+  const details = questions.map(q => {
     const resp = responses.find(r => r.questionId === q.id);
     const userAnswer = (resp ? resp.answer : "").toLowerCase().trim();
-    const correctAnswer = CORRECT_ANSWERS[q.id].toLowerCase().trim();
-    
+
+    // Determine correct answer: Dynamic (from object) or Static (from constant)
+    const correctAnswerRaw = q.answer || CORRECT_ANSWERS[q.id] || "";
+    const correctAnswer = correctAnswerRaw.toLowerCase().trim();
+
     let isCorrect = false;
 
     if (q.id === 13) {
@@ -31,7 +34,7 @@ export const submitQuiz = async (responses: UserResponse[], timeTakenSeconds: nu
       questionId: q.id,
       userAnswer: resp ? resp.answer : "",
       isCorrect,
-      correctAnswer: CORRECT_ANSWERS[q.id]
+      correctAnswer: correctAnswerRaw
     };
   });
 
@@ -40,10 +43,10 @@ export const submitQuiz = async (responses: UserResponse[], timeTakenSeconds: nu
   const timeStr = `${minutes}m ${seconds}s`;
 
   return {
-    score: (correctCount / MATH_QUESTIONS.length) * 100,
-    total: MATH_QUESTIONS.length,
+    score: questions.length > 0 ? (correctCount / questions.length) * 100 : 0,
+    total: questions.length,
     correctCount,
-    wrongCount: MATH_QUESTIONS.length - correctCount,
+    wrongCount: questions.length - correctCount,
     timeTaken: timeStr,
     details
   };

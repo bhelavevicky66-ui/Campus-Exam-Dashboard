@@ -16,12 +16,15 @@ export enum QuizState {
 }
 
 export interface Question {
-  id: number;
+  id: number | string;
   question: string;
-  type: 'text' | 'number';
+  type: 'text' | 'number' | 'mcq';
   placeholder?: string;
   hint?: string;
   category?: string;
+  moduleId?: string;
+  answer?: string;
+  options?: string[];
 }
 
 export interface QuizResult {
@@ -31,7 +34,7 @@ export interface QuizResult {
   wrongCount: number;
   timeTaken: string;
   details: {
-    questionId: number;
+    questionId: number | string;
     userAnswer: string;
     isCorrect: boolean;
     correctAnswer: string;
@@ -39,6 +42,6 @@ export interface QuizResult {
 }
 
 export interface UserResponse {
-  questionId: number;
+  questionId: number | string;
   answer: string;
 }

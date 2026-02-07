@@ -9,25 +9,26 @@ interface QuizProps {
   onComplete: (responses: UserResponse[]) => void;
 }
 
-export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onComplete }) => { // Added questions to props
+export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [allAnswers, setAllAnswers] = useState<Record<number, string>>({});
+  const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const currentQuestion = questions[currentIndex]; // Use questions prop
-  const answeredCount = Object.keys(allAnswers).filter(id => allAnswers[Number(id)].trim() !== '').length;
-  const progress = (answeredCount / questions.length) * 100; // Use questions prop
+  const currentQuestion = questions[currentIndex];
+  // Filter out empty answers
+  const answeredCount = Object.values(allAnswers).filter(ans => ans.trim() !== '').length;
+  const progress = (answeredCount / questions.length) * 100;
 
   const categories = useMemo(() => {
     const groups: Record<string, Question[]> = {};
-    questions.forEach((q) => { // Use questions prop
+    questions.forEach((q) => {
       if (!groups[q.category]) groups[q.category] = [];
       groups[q.category].push(q);
     });
     return groups;
-  }, [questions]); // Dependency on questions prop
+  }, [questions]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -47,7 +48,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
   };
 
   const handleNext = () => {
-    if (currentIndex < questions.length - 1) { // Use questions prop
+    if (currentIndex < questions.length - 1) {
       handleNavigate(currentIndex + 1);
     }
   };
@@ -61,14 +62,14 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
   const onInputChange = (val: string) => {
     setAllAnswers(prev => ({
       ...prev,
-      [currentQuestion.id]: val
+      [String(currentQuestion.id)]: val
     }));
   };
 
   const handleSubmit = () => {
-    const responses: UserResponse[] = questions.map(q => ({ // Use questions prop
+    const responses: UserResponse[] = questions.map(q => ({
       questionId: q.id,
-      answer: allAnswers[q.id] || ''
+      answer: allAnswers[String(q.id)] || ''
     }));
     onComplete(responses);
   };
@@ -142,15 +143,15 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
                 <input
                   type="text"
                   autoFocus
-                  value={allAnswers[currentQuestion.id] || ''}
+                  value={allAnswers[String(currentQuestion.id)] || ''}
                   onChange={(e) => onInputChange(e.target.value)}
                   placeholder={currentQuestion.placeholder || "Answer..."}
                   className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all text-2xl text-center placeholder:text-slate-200 font-bold text-indigo-600 shadow-sm"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (allAnswers[currentQuestion.id] || '').trim()) handleNext();
+                    if (e.key === 'Enter' && (allAnswers[String(currentQuestion.id)] || '').trim()) handleNext();
                   }}
                 />
-                {allAnswers[currentQuestion.id] && (
+                {allAnswers[String(currentQuestion.id)] && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500 animate-in fade-in zoom-in">
                     <CheckCircle size={24} fill="currentColor" className="text-white bg-green-500 rounded-full" />
                   </div>
@@ -226,7 +227,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
                     // Find the global index of this question in the main questions array
                     const globalIdx = questions.findIndex(item => item.id === q.id);
                     const isCurrent = globalIdx === currentIndex;
-                    const isAnswered = allAnswers[q.id] && allAnswers[q.id].trim() !== '';
+                    const isAnswered = allAnswers[String(q.id)] && allAnswers[String(q.id)].trim() !== '';
                     return (
                       <button
                         key={q.id}

@@ -18,11 +18,12 @@ import { PhaseDashboard } from './components/PhaseDashboard';
 import { NavGurukul } from './components/NavGurukul';
 import { AdminPanel } from './components/AdminPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import { QuizState, UserResponse, QuizResult } from './types';
+import { QuizState, UserResponse, QuizResult, Question } from './types';
 import { submitQuiz } from './services/quizService';
 import { saveTestResult, TestResultHistory } from './services/testHistoryService';
 import { MODULES } from './constants';
 import { Loader2 } from 'lucide-react';
+import { getDynamicQuestions } from './services/questionService';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
@@ -33,6 +34,8 @@ const AppContent: React.FC = () => {
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPreparingQuiz, setIsPreparingQuiz] = useState(false);
+  const [activeQuestions, setActiveQuestions] = useState<Question[]>([]);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -52,7 +55,7 @@ const AppContent: React.FC = () => {
     const timeTaken = TOTAL_TIME - timeLeft;
 
     try {
-      const result = await submitQuiz(finalResponses, timeTaken);
+      const result = await submitQuiz(finalResponses, activeQuestions, timeTaken);
       setQuizResult(result);
 
       // Save test result to history
@@ -72,7 +75,7 @@ const AppContent: React.FC = () => {
           wrongAnswers: result.details
             .filter(d => !d.isCorrect)
             .map(d => ({
-              question: moduleInfo?.questions.find(q => q.id === d.questionId)?.question || "Unknown Question",
+              question: activeQuestions.find(q => q.id === d.questionId)?.question || "Unknown Question",
               userAnswer: d.userAnswer,
               correctAnswer: d.correctAnswer
             }))
@@ -87,7 +90,7 @@ const AppContent: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [timeLeft, user, selectedModuleId]);
+  }, [timeLeft, user, selectedModuleId, activeQuestions]);
 
   const handleDashboardStart = (moduleId: string) => {
     setSelectedModuleId(moduleId);
@@ -118,22 +121,50 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleStart = (name: string) => {
+  const handleStart = async (name: string) => {
     setUserName(name);
-    setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
-    responsesRef.current = [];
-    setState(QuizState.QUIZ);
+    setIsPreparingQuiz(true);
 
-    timerRef.current = window.setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          finishQuiz(responsesRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    try {
+      if (selectedModuleId) {
+        // Static Questions
+        const staticQs = MODULES[selectedModuleId as keyof typeof MODULES]?.questions || [];
+        // Dynamic Questions
+        const dynamicQs = await getDynamicQuestions(selectedModuleId);
+
+        // Combine and Shuffle
+        const allQs = [...staticQs, ...dynamicQs];
+        const shuffled = allQs.sort(() => 0.5 - Math.random());
+
+        // Select first 30 questions (or less if fewer available)
+        const selectedQs = shuffled.slice(0, 30);
+        setActiveQuestions(selectedQs);
+
+        // Update Time Left based on config
+        setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
+      } else {
+        setActiveQuestions([]);
+      }
+
+      responsesRef.current = [];
+      setState(QuizState.QUIZ);
+
+      timerRef.current = window.setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            finishQuiz(responsesRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting quiz:", error);
+      alert("Failed to start quiz. Please try again.");
+    } finally {
+      setIsPreparingQuiz(false);
+    }
   };
 
   const handleComplete = useCallback((responses: UserResponse[]) => {
@@ -145,6 +176,7 @@ const AppContent: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setQuizResult(null);
     setSelectedModuleId(null);
+    setActiveQuestions([]);
     setShowAdminPanel(false);
     setState(QuizState.DASHBOARD);
   };
@@ -160,10 +192,6 @@ const AppContent: React.FC = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
-
-  const currentQuestions = selectedModuleId && MODULES[selectedModuleId as keyof typeof MODULES]
-    ? MODULES[selectedModuleId as keyof typeof MODULES].questions
-    : [];
 
   // Show loading while checking auth state
   if (loading) {
@@ -199,16 +227,20 @@ const AppContent: React.FC = () => {
 
   return (
     <Layout>
-      {isSubmitting ? (
-        <div className="p-24 text-center flex flex-col items-center justify-center animate-pulse">
+      {isSubmitting || isPreparingQuiz ? (
+        <div className="p-24 text-center flex flex-col items-center justify-center animate-pulse min-h-[60vh]">
           <div className="relative">
             <Loader2 className="w-16 h-16 text-indigo-600 animate-spin mb-6" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-8 h-8 bg-indigo-100 rounded-full animate-ping"></div>
             </div>
           </div>
-          <h3 className="text-2xl font-bold text-slate-800 font-montserrat">Analyzing Results</h3>
-          <p className="text-slate-500 font-medium mt-3">Grading your performance...</p>
+          <h3 className="text-2xl font-bold text-slate-800 font-montserrat">
+            {isSubmitting ? 'Analyzing Results' : 'Preparing Your Quiz'}
+          </h3>
+          <p className="text-slate-500 font-medium mt-3">
+            {isSubmitting ? 'Grading your performance...' : 'Selecting questions for you...'}
+          </p>
         </div>
       ) : (
         <>
@@ -218,7 +250,7 @@ const AppContent: React.FC = () => {
             <Quiz
               userName={userName}
               timeLeft={timeLeft}
-              questions={currentQuestions}
+              questions={activeQuestions}
               onComplete={handleComplete}
             />
           )}
