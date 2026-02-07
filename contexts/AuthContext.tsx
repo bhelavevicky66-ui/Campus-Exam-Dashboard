@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, getAdminEmails, addAdminEmail, removeAdminEmail } from '../firebase';
+import { auth, db, addAdminEmail, removeAdminEmail } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { UserRole, isSuperAdminEmail, ROLE_PERMISSIONS } from '../roles';
 import { recordUserLogin } from '../services/loggedUsersService';
 
@@ -57,43 +58,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return 'user';
     };
 
-    // Refresh admin list from Firestore
-    const refreshAdmins = async () => {
-        const emails = await getAdminEmails();
-        setAdminEmails(emails);
-
-        if (user?.email) {
-            setRole(determineRole(user.email, emails));
+    // Record login when user authenticated
+    useEffect(() => {
+        if (user?.email && user?.displayName) {
+            recordUserLogin(user.email, user.displayName, user.photoURL || undefined);
         }
+    }, [user?.email]);
+
+    // Refresh admin list from Firestore (manual trigger if needed)
+    const refreshAdmins = async () => {
+        // Handled by onSnapshot, but keeping for compatibility
     };
 
     // Listen for auth state changes
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
-
-            if (currentUser) {
-                const emails = await getAdminEmails();
-                setAdminEmails(emails);
-                setRole(determineRole(currentUser.email, emails));
-
-                // Record user login
-                if (currentUser.email && currentUser.displayName) {
-                    await recordUserLogin(
-                        currentUser.email,
-                        currentUser.displayName,
-                        currentUser.photoURL || undefined
-                    );
-                }
-            } else {
+            if (!currentUser) {
                 setRole('user');
+                setLoading(false);
+            }
+        });
+
+        // Listen for admin list changes real-time
+        const unsubscribeAdmins = onSnapshot(doc(db, 'config/admins'), (docSnap) => {
+            const emails = docSnap.exists() ? docSnap.data().emails || [] : [];
+            setAdminEmails(emails);
+
+            if (user?.email) {
+                setRole(determineRole(user.email, emails));
+            } else if (auth.currentUser?.email) {
+                // Handle case where user state hasn't updated yet but auth.currentUser is available
+                setRole(determineRole(auth.currentUser.email, emails));
             }
 
             setLoading(false);
+        }, (error) => {
+            console.error("Error listening to admins:", error);
+            setLoading(false);
         });
 
-        return () => unsubscribe();
-    }, []);
+        return () => {
+            unsubscribeAuth();
+            unsubscribeAdmins();
+        };
+    }, [user?.email]);
 
     const logout = async () => {
         await signOut(auth);

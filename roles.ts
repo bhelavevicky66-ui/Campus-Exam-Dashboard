@@ -23,7 +23,7 @@ export const ROLE_PERMISSIONS = {
         canViewDashboard: true
     },
     admin: {
-        canManageAdmins: false,
+        canManageAdmins: true,
         canAccessAllFeatures: true,
         canTakeTests: true,
         canViewDashboard: true

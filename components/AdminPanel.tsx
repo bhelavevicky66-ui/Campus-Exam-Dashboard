@@ -10,7 +10,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
-    const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin } = useAuth();
+    const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
     const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students'>('questions');
 
     // Admin Management State
@@ -156,6 +156,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         }
     };
 
+    const handlePromoteToAdmin = async (email: string) => {
+        setError(null);
+        setSuccess(null);
+        setIsAdding(true);
+
+        const result = await addAdmin(email);
+        setIsAdding(false);
+
+        if (result) {
+            setSuccess(`${email} has been promoted to admin`);
+        } else {
+            setError('Failed to promote student. Please try again.');
+        }
+    };
+
     return (
         <div className="h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto custom-scrollbar">
             {/* Header */}
@@ -170,16 +185,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                     </button>
 
                     <div className="flex items-center gap-3">
-                        {isSuperAdmin && (
+                        {(isSuperAdmin || isAdmin) && (
                             <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full border border-yellow-500/20">
                                 <Crown size={16} className="text-yellow-400" />
-                                <span className="text-yellow-400 font-bold text-xs uppercase tracking-wider">Super Admin</span>
-                            </div>
-                        )}
-                        {!isSuperAdmin && isAdmin && (
-                            <div className="flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-full border border-blue-500/20">
-                                <ShieldCheck size={16} className="text-blue-400" />
-                                <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">Admin</span>
+                                <span className="text-yellow-400 font-bold text-xs uppercase tracking-wider">
+                                    {isSuperAdmin ? 'Super Admin' : 'Admin'}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -200,7 +211,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         </div>
                     </button>
 
-                    {(isSuperAdmin || isAdmin) && (
+                    {(canManageAdmins) && (
                         <button
                             onClick={() => setActiveTab('admins')}
                             className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'admins'
@@ -312,6 +323,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Name</th>
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Email</th>
                                                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Last Login</th>
+                                                {canManageAdmins && (
+                                                    <th className="text-right py-3 px-4 text-sm font-bold text-purple-300/70 uppercase tracking-widest">Actions</th>
+                                                )}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -338,6 +352,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                     </td>
                                                     <td className="py-4 px-4 text-purple-200/80 text-sm">{student.email}</td>
                                                     <td className="py-4 px-4 text-purple-200/80 text-sm">{formatDate(student.lastLogin)}</td>
+                                                    {canManageAdmins && (
+                                                        <td className="py-4 px-4 text-right">
+                                                            {adminEmails.includes(student.email.toLowerCase()) ||
+                                                                SUPER_ADMIN_EMAILS.includes(student.email.toLowerCase()) ? (
+                                                                <span className="text-xs font-bold text-green-400/50 bg-green-400/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                                                                    Already Admin
+                                                                </span>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handlePromoteToAdmin(student.email)}
+                                                                    disabled={isAdding}
+                                                                    className="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
+                                                                >
+                                                                    {isAdding ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                                                                    Make Admin
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    )}
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -371,7 +404,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* Left Col: Add & Super Admins */}
                             <div className="space-y-8">
-                                {isSuperAdmin && (
+                                {canManageAdmins && (
                                     <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                                         <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                                             <UserPlus size={22} className="text-green-400" />
@@ -493,7 +526,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                                     </div>
                                                     <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none">{email}</span>
                                                 </div>
-                                                {isSuperAdmin && (
+                                                {canManageAdmins && (
                                                     <button
                                                         onClick={() => handleRemoveAdmin(email)}
                                                         disabled={removingEmail === email}

@@ -28,17 +28,17 @@ import {
     Lock,
     AlertCircle
 } from 'lucide-react';
-import { UserRole } from '../roles';
+import { useAuth } from '../contexts/AuthContext';
 import { getLatestResult, getPassCount, getFailCount, getStarRating, TestResultHistory } from '../services/testHistoryService';
 
 interface DashboardProps {
     onStart: (moduleId: string) => void;
     user?: User | null;
     onLogout?: () => void;
-    role?: UserRole;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, role = 'user' }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout }) => {
+    const { role, isSuperAdmin, isAdmin } = useAuth();
     const [showDropdown, setShowDropdown] = useState(false);
     const [testResults, setTestResults] = useState<Record<string, TestResultHistory | null>>({});
     const [showResultModal, setShowResultModal] = useState(false);
@@ -137,7 +137,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, r
                     </a>
 
                     {/* Admin Panel - Only for Super Admin */}
-                    {role === 'superadmin' && (
+                    {isAdmin && (
                         <button onClick={() => onStart('admin-panel')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-yellow-50 hover:text-yellow-600 font-bold transition-colors group text-left">
                             <div className="p-2 bg-yellow-50 text-yellow-500 rounded-lg group-hover:bg-yellow-500 group-hover:text-white transition-colors">
                                 <Crown size={18} />
@@ -273,7 +273,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout, r
                                 </div>
                                 <div className="text-left">
                                     <div className="text-xs font-bold text-[#11142D]">{user?.displayName || 'User'}</div>
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase">Premium Member</div>
+                                    <div className={`text-[10px] font-bold uppercase ${isAdmin ? 'text-yellow-600' : 'text-slate-400'}`}>
+                                        {isSuperAdmin ? 'Super Admin' : isAdmin ? 'Admin' : 'Premium Member'}
+                                    </div>
                                 </div>
                                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
                             </div>
