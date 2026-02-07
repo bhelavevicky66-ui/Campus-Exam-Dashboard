@@ -81,7 +81,6 @@ export const QuestionManager: React.FC = () => {
                     question: qMatch[1],
                     moduleId: '', // Will be set in handleBulkSubmit
                     type: 'text',
-                    category: 'General',
                 };
             } else if (aMatch) {
                 if (currentQ) {
@@ -100,7 +99,6 @@ export const QuestionManager: React.FC = () => {
                         question: numMatch[1],
                         moduleId: '', // Will be set in handleBulkSubmit
                         type: 'text',
-                        category: 'General',
                     };
                 }
             }
@@ -149,9 +147,9 @@ export const QuestionManager: React.FC = () => {
             type,
             moduleId: targetModule,
             answer,
-            category: category || 'General',
-            hint: hint || undefined,
-            placeholder: 'Your Answer'
+            placeholder: 'Your Answer',
+            ...(category && { category }),
+            ...(hint && { hint }),
         };
 
         const id = await addQuestion(newQuestion);
