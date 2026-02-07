@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Loader2, Save, FileQuestion, Upload } from 'lucide-react';
+import { Plus, Trash2, Loader2, Save, FileQuestion, Upload, Lock } from 'lucide-react';
 import { addQuestion, deleteQuestion, getDynamicQuestions, getAllDynamicQuestions } from '../services/questionService';
 import { Question } from '../types';
+import { MODULES } from '../constants';
+import { disableStaticQuestion, getDisabledStaticQuestions } from '../services/disabledQuestionService';
 
 export const QuestionManager: React.FC = () => {
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -25,9 +27,34 @@ export const QuestionManager: React.FC = () => {
 
     const fetchQuestions = async () => {
         setLoading(true);
-        const q = await getAllDynamicQuestions();
-        setQuestions(q);
-        setLoading(false);
+        try {
+            // 1. Fetch Dynamic Questions
+            const dynamicQs = await getAllDynamicQuestions();
+
+            // 2. Fetch Disabled Static Question IDs
+            const disabledIds = await getDisabledStaticQuestions();
+
+            // 3. Get All Static Questions from Constants
+            let allStaticQs: Question[] = [];
+            Object.values(MODULES).forEach(module => {
+                if (module.questions) {
+                    allStaticQs = [...allStaticQs, ...module.questions];
+                }
+            });
+
+            // 4. Filter out disabled static questions
+            const enabledStaticQs = allStaticQs.filter(q => !disabledIds.includes(q.id as number));
+
+            // 5. Combine (Dynamic first, then Static)
+            // Deduplicate static questions just in case they appear in multiple modules (though they shouldn't share IDs)
+            const uniqueStaticQs = Array.from(new Map(enabledStaticQs.map(q => [q.id, q])).values());
+
+            setQuestions([...dynamicQs, ...uniqueStaticQs]);
+        } catch (error) {
+            console.error("Error fetching questions:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const parseBulkQuestions = (text: string): Omit<Question, 'id'>[] => {
@@ -125,7 +152,7 @@ export const QuestionManager: React.FC = () => {
 
         const id = await addQuestion(newQuestion);
         if (id) {
-            setQuestions([...questions, { id, ...newQuestion }]);
+            setQuestions([{ id, ...newQuestion } as Question, ...questions]);
             // Reset form
             setQuestionText('');
             setAnswer('');
@@ -141,13 +168,23 @@ export const QuestionManager: React.FC = () => {
     const handleDelete = async (id: string | number) => {
         if (!confirm('Are you sure you want to delete this question?')) return;
 
-        // Since we only delete dynamic questions which have string IDs
+        // Dynamic Question (String ID)
         if (typeof id === 'string') {
             const success = await deleteQuestion(id);
             if (success) {
                 setQuestions(questions.filter(q => q.id !== id));
             } else {
                 alert('Failed to delete question');
+            }
+        }
+        // Static Question (Number ID)
+        else if (typeof id === 'number') {
+            const success = await disableStaticQuestion(id);
+            if (success) {
+                setQuestions(questions.filter(q => q.id !== id));
+                alert("Static question disabled.");
+            } else {
+                alert("Failed to disable static question.");
             }
         }
     };
@@ -312,22 +349,28 @@ A: Paris`}
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                                {q.moduleId}
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border 
+                                                ${typeof q.id === 'string'
+                                                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                                                    : 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+                                                }`}>
+                                                {typeof q.id === 'string' ? q.moduleId : 'Static'}
                                             </span>
-                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                                {q.category}
-                                            </span>
+                                            {q.category && (
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                                    {q.category}
+                                                </span>
+                                            )}
                                         </div>
                                         <h4 className="font-semibold text-white mb-1">{q.question}</h4>
-                                        <p className="text-sm text-green-400 font-mono">Answer: {q.answer}</p>
+                                        <p className="text-sm text-green-400 font-mono">Answer: {q.answer || 'See Constants'}</p>
                                     </div>
                                     <button
                                         onClick={() => handleDelete(q.id)}
                                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                                        title="Delete Question"
+                                        title={typeof q.id === 'string' ? "Delete Question" : "Disable Question"}
                                     >
-                                        <Trash2 size={18} />
+                                        {typeof q.id === 'string' ? <Trash2 size={18} /> : <Lock size={18} />}
                                     </button>
                                 </div>
                             </div>

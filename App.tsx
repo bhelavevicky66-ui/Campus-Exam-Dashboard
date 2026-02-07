@@ -24,6 +24,7 @@ import { saveTestResult, TestResultHistory } from './services/testHistoryService
 import { MODULES } from './constants';
 import { Loader2 } from 'lucide-react';
 import { getDynamicQuestions } from './services/questionService';
+import { getDisabledStaticQuestions } from './services/disabledQuestionService';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
@@ -127,18 +128,31 @@ const AppContent: React.FC = () => {
 
     try {
       if (selectedModuleId) {
-        // Static Questions
-        const staticQs = MODULES[selectedModuleId as keyof typeof MODULES]?.questions || [];
-        // Dynamic Questions
+        // Fetch disabled static questions
+        const disabledIds = await getDisabledStaticQuestions();
+
+        // Static Questions (Filtered)
+        const allStaticQs = MODULES[selectedModuleId as keyof typeof MODULES]?.questions || [];
+        const staticQs = allStaticQs.filter(q => !disabledIds.includes(q.id as number));
+
+        // Fetch dynamic questions
         const dynamicQs = await getDynamicQuestions(selectedModuleId);
 
-        // Combine and Shuffle
-        const allQs = [...staticQs, ...dynamicQs];
-        const shuffled = allQs.sort(() => 0.5 - Math.random());
+        // Shuffle both lists independently
+        const shuffledDynamic = [...dynamicQs].sort(() => 0.5 - Math.random());
+        const shuffledStatic = [...staticQs].sort(() => 0.5 - Math.random());
 
-        // Select first 30 questions (or less if fewer available)
-        const selectedQs = shuffled.slice(0, 30);
-        setActiveQuestions(selectedQs);
+        // Combine with dynamic questions PRIORITY (User requested their added questions MUST appear)
+        // We put dynamic questions first, then fill the rest of the 30 slots with static questions
+        const combined = [...shuffledDynamic, ...shuffledStatic];
+
+        // Select top 30 (this ensures all dynamic questions are taken if count < 30)
+        const selectedPool = combined.slice(0, 30);
+
+        // Shuffle the final selection so dynamic questions aren't always at the start
+        const finalSelectedQs = selectedPool.sort(() => 0.5 - Math.random());
+
+        setActiveQuestions(finalSelectedQs);
 
         // Update Time Left based on config
         setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
