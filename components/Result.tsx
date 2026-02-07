@@ -1,7 +1,12 @@
 
 import React from 'react';
 import { QuizResult } from '../types';
-import { Trophy, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Clock, Target } from 'lucide-react';
+import { Trophy, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Clock, Target, Mail, Loader2 } from 'lucide-react';
+import { OTPModal } from './OTPModal';
+import { createOTP, verifyOTP } from '../services/otpService';
+import { sendOTPEmail, getStandardAdminEmails } from '../services/emailService';
+import { db, getAdminEmails } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface ResultProps {
   userName: string;
@@ -19,6 +24,73 @@ export const Result: React.FC<ResultProps> = ({ userName, result, onRestart }) =
   };
 
   const [showDetails, setShowDetails] = React.useState(false);
+  const [showOTPModal, setShowOTPModal] = React.useState(false);
+  const [sessionId, setSessionId] = React.useState('');
+  const [isSending, setIsSending] = React.useState(false);
+  const [recipientEmails, setRecipientEmails] = React.useState<string[]>([]);
+  const [isRealEmailActive, setIsRealEmailActive] = React.useState(false);
+
+  const handleExitClick = async () => {
+    const newSessionId = `exit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    setIsSending(true);
+
+    try {
+      // Check config
+      const configRef = doc(db, 'config', 'emailjs');
+      const configSnap = await getDoc(configRef);
+      setIsRealEmailActive(configSnap.exists());
+
+      // Get recipients (Exit OTP)
+      let recipients = await getStandardAdminEmails();
+      if (recipients.length === 0) {
+        recipients = await getAdminEmails();
+      }
+      setRecipientEmails(recipients);
+
+      const primaryAdmin = recipients.length > 0 ? recipients[0] : 'admin-required';
+      const otp = await createOTP(primaryAdmin, newSessionId);
+
+      // Send EXIT type emails
+      if (recipients.length > 0) {
+        await Promise.all(recipients.map(email =>
+          sendOTPEmail(email, otp, userName, 'exit')
+        ));
+      } else {
+        await sendOTPEmail('simulated-admin@navgurukul.org', otp, userName, 'exit');
+      }
+
+      setShowOTPModal(true);
+    } catch (error) {
+      console.error("Exit OTP failed:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleVerifyExitOTP = async (code: string): Promise<boolean> => {
+    const isValid = await verifyOTP(sessionId, code);
+    if (isValid) {
+      // Success! Now allow exit
+      // 1. Exit Fullscreen
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.warn("Exit fullscreen failed:", error);
+      }
+
+      // 2. Return to dashboard
+      onRestart();
+      setShowOTPModal(false);
+    }
+    return isValid;
+  };
+
+  const handleResendExitOTP = async (): Promise<void> => {
+    await handleExitClick();
+  };
 
   return (
     <div className="h-full w-full overflow-y-auto custom-scrollbar">
@@ -102,11 +174,21 @@ export const Result: React.FC<ResultProps> = ({ userName, result, onRestart }) =
 
         <div className="space-y-4">
           <button
-            onClick={onRestart}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-3 group text-xl"
+            onClick={handleExitClick}
+            disabled={isSending}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white font-bold py-5 rounded-2xl shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-3 group text-xl"
           >
-            <RefreshCw size={24} className="group-hover:rotate-180 transition-transform duration-700" />
-            Retake Challenge
+            {isSending ? (
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                Sending Verification...
+              </>
+            ) : (
+              <>
+                <RefreshCw size={24} className="group-hover:rotate-180 transition-transform duration-700" />
+                Request Admin Approval to Exit
+              </>
+            )}
           </button>
 
           <button
@@ -142,6 +224,14 @@ export const Result: React.FC<ResultProps> = ({ userName, result, onRestart }) =
           )}
         </div>
       </div>
+
+      <OTPModal
+        isOpen={showOTPModal}
+        onVerify={handleVerifyExitOTP}
+        onResend={handleResendExitOTP}
+        adminEmail={recipientEmails.join(', ')}
+        isRealEmail={isRealEmailActive}
+      />
     </div>
   );
 };

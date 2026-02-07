@@ -24,6 +24,7 @@ export interface EmailLog {
     sentAt: number;
     otp: string;
     status?: 'simulated' | 'sent' | 'failed';
+    type?: 'start' | 'exit';
 }
 
 /**
@@ -33,19 +34,29 @@ export interface EmailLog {
 export const sendOTPEmail = async (
     to: string,
     otp: string,
-    userName: string = 'User'
+    userName: string = 'User',
+    type: 'start' | 'exit' = 'start'
 ): Promise<boolean> => {
-    const subject = `Test Access OTP - Campus Exam Dashboard`;
+    const isExit = type === 'exit';
+    const subject = isExit
+        ? `Finish Test Access OTP - Campus Exam Dashboard`
+        : `Test Access OTP - Campus Exam Dashboard`;
+
+    const action = isExit ? 'FINISH and EXIT their test' : 'START a test';
+    const instruction = isExit
+        ? 'Please share this code with the user to allow them to SAVE their results and EXIT the test.'
+        : 'Please share this code with the user to allow them to proceed with the test.';
+
     const body = `
 Hello Admin,
 
-${userName} is requesting to start a test on the Campus Exam Dashboard.
+${userName} is requesting to ${action} on the Campus Exam Dashboard.
 
 Your OTP code is: ${otp}
 
 This code will expire in 5 minutes.
 
-Please share this code with the user to allow them to proceed with the test.
+${instruction}
 
 Best regards,
 Campus Exam Dashboard
@@ -102,7 +113,8 @@ Campus Exam Dashboard
             body,
             sentAt: Date.now(),
             otp,
-            status: sentStatus
+            status: sentStatus,
+            type // Added type to log
         };
 
         const logId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

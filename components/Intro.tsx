@@ -70,11 +70,21 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
     }
   };
 
-  const handleVerifyOTP = async (otp: string): Promise<boolean> => {
+  const handleVerifyOTP = async (code: string): Promise<boolean> => {
     try {
-      const isValid = await verifyOTP(sessionId, otp);
+      const isValid = await verifyOTP(sessionId, code);
 
       if (isValid) {
+        // Enter Fullscreen
+        try {
+          const element = document.documentElement;
+          if (element.requestFullscreen) {
+            await element.requestFullscreen();
+          }
+        } catch (error) {
+          console.warn("Fullscreen request failed:", error);
+        }
+
         setShowOTPModal(false);
         // Start the test
         onStart(user?.displayName || "User");
