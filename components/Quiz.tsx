@@ -18,7 +18,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
 
   const currentQuestion = questions[currentIndex];
   // Filter out empty answers
-  const answeredCount = Object.values(allAnswers).filter(ans => ans.trim() !== '').length;
+  const answeredCount = Object.values(allAnswers).filter((ans: string) => ans.trim() !== '').length;
   const progress = (answeredCount / questions.length) * 100;
 
   const categories = useMemo(() => {
