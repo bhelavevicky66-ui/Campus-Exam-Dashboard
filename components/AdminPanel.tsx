@@ -265,6 +265,16 @@ const EmailSettingsForm: React.FC = () => {
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
     const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'settings'>('questions');
+    const [hasEmailConfig, setHasEmailConfig] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const checkEmailConfig = async () => {
+            const docRef = doc(db, 'config', 'emailjs');
+            const docSnap = await getDoc(docRef);
+            setHasEmailConfig(docSnap.exists());
+        };
+        checkEmailConfig();
+    }, [activeTab]); // Re-check when switching tabs (including after saving)
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -515,6 +525,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         <div className="flex items-center gap-2">
                             <Settings size={18} />
                             Email Settings
+                            {hasEmailConfig === false && (
+                                <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                            )}
                         </div>
                     </button>
                 </div>

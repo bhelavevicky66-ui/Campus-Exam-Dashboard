@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Mail, RefreshCw, CheckCircle, XCircle, Lock } from 'lucide-react';
+import { X, Mail, RefreshCw, CheckCircle, XCircle, Lock, AlertCircle } from 'lucide-react';
 
 interface OTPModalProps {
     isOpen: boolean;
     onVerify: (otp: string) => Promise<boolean>;
     onResend: () => Promise<void>;
     adminEmail: string;
+    isRealEmail?: boolean;
 }
 
 export const OTPModal: React.FC<OTPModalProps> = ({
@@ -13,6 +14,7 @@ export const OTPModal: React.FC<OTPModalProps> = ({
     onVerify,
     onResend,
     adminEmail,
+    isRealEmail = false,
 }) => {
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [isVerifying, setIsVerifying] = useState(false);
@@ -116,12 +118,31 @@ export const OTPModal: React.FC<OTPModalProps> = ({
                         <Lock className="w-8 h-8 text-indigo-600" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">Enter OTP Code</h2>
-                    <p className="text-sm text-slate-500">
-                        An OTP has been sent to the admin email
+                    <p className="text-sm text-slate-500 mb-1">
+                        An OTP has been sent to:
                     </p>
-                    <div className="flex items-center justify-center gap-2 mt-2 text-xs text-indigo-600 bg-indigo-50 py-2 px-4 rounded-lg">
-                        <Mail size={14} />
-                        <span className="font-semibold">{adminEmail}</span>
+                    <div className="flex flex-col items-center gap-2 mb-4">
+                        <div className="flex items-center justify-center gap-2 text-xs text-indigo-600 bg-indigo-50 py-2 px-4 rounded-lg border border-indigo-100 font-bold">
+                            <Mail size={14} />
+                            <span>{adminEmail}</span>
+                        </div>
+
+                        {isRealEmail ? (
+                            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                <CheckCircle size={10} />
+                                Live Email Active
+                            </span>
+                        ) : (
+                            <div className="flex flex-col items-center gap-1.5">
+                                <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
+                                    <AlertCircle size={10} />
+                                    Simulation Mode (Local Only)
+                                </span>
+                                <p className="text-[10px] text-slate-400 italic">
+                                    Admin: Go to "Email Settings" in Admin Panel to activate Gmail.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

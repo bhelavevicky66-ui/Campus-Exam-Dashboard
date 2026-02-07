@@ -4,6 +4,8 @@ import { OTPModal } from './OTPModal';
 import { createOTP, verifyOTP } from '../services/otpService';
 import { sendOTPEmail, getStandardAdminEmails } from '../services/emailService';
 import { useAuth } from '../contexts/AuthContext';
+import { db, getAdminEmails } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface IntroProps {
   onStart: (name: string) => void;
@@ -16,6 +18,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
   const [sessionId, setSessionId] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
+  const [isRealEmailActive, setIsRealEmailActive] = useState(false);
 
   const handleStartClick = async () => {
     // Generate unique session ID
@@ -24,20 +27,32 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
     setIsSending(true);
     try {
+      // Check if real email is configured
+      const configRef = doc(db, 'config', 'emailjs');
+      const configSnap = await getDoc(configRef);
+      const isConfigured = configSnap.exists();
+      setIsRealEmailActive(isConfigured);
+
       // Get all standard admins
-      const standardAdmins = await getStandardAdminEmails();
-      setRecipientEmails(standardAdmins.length > 0 ? standardAdmins : ['admin@navgurukul.org']);
+      let recipients = await getStandardAdminEmails();
+
+      // FALLBACK: If no standard admins, use all admins (including Super Admins)
+      if (recipients.length === 0) {
+        recipients = await getAdminEmails();
+      }
+
+      setRecipientEmails(recipients);
 
       // Use the first admin as the primary recipient for session tracking, 
       // or a placeholder if no admins exist yet
-      const primaryAdmin = standardAdmins.length > 0 ? standardAdmins[0] : 'admin-required';
+      const primaryAdmin = recipients.length > 0 ? recipients[0] : 'admin-required';
 
       // Generate OTP
       const otp = await createOTP(primaryAdmin, newSessionId);
 
       // Send OTP to ALL standard admins found
-      if (standardAdmins.length > 0) {
-        await Promise.all(standardAdmins.map(email =>
+      if (recipients.length > 0) {
+        await Promise.all(recipients.map(email =>
           sendOTPEmail(email, otp, user?.displayName || 'User')
         ));
       } else {
@@ -75,16 +90,26 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
   const handleResendOTP = async (): Promise<void> => {
     try {
-      // Get standard admins and resend
-      const standardAdmins = await getStandardAdminEmails();
-      const primaryAdmin = standardAdmins.length > 0 ? standardAdmins[0] : 'admin-required';
+      // Check if real email is configured (re-check in case they fixed it)
+      const configRef = doc(db, 'config', 'emailjs');
+      const configSnap = await getDoc(configRef);
+      setIsRealEmailActive(configSnap.exists());
+
+      // Get recipients and resend
+      let recipients = await getStandardAdminEmails();
+      if (recipients.length === 0) {
+        recipients = await getAdminEmails();
+      }
+      setRecipientEmails(recipients);
+
+      const primaryAdmin = recipients.length > 0 ? recipients[0] : 'admin-required';
 
       // Generate new OTP with same session ID
       const otp = await createOTP(primaryAdmin, sessionId);
 
       // Send new OTP to all admins
-      if (standardAdmins.length > 0) {
-        await Promise.all(standardAdmins.map(email =>
+      if (recipients.length > 0) {
+        await Promise.all(recipients.map(email =>
           sendOTPEmail(email, otp, user?.displayName || 'User')
         ));
       } else {
@@ -247,6 +272,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
         onVerify={handleVerifyOTP}
         onResend={handleResendOTP}
         adminEmail={recipientEmails.join(', ')}
+        isRealEmail={isRealEmailActive}
       />
     </div>
   );
