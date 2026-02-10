@@ -236,49 +236,130 @@ export const QuestionManager: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            {/* Module Filter Cards */}
-            <div className="grid grid-cols-3 gap-4">
-                <button
-                    onClick={() => setSelectedModule('screen-test')}
-                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'screen-test'
-                        ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/30'
-                        : 'bg-white/5 border-white/10 hover:border-blue-500/50'
-                        }`}
-                >
-                    <div className="text-center">
-                        <h3 className="text-lg font-bold text-white mb-1">Screening Test</h3>
-                        <p className="text-3xl font-black text-blue-400">{moduleStats['screen-test']}</p>
-                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
-                    </div>
-                </button>
+            {/* All 12 Boxes - 3 Rows x 4 Columns */}
+            <div>
+                <h4 className="text-sm font-bold text-purple-300/60 uppercase tracking-wider mb-3">📚 Tests, Modules & Phases</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Row 1: Screening Test, Module 0, Module 1, Number System */}
+                    <button
+                        onClick={() => setSelectedModule('screen-test')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'screen-test'
+                            ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-blue-500/50'
+                            }`}
+                    >
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">📝</span>
+                            <h3 className="text-sm font-bold text-blue-300">Screening Test</h3>
+                            <p className="text-xl font-black text-blue-400">{moduleStats['screen-test']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
+                        </div>
+                    </button>
 
-                <button
-                    onClick={() => setSelectedModule('module-0')}
-                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-0'
-                        ? 'bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/30'
-                        : 'bg-white/5 border-white/10 hover:border-orange-500/50'
-                        }`}
-                >
-                    <div className="text-center">
-                        <h3 className="text-lg font-bold text-white mb-1">Module 0</h3>
-                        <p className="text-3xl font-black text-orange-400">{moduleStats['module-0']}</p>
-                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
-                    </div>
-                </button>
+                    <button
+                        onClick={() => setSelectedModule('module-0')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-0'
+                            ? 'bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-orange-500/50'
+                            }`}
+                    >
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">📦</span>
+                            <h3 className="text-sm font-bold text-orange-300">Module 0</h3>
+                            <p className="text-xl font-black text-orange-400">{moduleStats['module-0']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
+                        </div>
+                    </button>
 
-                <button
-                    onClick={() => setSelectedModule('module-1')}
-                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-1'
-                        ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
-                        : 'bg-white/5 border-white/10 hover:border-emerald-500/50'
-                        }`}
-                >
-                    <div className="text-center">
-                        <h3 className="text-lg font-bold text-white mb-1">Module 1</h3>
-                        <p className="text-3xl font-black text-emerald-400">{moduleStats['module-1']}</p>
-                        <p className="text-xs text-purple-300/60 mt-1">Questions</p>
+                    <button
+                        onClick={() => setSelectedModule('module-1')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'module-1'
+                            ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-emerald-500/50'
+                            }`}
+                    >
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">📗</span>
+                            <h3 className="text-sm font-bold text-emerald-300">Module 1</h3>
+                            <p className="text-xl font-black text-emerald-400">{moduleStats['module-1']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
+                        </div>
+                    </button>
+
+                    <div className="p-4 rounded-xl border-2 border-lime-500/30 bg-lime-500/10 hover:bg-lime-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">🔢</span>
+                            <h3 className="text-sm font-bold text-lime-300">Number System</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">Binary/Decimal</p>
+                        </div>
                     </div>
-                </button>
+
+                    {/* Row 2: Flowchart, Phase 1, Phase 2, Phase 3 */}
+                    <div className="p-4 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">📊</span>
+                            <h3 className="text-sm font-bold text-cyan-300">Flowchart</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">Logic Design</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">1️⃣</span>
+                            <h3 className="text-sm font-bold text-violet-300">Phase 1</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">HTML Basics</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">2️⃣</span>
+                            <h3 className="text-sm font-bold text-pink-300">Phase 2</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">CSS Styling</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">3️⃣</span>
+                            <h3 className="text-sm font-bold text-amber-300">Phase 3</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">JavaScript</p>
+                        </div>
+                    </div>
+
+                    {/* Row 3: Phase 4, Phase 5, Phase 6, Phase 7 */}
+                    <div className="p-4 rounded-xl border-2 border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">4️⃣</span>
+                            <h3 className="text-sm font-bold text-rose-300">Phase 4</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">React.js</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">5️⃣</span>
+                            <h3 className="text-sm font-bold text-teal-300">Phase 5</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">Node.js</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">6️⃣</span>
+                            <h3 className="text-sm font-bold text-indigo-300">Phase 6</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">MongoDB</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border-2 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 transition-all hover:scale-105">
+                        <div className="text-center">
+                            <span className="text-2xl mb-1 block">7️⃣</span>
+                            <h3 className="text-sm font-bold text-yellow-300">Phase 7</h3>
+                            <p className="text-[10px] text-purple-300/50 mt-1">Full Stack + AI</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Show All Button */}
