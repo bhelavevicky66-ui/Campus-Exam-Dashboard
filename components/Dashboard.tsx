@@ -259,56 +259,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         <span>Flowchart</span>
                     </button>
 
-                    <button onClick={() => onStart('phase-dashboard')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-purple-50 text-purple-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <LayoutDashboard size={18} />
-                        </div>
-                        <span>Phase Dashboard</span>
-                    </button>
-
-                    <button onClick={() => onStart('module-5')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => !isLocked('module-5') && onStart('module-5')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-5') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-5') ? 'bg-slate-100 text-slate-300' : 'bg-indigo-50 text-indigo-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-5') ? <Lock size={18} /> : <Code size={18} />}
                         </div>
                         <span>Phase 1</span>
                     </button>
 
-                    <button onClick={() => onStart('module-6')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-purple-50 text-purple-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Palette size={18} />
+                    <button onClick={() => !isLocked('module-6') && onStart('module-6')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-6') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-6') ? 'bg-slate-100 text-slate-300' : 'bg-purple-50 text-purple-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-6') ? <Lock size={18} /> : <Palette size={18} />}
                         </div>
                         <span>Phase 2</span>
                     </button>
-                    <button onClick={() => onStart('module-7')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-yellow-50 text-yellow-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Zap size={18} />
+                    <button onClick={() => !isLocked('module-7') && onStart('module-7')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-7') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-7') ? 'bg-slate-100 text-slate-300' : 'bg-yellow-50 text-yellow-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-7') ? <Lock size={18} /> : <Zap size={18} />}
                         </div>
                         <span>Phase 3</span>
                     </button>
 
-                    <button onClick={() => onStart('module-8')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-indigo-50 text-indigo-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Code size={18} />
+                    <button onClick={() => !isLocked('module-8') && onStart('module-8')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-8') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-8') ? 'bg-slate-100 text-slate-300' : 'bg-indigo-50 text-indigo-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-8') ? <Lock size={18} /> : <Code size={18} />}
                         </div>
                         <span>Phase 4</span>
                     </button>
-                    <button onClick={() => onStart('module-9')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-emerald-50 text-emerald-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Terminal size={18} />
+                    <button onClick={() => !isLocked('module-9') && onStart('module-9')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-9') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-9') ? 'bg-slate-100 text-slate-300' : 'bg-emerald-50 text-emerald-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-9') ? <Lock size={18} /> : <Terminal size={18} />}
                         </div>
                         <span>Phase 5</span>
                     </button>
 
-                    <button onClick={() => onStart('module-10')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-orange-50 text-orange-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Layers size={18} />
+                    <button onClick={() => !isLocked('module-10') && onStart('module-10')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-10') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-10') ? 'bg-slate-100 text-slate-300' : 'bg-orange-50 text-orange-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-10') ? <Lock size={18} /> : <Layers size={18} />}
                         </div>
                         <span>Phase 6</span>
                     </button>
 
-                    <button onClick={() => onStart('module-11')} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3] font-bold transition-colors group text-left">
-                        <div className="p-2 bg-violet-50 text-violet-500 rounded-lg group-hover:bg-[#6C5DD3] group-hover:text-white transition-colors">
-                            <Zap size={18} />
+                    <button onClick={() => !isLocked('module-11') && onStart('module-11')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-11') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                        <div className={`p-2 rounded-lg transition-colors ${isLocked('module-11') ? 'bg-slate-100 text-slate-300' : 'bg-violet-50 text-violet-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
+                            {isLocked('module-11') ? <Lock size={18} /> : <Zap size={18} />}
                         </div>
                         <span>Phase 7</span>
                     </button>
