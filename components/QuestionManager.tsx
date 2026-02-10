@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Loader2, Save, FileQuestion, Upload, Lock } from 'lucide-react';
 import { addQuestion, deleteQuestion, getDynamicQuestions, getAllDynamicQuestions } from '../services/questionService';
 import { Question } from '../types';
-import { MODULES } from '../constants';
+import { MODULES, CORRECT_ANSWERS } from '../constants';
 import { disableStaticQuestion, getDisabledStaticQuestions } from '../services/disabledQuestionService';
 
 export const QuestionManager: React.FC = () => {
@@ -290,75 +290,14 @@ export const QuestionManager: React.FC = () => {
                     Show All Questions ({questions.length})
                 </button>
             )}
-            {/* Toggle Add Method */}
-            <div className="flex gap-4 mb-6">
-                <button
-                    onClick={() => setIsBulk(false)}
-                    className={`flex-1 py-3 rounded-xl font-bold transition-all ${!isBulk ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-purple-300 hover:bg-white/10'}`}
-                >
-                    Single Question
-                </button>
-                <button
-                    onClick={() => setIsBulk(true)}
-                    className={`flex-1 py-3 rounded-xl font-bold transition-all ${isBulk ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-purple-300 hover:bg-white/10'}`}
-                >
-                    Bulk Import
-                </button>
-            </div>
-
             {/* Add Question Form */}
             <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                     <Plus size={22} className="text-green-400" />
-                    {isBulk ? 'Bulk Import Questions' : 'Add New Question'}
+                    Add New Question
                 </h3>
 
-                {isBulk ? (
-                    <div className="space-y-4">
-                        <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl text-blue-200 text-sm">
-                            <p className="font-bold mb-2">Format Guide:</p>
-                            <pre className="whitespace-pre-wrap font-mono bg-black/20 p-2 rounded">
-                                {`Q: What is 2 + 2?
-A: 4
-
-Q: Capital of France?
-A: Paris`}
-                            </pre>
-                            <p className="mt-2 text-xs opacity-70">
-                                Supports 'Q:' or 'Question:' and 'A:', 'Ans:', or 'Answer:'. Separate questions with empty lines.
-                            </p>
-                        </div>
-
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200 text-sm mb-4">
-                            <p className="font-bold">📌 Target Module: <span className="text-white">
-                                {selectedModule === 'all' ? 'Screening Test (default)' :
-                                    selectedModule === 'screen-test' ? 'Screening Test' :
-                                        selectedModule === 'module-0' ? 'Module 0' :
-                                            'Module 1'}
-                            </span></p>
-                            <p className="text-xs mt-1 opacity-70">Click a module card above to change the target module</p>
-                        </div>
-
-                        <div>
-                            <textarea
-                                value={bulkText}
-                                onChange={(e) => setBulkText(e.target.value)}
-                                placeholder="Paste your questions here..."
-                                className="w-full h-64 px-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500 font-mono text-sm"
-                            />
-                        </div>
-
-                        <button
-                            onClick={handleBulkSubmit}
-                            disabled={isAdding || !bulkText.trim()}
-                            className="w-full md:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
-                        >
-                            {isAdding ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                            Import Questions
-                        </button>
-                    </div>
-                ) : (
-                    <form onSubmit={handleAddQuestion} className="space-y-4">
+                <form onSubmit={handleAddQuestion} className="space-y-4">
                         <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200 text-sm mb-4">
                             <p className="font-bold">📌 Target Module: <span className="text-white">
                                 {selectedModule === 'all' ? 'Screening Test (default)' :
@@ -432,7 +371,6 @@ A: Paris`}
                             Save Question
                         </button>
                     </form>
-                )}
             </div>
 
             {/* Questions List */}
@@ -477,7 +415,14 @@ A: Paris`}
                                             )}
                                         </div>
                                         <h4 className="font-semibold text-white mb-1">{q.question}</h4>
-                                        <p className="text-sm text-green-400 font-mono">Answer: {q.answer || 'See Constants'}</p>
+                                        <p className="text-sm text-green-400 font-mono">
+                                            Answer: {q.answer || (typeof q.id === 'number' ? CORRECT_ANSWERS[q.id] : 'N/A')}
+                                        </p>
+                                        {q.marks && (
+                                            <span className="inline-block mt-1 text-xs font-bold text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded border border-yellow-500/30">
+                                                ★ {q.marks} {q.marks === 1 ? 'Mark' : 'Marks'}
+                                            </span>
+                                        )}
                                     </div>
                                     <button
                                         onClick={() => handleDelete(q.id)}
