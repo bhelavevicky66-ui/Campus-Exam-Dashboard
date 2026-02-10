@@ -578,32 +578,44 @@ export const QuestionManager: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Marks ★</label>
-                                <div className="flex gap-2">
-                                    <select
-                                        value={marks}
-                                        onChange={(e) => setMarks(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}
-                                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                                    >
-                                        <option value={1} className="text-black">1 Mark</option>
-                                        <option value={2} className="text-black">2 Marks</option>
-                                        <option value={3} className="text-black">3 Marks</option>
-                                        <option value={4} className="text-black">4 Marks</option>
-                                        <option value={5} className="text-black">5 Marks</option>
-                                        <option value="custom" className="text-black">✏️ Custom</option>
-                                    </select>
-                                    {marks === 'custom' && (
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={customMarks || ''}
-                                            onChange={(e) => setCustomMarks(Number(e.target.value))}
-                                            placeholder="Enter"
-                                            className="w-20 px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-yellow-300 placeholder-yellow-300/50 focus:outline-none focus:border-yellow-500 text-center"
-                                        />
+                                <select
+                                    value={marks}
+                                    onChange={(e) => setMarks(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                                >
+                                    <option value={1} className="text-black">1 Mark</option>
+                                    <option value={2} className="text-black">2 Marks</option>
+                                    <option value={3} className="text-black">3 Marks</option>
+                                    <option value={4} className="text-black">4 Marks</option>
+                                    <option value={5} className="text-black">5 Marks</option>
+                                    <option value={10} className="text-black">10 Marks</option>
+                                    <option value="custom" className="text-black">✏️ Custom - अपने Marks डालें</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        {/* Custom Marks Input */}
+                        {marks === 'custom' && (
+                            <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 p-4 rounded-xl">
+                                <p className="text-xs text-yellow-300 mb-2">🎯 अपना मनचाहा Marks enter करें:</p>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={customMarks || ''}
+                                        onChange={(e) => setCustomMarks(Number(e.target.value))}
+                                        placeholder="e.g., 15"
+                                        className="w-24 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-yellow-300 placeholder-yellow-300/50 focus:outline-none focus:border-yellow-500 text-center text-lg font-bold"
+                                    />
+                                    <span className="text-yellow-300 font-medium">Marks</span>
+                                    {customMarks > 0 && (
+                                        <span className="text-xs text-green-400 bg-green-500/20 px-3 py-1 rounded-full">
+                                            ✓ {customMarks} marks set
+                                        </span>
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Time Duration */}
                         <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 p-4 rounded-xl">
