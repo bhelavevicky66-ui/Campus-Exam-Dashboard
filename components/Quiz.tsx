@@ -233,7 +233,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
               <div key={categoryName} className="space-y-2.5">
                 <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">{categoryName}</h4>
                 <div className="grid grid-cols-5 gap-1.5">
-                  {categoryQuestions.map((q, qIndex) => {
+                  {categoryQuestions.map((q) => {
                     // Find the global index of this question in the main questions array
                     const globalIdx = questions.findIndex(item => item.id === q.id);
                     const isCurrent = globalIdx === currentIndex;
@@ -249,7 +249,7 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
                               ? 'bg-green-50 border-green-200 text-green-600'
                               : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-300'}`}
                       >
-                        {qIndex + 1}
+                        {globalIdx + 1}
                       </button>
                     );
                   })}
