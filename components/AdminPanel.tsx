@@ -120,7 +120,7 @@ const OTPLogViewer: React.FC = () => {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
-    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps'>('questions');
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'email-settings'>('questions');
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -134,6 +134,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Email Settings State
+    const [emailServiceId, setEmailServiceId] = useState('');
+    const [emailTemplateId, setEmailTemplateId] = useState('');
+    const [emailPublicKey, setEmailPublicKey] = useState('');
+    const [isSavingEmail, setIsSavingEmail] = useState(false);
+    const [emailConfigLoaded, setEmailConfigLoaded] = useState(false);
+
     // Admin List Search State
     const [adminSearchQuery, setAdminSearchQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -144,6 +151,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             loadLoggedStudents();
         }
     }, [activeTab]);
+
+    // Load email config when tab is selected
+    useEffect(() => {
+        if (activeTab === 'email-settings' && !emailConfigLoaded) {
+            loadEmailConfig();
+        }
+    }, [activeTab, emailConfigLoaded]);
+
+    const loadEmailConfig = async () => {
+        try {
+            const configRef = doc(db, 'config', 'emailjs');
+            const configSnap = await getDoc(configRef);
+            if (configSnap.exists()) {
+                const data = configSnap.data();
+                setEmailServiceId(data.serviceId || '');
+                setEmailTemplateId(data.templateId || '');
+                setEmailPublicKey(data.publicKey || '');
+            }
+            setEmailConfigLoaded(true);
+        } catch (error) {
+            console.error('Error loading email config:', error);
+        }
+    };
+
+    const saveEmailConfig = async () => {
+        setIsSavingEmail(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const configRef = doc(db, 'config', 'emailjs');
+            await setDoc(configRef, {
+                serviceId: emailServiceId.trim(),
+                templateId: emailTemplateId.trim(),
+                publicKey: emailPublicKey.trim()
+            });
+            setSuccess('Email settings saved successfully! OTPs will now be sent to admin emails.');
+        } catch (error) {
+            console.error('Error saving email config:', error);
+            setError('Failed to save email settings. Please try again.');
+        } finally {
+            setIsSavingEmail(false);
+        }
+    };
 
     const loadLoggedStudents = async () => {
         setLoadingStudents(true);
@@ -360,6 +410,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             OTP Requests
                         </div>
                     </button>
+
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => setActiveTab('email-settings')}
+                            className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'email-settings'
+                                ? 'border-cyan-400 text-cyan-400'
+                                : 'border-transparent text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Settings size={18} />
+                                Email Settings
+                            </div>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -508,6 +573,98 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             <p className="text-purple-200/60">Live OTP codes for students starting tests</p>
                         </div>
                         <OTPLogViewer />
+                    </div>
+                ) : activeTab === 'email-settings' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2">Email Settings</h1>
+                            <p className="text-purple-200/60">Configure EmailJS to send OTP codes to admin emails</p>
+                        </div>
+
+                        <div className="max-w-xl mx-auto bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-cyan-500/20 rounded-xl">
+                                    <Mail size={24} className="text-cyan-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg">EmailJS Configuration</h3>
+                                    <p className="text-purple-200/60 text-sm">Setup real email delivery for OTP codes</p>
+                                </div>
+                            </div>
+
+                            {(error || success) && (
+                                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${error ? 'bg-red-500/20 border border-red-500/30' : 'bg-green-500/20 border border-green-500/30'}`}>
+                                    {error ? <AlertCircle className="text-red-400" size={20} /> : <CheckCircle className="text-green-400" size={20} />}
+                                    <p className={error ? 'text-red-300' : 'text-green-300'}>{error || success}</p>
+                                </div>
+                            )}
+
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-purple-200/80 mb-2">Service ID</label>
+                                    <input
+                                        type="text"
+                                        value={emailServiceId}
+                                        onChange={(e) => setEmailServiceId(e.target.value)}
+                                        placeholder="e.g., service_xxxxxx"
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-purple-300/30 focus:outline-none focus:border-cyan-500 transition-colors"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-purple-200/80 mb-2">Template ID</label>
+                                    <input
+                                        type="text"
+                                        value={emailTemplateId}
+                                        onChange={(e) => setEmailTemplateId(e.target.value)}
+                                        placeholder="e.g., template_xxxxxx"
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-purple-300/30 focus:outline-none focus:border-cyan-500 transition-colors"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-purple-200/80 mb-2">Public Key</label>
+                                    <input
+                                        type="text"
+                                        value={emailPublicKey}
+                                        onChange={(e) => setEmailPublicKey(e.target.value)}
+                                        placeholder="e.g., xxxxxxxxxxxxxx"
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-purple-300/30 focus:outline-none focus:border-cyan-500 transition-colors"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={saveEmailConfig}
+                                    disabled={isSavingEmail}
+                                    className="w-full mt-4 px-6 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg"
+                                >
+                                    {isSavingEmail ? (
+                                        <>
+                                            <Loader2 size={20} className="animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={20} />
+                                            Save Email Settings
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="mt-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                                <h4 className="font-bold text-yellow-400 mb-2 flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    How to setup EmailJS
+                                </h4>
+                                <ol className="text-sm text-purple-200/70 space-y-2 list-decimal list-inside">
+                                    <li>Go to <a href="https://www.emailjs.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">emailjs.com</a> and create free account</li>
+                                    <li>Add an email service (Gmail recommended)</li>
+                                    <li>Create an email template with variables: <code className="bg-white/10 px-1 rounded">to_email</code>, <code className="bg-white/10 px-1 rounded">otp_code</code>, <code className="bg-white/10 px-1 rounded">student_name</code></li>
+                                    <li>Copy Service ID, Template ID and Public Key here</li>
+                                </ol>
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -26,15 +26,26 @@ import {
     UserCircle,
     XCircle,
     Lock,
-    AlertCircle
+    AlertCircle,
+    Key
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getLatestResult, getPassCount, getFailCount, getStarRating, TestResultHistory } from '../services/testHistoryService';
+import { db } from '../firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 interface DashboardProps {
     onStart: (moduleId: string) => void;
     user?: User | null;
     onLogout?: () => void;
+}
+
+// Interface for OTP data
+interface LatestOTP {
+    code: string;
+    email: string;
+    createdAt: number;
+    expiresAt: number;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout }) => {
@@ -43,6 +54,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
     const [testResults, setTestResults] = useState<Record<string, TestResultHistory | null>>({});
     const [showResultModal, setShowResultModal] = useState(false);
     const [selectedResult, setSelectedResult] = useState<TestResultHistory | null>(null);
+    const [latestOTP, setLatestOTP] = useState<LatestOTP | null>(null);
+    const [otpTimeLeft, setOtpTimeLeft] = useState<number>(0);
 
     // Module Sequence Definition
     const MODULE_CHAIN = [
@@ -80,6 +93,63 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
             setTestResults(results);
         }
     }, [user?.email]);
+
+    // Listen for latest OTP in real-time (only for admins)
+    useEffect(() => {
+        if (!isAdmin) return;
+
+        const otpsQuery = query(
+            collection(db, 'otps'),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+
+        const unsubscribe = onSnapshot(otpsQuery, (snapshot) => {
+            if (!snapshot.empty) {
+                const otpDoc = snapshot.docs[0];
+                const data = otpDoc.data() as LatestOTP;
+                const now = Date.now();
+                
+                // Only show if OTP is not expired
+                if (data.expiresAt > now) {
+                    setLatestOTP(data);
+                    setOtpTimeLeft(Math.floor((data.expiresAt - now) / 1000));
+                } else {
+                    setLatestOTP(null);
+                    setOtpTimeLeft(0);
+                }
+            } else {
+                setLatestOTP(null);
+                setOtpTimeLeft(0);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [isAdmin]);
+
+    // Countdown timer for OTP
+    useEffect(() => {
+        if (!latestOTP || otpTimeLeft <= 0) return;
+
+        const timer = setInterval(() => {
+            setOtpTimeLeft(prev => {
+                if (prev <= 1) {
+                    setLatestOTP(null);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [latestOTP, otpTimeLeft]);
+
+    // Format time for OTP countdown
+    const formatOTPTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Show result modal
     const handleShowResult = (result: TestResultHistory | null, e: React.MouseEvent) => {
@@ -327,6 +397,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                                 </button>
                             </div>
 
+                            {/* New OTP Display - Only for Admins */}
+                            {isAdmin && (
+                                <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg min-w-[220px]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Key size={20} className="text-yellow-300" />
+                                        <span className="text-sm font-bold text-indigo-100 uppercase tracking-wide">New OTP</span>
+                                    </div>
+                                    {latestOTP ? (
+                                        <>
+                                            <div className="text-4xl font-mono font-bold tracking-[0.3em] text-white mb-3">
+                                                {latestOTP.code}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Clock size={14} className="text-indigo-200" />
+                                                <span className={`font-medium ${otpTimeLeft <= 30 ? 'text-red-300' : 'text-indigo-200'}`}>
+                                                    Expires in {formatOTPTime(otpTimeLeft)}
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-indigo-300 mt-2 truncate max-w-[180px]">
+                                                For: {latestOTP.email}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-2">
+                                            <div className="text-2xl font-mono font-bold text-white/40 mb-2">------</div>
+                                            <p className="text-indigo-200/60 text-sm">No active OTP</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                         </div>
                     </div>

@@ -22,9 +22,14 @@ import { QuizState, UserResponse, QuizResult, Question } from './types';
 import { submitQuiz } from './services/quizService';
 import { saveTestResult, TestResultHistory } from './services/testHistoryService';
 import { MODULES } from './constants';
-import { Loader2 } from 'lucide-react';
+import { db, getAdminEmails } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { getDynamicQuestions } from './services/questionService';
 import { getDisabledStaticQuestions } from './services/disabledQuestionService';
+import { OTPModal } from './components/OTPModal';
+import { createOTP, verifyOTP } from './services/otpService';
+import { sendOTPEmail, getStandardAdminEmails } from './services/emailService';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
 
@@ -40,8 +45,70 @@ const AppContent: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+
+  const [showExitOTPModal, setShowExitOTPModal] = useState(false);
+  const [exitSessionId, setExitSessionId] = useState('');
+  const [isSendingExitOTP, setIsSendingExitOTP] = useState(false);
+  const [exitRecipientEmails, setExitRecipientEmails] = useState<string[]>([]);
+  const [isRealEmailActive, setIsRealEmailActive] = useState(false);
+
+  // Anti-Cheat State
+  const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
+  const [cheatingCount, setCheatingCount] = useState(0);
+
   const responsesRef = useRef<UserResponse[]>([]);
   const timerRef = useRef<number | null>(null);
+
+  // Prevention of tab closing / navigation & Anti-Cheat
+  useEffect(() => {
+    const isSecuredState = state !== QuizState.DASHBOARD && state !== QuizState.PHASE_DASHBOARD && !showAdminPanel;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSecuredState) {
+        e.preventDefault();
+        e.returnValue = 'Test is in progress. Do you really want to exit?';
+        return e.returnValue;
+      }
+    };
+
+    const handleFullscreenChange = () => {
+      if (isSecuredState && !document.fullscreenElement) {
+        setShowFullscreenWarning(true);
+        setCheatingCount(prev => prev + 1);
+      } else {
+        setShowFullscreenWarning(false);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (isSecuredState && document.visibilityState === 'hidden') {
+        setCheatingCount(prev => prev + 1);
+        console.warn("⚠️ Tab switching detected!");
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [state, showAdminPanel]);
+
+  const reEnterFullscreen = async () => {
+    try {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        await element.requestFullscreen();
+        setShowFullscreenWarning(false);
+      }
+    } catch (error) {
+      console.warn("Re-entering fullscreen failed:", error);
+    }
+  };
 
   // Set username from user when logged in
   useEffect(() => {
@@ -99,66 +166,86 @@ const AppContent: React.FC = () => {
       setShowAdminPanel(true);
       return;
     }
-    if (moduleId === 'module-5') {
-      setState(QuizState.PHASE1);
-    } else if (moduleId === 'module-6') {
-      setState(QuizState.PHASE2);
-    } else if (moduleId === 'module-7') {
-      setState(QuizState.PHASE3);
-    } else if (moduleId === 'module-8') {
-      setState(QuizState.PHASE4);
-    } else if (moduleId === 'module-9') {
-      setState(QuizState.PHASE5);
-    } else if (moduleId === 'module-10') {
-      setState(QuizState.PHASE6);
-    } else if (moduleId === 'module-11') {
-      setState(QuizState.PHASE7);
-    } else if (moduleId === 'phase-dashboard') {
+
+    // UI/Info only modules
+    if (moduleId === 'phase-dashboard') {
       setState(QuizState.PHASE_DASHBOARD);
-    } else if (moduleId === 'navgurukul-names') {
-      setState(QuizState.NAVGURUKUL);
-    } else {
-      setState(QuizState.INTRO);
+      return;
     }
+
+    // All test/content modules MUST go through INTRO (OTP + Fullscreen)
+    setState(QuizState.INTRO);
   };
 
   const handleStart = async (name: string) => {
     setUserName(name);
+
+    if (!selectedModuleId) return;
+
+    // Handle Content Modules (Phases) - No questions needed
+    if (selectedModuleId === 'module-5') {
+      setState(QuizState.PHASE1);
+      return;
+    }
+    if (selectedModuleId === 'module-6') {
+      setState(QuizState.PHASE2);
+      return;
+    }
+    if (selectedModuleId === 'module-7') {
+      setState(QuizState.PHASE3);
+      return;
+    }
+    if (selectedModuleId === 'module-8') {
+      setState(QuizState.PHASE4);
+      return;
+    }
+    if (selectedModuleId === 'module-9') {
+      setState(QuizState.PHASE5);
+      return;
+    }
+    if (selectedModuleId === 'module-10') {
+      setState(QuizState.PHASE6);
+      return;
+    }
+    if (selectedModuleId === 'module-11') {
+      setState(QuizState.PHASE7);
+      return;
+    }
+    if (selectedModuleId === 'navgurukul-names') {
+      setState(QuizState.NAVGURUKUL);
+      return;
+    }
+
+    // Handle Quiz Modules
     setIsPreparingQuiz(true);
-
     try {
-      if (selectedModuleId) {
-        // Fetch disabled static questions
-        const disabledIds = await getDisabledStaticQuestions();
+      // Fetch disabled static questions
+      const disabledIds = await getDisabledStaticQuestions();
 
-        // Static Questions (Filtered)
-        const allStaticQs = MODULES[selectedModuleId as keyof typeof MODULES]?.questions || [];
-        const staticQs = allStaticQs.filter(q => !disabledIds.includes(q.id as number));
+      // Static Questions (Filtered)
+      const allStaticQs = MODULES[selectedModuleId as keyof typeof MODULES]?.questions || [];
+      const staticQs = allStaticQs.filter(q => !disabledIds.includes(q.id as number));
 
-        // Fetch dynamic questions
-        const dynamicQs = await getDynamicQuestions(selectedModuleId);
+      // Fetch dynamic questions
+      const dynamicQs = await getDynamicQuestions(selectedModuleId);
 
-        // Shuffle both lists independently
-        const shuffledDynamic = [...dynamicQs].sort(() => 0.5 - Math.random());
-        const shuffledStatic = [...staticQs].sort(() => 0.5 - Math.random());
+      // Shuffle both lists independently
+      const shuffledDynamic = [...dynamicQs].sort(() => 0.5 - Math.random());
+      const shuffledStatic = [...staticQs].sort(() => 0.5 - Math.random());
 
-        // Combine with dynamic questions PRIORITY (User requested their added questions MUST appear)
-        // We put dynamic questions first, then fill the rest of the 30 slots with static questions
-        const combined = [...shuffledDynamic, ...shuffledStatic];
+      // Combine with dynamic questions PRIORITY
+      const combined = [...shuffledDynamic, ...shuffledStatic];
 
-        // Select top 30 (this ensures all dynamic questions are taken if count < 30)
-        const selectedPool = combined.slice(0, 30);
+      // Select top 30
+      const selectedPool = combined.slice(0, 30);
 
-        // Shuffle the final selection so dynamic questions aren't always at the start
-        const finalSelectedQs = selectedPool.sort(() => 0.5 - Math.random());
+      // Shuffle the final selection
+      const finalSelectedQs = selectedPool.sort(() => 0.5 - Math.random());
 
-        setActiveQuestions(finalSelectedQs);
+      setActiveQuestions(finalSelectedQs);
 
-        // Update Time Left based on config
-        setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
-      } else {
-        setActiveQuestions([]);
-      }
+      // Update Time Left based on config
+      setTimeLeft(MODULES[selectedModuleId as keyof typeof MODULES]?.time || TOTAL_TIME);
 
       responsesRef.current = [];
       setState(QuizState.QUIZ);
@@ -198,6 +285,73 @@ const AppContent: React.FC = () => {
   const handleLogout = async () => {
     await logout();
     setState(QuizState.DASHBOARD);
+  };
+
+  const handleExitRequest = async () => {
+    // If we're on a secured screen, demand OTP
+    const isSecuredPage = state === QuizState.PHASE1 ||
+      state === QuizState.PHASE2 ||
+      state === QuizState.PHASE3 ||
+      state === QuizState.PHASE4 ||
+      state === QuizState.PHASE5 ||
+      state === QuizState.PHASE6 ||
+      state === QuizState.PHASE7 ||
+      state === QuizState.NAVGURUKUL;
+
+    if (!isSecuredPage) {
+      handleRestart();
+      return;
+    }
+
+    // Generate Exit OTP
+    const newSessionId = `exit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setExitSessionId(newSessionId);
+    setIsSendingExitOTP(true);
+
+    try {
+      const configRef = doc(db, 'config', 'emailjs');
+      const configSnap = await getDoc(configRef);
+      setIsRealEmailActive(configSnap.exists());
+
+      let recipients = await getStandardAdminEmails();
+      if (recipients.length === 0) recipients = await getAdminEmails();
+      setExitRecipientEmails(recipients);
+
+      const primaryAdmin = recipients.length > 0 ? recipients[0] : 'admin-required';
+      const otp = await createOTP(primaryAdmin, newSessionId);
+
+      if (recipients.length > 0) {
+        await Promise.all(recipients.map(email =>
+          sendOTPEmail(email, otp, userName || 'User', 'exit')
+        ));
+      } else {
+        await sendOTPEmail('simulated-admin@navgurukul.org', otp, userName || 'User', 'exit');
+      }
+
+      setShowExitOTPModal(true);
+    } catch (error) {
+      console.error("Exit OTP request failed:", error);
+    } finally {
+      setIsSendingExitOTP(false);
+    }
+  };
+
+  const handleVerifyExitOTP = async (code: string): Promise<boolean> => {
+    const isValid = await verifyOTP(exitSessionId, code);
+    if (isValid) {
+      // Exit Fullscreen
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.warn("Fullscreen exit failed:", error);
+      }
+
+      setShowExitOTPModal(false);
+      handleRestart();
+    }
+    return isValid;
   };
 
   // Cleanup timer on unmount
@@ -272,33 +426,67 @@ const AppContent: React.FC = () => {
             <Result userName={userName} result={quizResult} onRestart={handleRestart} />
           )}
           {state === QuizState.PHASE1 && (
-            <Phase1 onBack={handleRestart} />
+            <Phase1 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE2 && (
-            <Phase2 onBack={handleRestart} />
+            <Phase2 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE3 && (
-            <Phase3 onBack={handleRestart} />
+            <Phase3 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE4 && (
-            <Phase4 onBack={handleRestart} />
+            <Phase4 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE5 && (
-            <Phase5 onBack={handleRestart} />
+            <Phase5 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE6 && (
-            <Phase6 onBack={handleRestart} />
+            <Phase6 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE7 && (
-            <Phase7 onBack={handleRestart} />
+            <Phase7 onBack={handleExitRequest} />
           )}
           {state === QuizState.PHASE_DASHBOARD && (
             <PhaseDashboard onBack={handleRestart} onPhaseClick={handleDashboardStart} />
           )}
           {state === QuizState.NAVGURUKUL && (
-            <NavGurukul onBack={handleRestart} />
+            <NavGurukul onBack={handleExitRequest} />
           )}
         </>
+      )}
+
+      <OTPModal
+        isOpen={showExitOTPModal}
+        onVerify={handleVerifyExitOTP}
+        onResend={handleExitRequest}
+        adminEmail={exitRecipientEmails.join(', ')}
+        isRealEmail={isRealEmailActive}
+      />
+
+      {/* Global Fullscreen Warning Modal */}
+      {showFullscreenWarning && (
+        <div className="fixed inset-0 z-[200] bg-[#0f0c29]/95 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl p-10 max-w-lg w-full text-center shadow-2xl border-2 border-red-500/20 animate-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle size={40} className="text-red-600" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-800 mb-4 font-montserrat uppercase tracking-tight">Security Warning!</h2>
+            <p className="text-slate-600 mb-8 font-medium leading-relaxed">
+              Exit detected! This test must be completed in **Full Screen Mode**.
+              Please do not exit full screen or switch tabs.
+            </p>
+            <button
+              onClick={reEnterFullscreen}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-indigo-200 active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
+            >
+              <CheckCircle size={24} />
+              Re-enter Full Screen
+            </button>
+            <p className="text-xs text-red-500/60 mt-6 font-bold uppercase tracking-widest">
+              Security Violation Detected ({cheatingCount})
+            </p>
+          </div>
+        </div>
       )}
     </Layout>
   );

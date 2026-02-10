@@ -13,50 +13,9 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const [userResponses, setUserResponses] = useState<UserResponse[]>([]);
-  const [showExitWarning, setShowExitWarning] = useState(false);
-  const [cheatingCount, setCheatingCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Fullscreen Maintenance & Anti-Cheat
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setShowExitWarning(true);
-        setCheatingCount(prev => prev + 1);
-      } else {
-        setShowExitWarning(false);
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        setCheatingCount(prev => prev + 1);
-        console.warn("⚠️ Tab switching detected!");
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  const reEnterFullscreen = async () => {
-    try {
-      const element = document.documentElement;
-      if (element.requestFullscreen) {
-        await element.requestFullscreen();
-        setShowExitWarning(false);
-      }
-    } catch (error) {
-      console.warn("Re-entering fullscreen failed:", error);
-    }
-  };
 
   const currentQuestion = questions[currentIndex];
   // Filter out empty answers
@@ -335,31 +294,6 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
           -webkit-touch-callout: none;
         }
       `}</style>
-      {/* Fullscreen Warning Modal */}
-      {showExitWarning && (
-        <div className="fixed inset-0 z-[100] bg-[#0f0c29]/95 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-white rounded-3xl p-10 max-w-lg w-full text-center shadow-2xl border-2 border-red-500/20 animate-in zoom-in duration-300">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle size={40} className="text-red-600" />
-            </div>
-            <h2 className="text-3xl font-black text-slate-800 mb-4 font-montserrat uppercase tracking-tight">Setup Warning!</h2>
-            <p className="text-slate-600 mb-8 font-medium leading-relaxed">
-              Test is only allowed in **Full Screen Mode** to prevent distractions.
-              Please do not exit full screen or switch tabs.
-            </p>
-            <button
-              onClick={reEnterFullscreen}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-indigo-200 active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
-            >
-              <CheckCircle size={24} />
-              Re-enter Full Screen
-            </button>
-            <p className="text-xs text-red-500/60 mt-6 font-bold uppercase tracking-widest">
-              Security Violation Detected ({cheatingCount})
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
