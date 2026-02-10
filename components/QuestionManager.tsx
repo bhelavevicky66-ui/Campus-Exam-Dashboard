@@ -19,7 +19,8 @@ export const QuestionManager: React.FC = () => {
     const [answer, setAnswer] = useState('');
     const [type, setType] = useState<'text' | 'number' | 'mcq'>('text');
     const [moduleId, setModuleId] = useState('screen-test');
-    const [category, setCategory] = useState('');
+    const [category, setCategory] = useState<string | 'custom'>('');
+    const [customCategory, setCustomCategory] = useState('');
     const [hint, setHint] = useState('');
     const [marks, setMarks] = useState<number | 'custom'>(1);
     const [customMarks, setCustomMarks] = useState<number>(0);
@@ -30,6 +31,22 @@ export const QuestionManager: React.FC = () => {
     const [option2, setOption2] = useState('');
     const [option3, setOption3] = useState('');
     const [option4, setOption4] = useState('');
+
+    // Predefined categories for each module/phase
+    const categoryOptions: Record<string, string[]> = {
+        'screen-test': ['General Aptitude', 'Logical Reasoning', 'Basic Math'],
+        'module-0': ['Introduction', 'Basics', 'Fundamentals'],
+        'module-1': ['BODMAS', 'Number System', 'HCF & LCM', 'Fractions', 'Percentages', 'Ratio & Proportion', 'Average', 'Algebra'],
+        'number-system': ['Natural Numbers', 'Whole Numbers', 'Integers', 'Rational Numbers', 'Prime Numbers', 'Divisibility'],
+        'flowchart': ['Symbols', 'Decision Making', 'Loops', 'Sequence', 'Algorithm'],
+        'phase-1': ['HTML Tags', 'HTML Forms', 'HTML Tables', 'CSS Selectors', 'CSS Box Model', 'Flexbox', 'Grid', 'Responsive Design'],
+        'phase-2': ['Variables', 'Data Types', 'Operators', 'Control Flow', 'Loops', 'Functions', 'Arrays', 'Objects'],
+        'phase-3': ['DOM Manipulation', 'Events', 'ES6+', 'Async/Await', 'Promises', 'Fetch API'],
+        'phase-4': ['Components', 'Props', 'State', 'Hooks', 'useEffect', 'useState', 'Context API', 'Routing'],
+        'phase-5': ['Express.js', 'REST API', 'Middleware', 'Routes', 'Controllers', 'Authentication'],
+        'phase-6': ['MongoDB Basics', 'CRUD Operations', 'Mongoose', 'Schema', 'Aggregation', 'Indexing'],
+        'phase-7': ['Full Stack', 'Deployment', 'Testing', 'Security', 'Performance']
+    };
 
     useEffect(() => {
         fetchQuestions();
@@ -157,6 +174,7 @@ export const QuestionManager: React.FC = () => {
         // Calculate actual marks and time values
         const actualMarks = marks === 'custom' ? customMarks : marks;
         const actualTime = timeLimit === 'custom' ? customTime : timeLimit;
+        const actualCategory = category === 'custom' ? customCategory : category;
 
         const newQuestion: Omit<Question, 'id'> = {
             question: questionText,
@@ -166,7 +184,7 @@ export const QuestionManager: React.FC = () => {
             placeholder: 'Your Answer',
             marks: actualMarks,
             timeLimit: actualTime,
-            ...(category && { category }),
+            ...(actualCategory && { category: actualCategory }),
             ...(hint && { hint }),
             ...(mcqOptions && mcqOptions.length > 0 && { options: mcqOptions }),
         };
@@ -179,6 +197,7 @@ export const QuestionManager: React.FC = () => {
             setAnswer('');
             setHint('');
             setCategory('');
+            setCustomCategory('');
             setMarks(1);
             setCustomMarks(0);
             setTimeLimit(30);
@@ -486,7 +505,44 @@ export const QuestionManager: React.FC = () => {
                             <p className="text-xs mt-1 opacity-70">Question इस module/phase में add होगा</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                        {/* Question Name / Category */}
+                        <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 p-4 rounded-xl">
+                            <label className="block text-sm font-medium text-violet-300 mb-2">📚 Question Name / Category</label>
+                            <select
+                                value={category}
+                                onChange={(e) => {
+                                    setCategory(e.target.value);
+                                    if (e.target.value !== 'custom') setCustomCategory('');
+                                }}
+                                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-violet-500"
+                            >
+                                <option value="" className="text-black">-- Select Category --</option>
+                                {(categoryOptions[selectedModule === 'all' ? 'screen-test' : selectedModule] || []).map((cat, idx) => (
+                                    <option key={idx} value={cat} className="text-black">{cat}</option>
+                                ))}
+                                <option value="custom" className="text-black">✏️ Custom - अपना Name डालें</option>
+                            </select>
+                            {category === 'custom' && (
+                                <div className="mt-3 p-3 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                                    <p className="text-xs text-violet-300 mb-2">🎯 अपना मनचाहा Category Name enter करें:</p>
+                                    <input
+                                        type="text"
+                                        value={customCategory}
+                                        onChange={(e) => setCustomCategory(e.target.value)}
+                                        placeholder="e.g., Trigonometry, Arrays, etc."
+                                        className="w-full px-4 py-2 bg-violet-500/20 border border-violet-500/30 rounded-xl text-violet-200 placeholder-violet-300/50 focus:outline-none focus:border-violet-500"
+                                    />
+                                    {customCategory && (
+                                        <span className="inline-block text-xs text-green-400 bg-green-500/20 px-3 py-1 rounded-full mt-2">
+                                            ✓ "{customCategory}" set
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                            <p className="text-xs text-violet-300/60 mt-2">💡 Test में यह name बड़े letters में दिखेगा (जैसे BODMAS, HCF & LCM)</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Question Type</label>
                                 <select
