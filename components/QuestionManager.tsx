@@ -17,11 +17,16 @@ export const QuestionManager: React.FC = () => {
     // Form State
     const [questionText, setQuestionText] = useState('');
     const [answer, setAnswer] = useState('');
-    const [type, setType] = useState<'text' | 'number'>('text');
+    const [type, setType] = useState<'text' | 'number' | 'mcq'>('text');
     const [moduleId, setModuleId] = useState('screen-test');
     const [category, setCategory] = useState('');
     const [hint, setHint] = useState('');
     const [marks, setMarks] = useState<number>(1);
+    // MCQ Options
+    const [option1, setOption1] = useState('');
+    const [option2, setOption2] = useState('');
+    const [option3, setOption3] = useState('');
+    const [option4, setOption4] = useState('');
 
     useEffect(() => {
         fetchQuestions();
@@ -143,15 +148,19 @@ export const QuestionManager: React.FC = () => {
         if (!questionText || !answer || !targetModule) return;
 
         setIsAdding(true);
+        // Build options array for MCQ
+        const mcqOptions = type === 'mcq' ? [option1, option2, option3, option4].filter(opt => opt.trim() !== '') : undefined;
+
         const newQuestion: Omit<Question, 'id'> = {
             question: questionText,
-            type,
+            type: type === 'mcq' ? 'text' : type, // Store as text type but with options
             moduleId: targetModule,
             answer,
             placeholder: 'Your Answer',
             marks: marks,
             ...(category && { category }),
             ...(hint && { hint }),
+            ...(mcqOptions && mcqOptions.length > 0 && { options: mcqOptions }),
         };
 
         const id = await addQuestion(newQuestion);
@@ -163,6 +172,11 @@ export const QuestionManager: React.FC = () => {
             setHint('');
             setCategory('');
             setMarks(1);
+            setOption1('');
+            setOption2('');
+            setOption3('');
+            setOption4('');
+            setType('text');
             alert('Question added successfully!');
         } else {
             alert('Failed to add question');
@@ -394,14 +408,65 @@ export const QuestionManager: React.FC = () => {
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Question Type</label>
                                 <select
                                     value={type}
-                                    onChange={(e) => setType(e.target.value as 'text' | 'number')}
+                                    onChange={(e) => setType(e.target.value as 'text' | 'number' | 'mcq')}
                                     className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
                                 >
                                     <option value="text" className="text-black">Text</option>
                                     <option value="number" className="text-black">Number</option>
+                                    <option value="mcq" className="text-black">MCQ (Multiple Choice)</option>
                                 </select>
                             </div>
                         </div>
+
+                        {/* MCQ Options - Show only when MCQ is selected */}
+                        {type === 'mcq' && (
+                            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-4 rounded-xl">
+                                <label className="block text-sm font-medium text-cyan-300 mb-3">📋 MCQ Options (Enter 4 options)</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-lg text-xs font-bold">A</span>
+                                        <input
+                                            type="text"
+                                            value={option1}
+                                            onChange={(e) => setOption1(e.target.value)}
+                                            placeholder="Option A"
+                                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-cyan-500 text-sm"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-lg text-xs font-bold">B</span>
+                                        <input
+                                            type="text"
+                                            value={option2}
+                                            onChange={(e) => setOption2(e.target.value)}
+                                            placeholder="Option B"
+                                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-cyan-500 text-sm"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded-lg text-xs font-bold">C</span>
+                                        <input
+                                            type="text"
+                                            value={option3}
+                                            onChange={(e) => setOption3(e.target.value)}
+                                            placeholder="Option C"
+                                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-cyan-500 text-sm"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-pink-500/20 text-pink-400 px-2 py-1 rounded-lg text-xs font-bold">D</span>
+                                        <input
+                                            type="text"
+                                            value={option4}
+                                            onChange={(e) => setOption4(e.target.value)}
+                                            placeholder="Option D"
+                                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-cyan-500 text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-cyan-300/60 mt-2">💡 Correct Answer में वही option लिखें जो सही है (e.g., Option A का text)</p>
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-purple-200 mb-1">Question Text</label>
