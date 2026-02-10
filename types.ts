@@ -26,6 +26,7 @@ export interface Question {
   answer?: string;
   options?: string[];
   marks?: number; // Marks for this question
+  timeLimit?: number; // Time limit in minutes for this question/test
 }
 
 export interface QuizResult {

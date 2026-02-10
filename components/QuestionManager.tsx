@@ -21,7 +21,10 @@ export const QuestionManager: React.FC = () => {
     const [moduleId, setModuleId] = useState('screen-test');
     const [category, setCategory] = useState('');
     const [hint, setHint] = useState('');
-    const [marks, setMarks] = useState<number>(1);
+    const [marks, setMarks] = useState<number | 'custom'>(1);
+    const [customMarks, setCustomMarks] = useState<number>(0);
+    const [timeLimit, setTimeLimit] = useState<number | 'custom'>(30);
+    const [customTime, setCustomTime] = useState<number>(0);
     // MCQ Options
     const [option1, setOption1] = useState('');
     const [option2, setOption2] = useState('');
@@ -150,6 +153,10 @@ export const QuestionManager: React.FC = () => {
         setIsAdding(true);
         // Build options array for MCQ
         const mcqOptions = type === 'mcq' ? [option1, option2, option3, option4].filter(opt => opt.trim() !== '') : undefined;
+        
+        // Calculate actual marks and time values
+        const actualMarks = marks === 'custom' ? customMarks : marks;
+        const actualTime = timeLimit === 'custom' ? customTime : timeLimit;
 
         const newQuestion: Omit<Question, 'id'> = {
             question: questionText,
@@ -157,7 +164,8 @@ export const QuestionManager: React.FC = () => {
             moduleId: targetModule,
             answer,
             placeholder: 'Your Answer',
-            marks: marks,
+            marks: actualMarks,
+            timeLimit: actualTime,
             ...(category && { category }),
             ...(hint && { hint }),
             ...(mcqOptions && mcqOptions.length > 0 && { options: mcqOptions }),
@@ -172,6 +180,9 @@ export const QuestionManager: React.FC = () => {
             setHint('');
             setCategory('');
             setMarks(1);
+            setCustomMarks(0);
+            setTimeLimit(30);
+            setCustomTime(0);
             setOption1('');
             setOption2('');
             setOption3('');
@@ -300,79 +311,133 @@ export const QuestionManager: React.FC = () => {
                         </div>
                     </button>
 
-                    <div className="p-4 rounded-xl border-2 border-lime-500/30 bg-lime-500/10 hover:bg-lime-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('number-system')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'number-system'
+                            ? 'bg-lime-500/20 border-lime-500 shadow-lg shadow-lime-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-lime-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">🔢</span>
                             <h3 className="text-sm font-bold text-lime-300">Number System</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">Binary/Decimal</p>
                         </div>
-                    </div>
+                    </button>
 
                     {/* Row 2: Flowchart, Phase 1, Phase 2, Phase 3 */}
-                    <div className="p-4 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('flowchart')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'flowchart'
+                            ? 'bg-cyan-500/20 border-cyan-500 shadow-lg shadow-cyan-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-cyan-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">📊</span>
                             <h3 className="text-sm font-bold text-cyan-300">Flowchart</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">Logic Design</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-1')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-1'
+                            ? 'bg-violet-500/20 border-violet-500 shadow-lg shadow-violet-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-violet-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">1️⃣</span>
                             <h3 className="text-sm font-bold text-violet-300">Phase 1</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">HTML Basics</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-2')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-2'
+                            ? 'bg-pink-500/20 border-pink-500 shadow-lg shadow-pink-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-pink-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">2️⃣</span>
                             <h3 className="text-sm font-bold text-pink-300">Phase 2</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">CSS Styling</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-3')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-3'
+                            ? 'bg-amber-500/20 border-amber-500 shadow-lg shadow-amber-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-amber-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">3️⃣</span>
                             <h3 className="text-sm font-bold text-amber-300">Phase 3</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">JavaScript</p>
                         </div>
-                    </div>
+                    </button>
 
                     {/* Row 3: Phase 4, Phase 5, Phase 6, Phase 7 */}
-                    <div className="p-4 rounded-xl border-2 border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-4')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-4'
+                            ? 'bg-rose-500/20 border-rose-500 shadow-lg shadow-rose-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-rose-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">4️⃣</span>
                             <h3 className="text-sm font-bold text-rose-300">Phase 4</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">React.js</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-5')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-5'
+                            ? 'bg-teal-500/20 border-teal-500 shadow-lg shadow-teal-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-teal-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">5️⃣</span>
                             <h3 className="text-sm font-bold text-teal-300">Phase 5</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">Node.js</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-6')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-6'
+                            ? 'bg-indigo-500/20 border-indigo-500 shadow-lg shadow-indigo-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-indigo-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">6️⃣</span>
                             <h3 className="text-sm font-bold text-indigo-300">Phase 6</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">MongoDB</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="p-4 rounded-xl border-2 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 transition-all hover:scale-105">
+                    <button
+                        onClick={() => setSelectedModule('phase-7')}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${selectedModule === 'phase-7'
+                            ? 'bg-yellow-500/20 border-yellow-500 shadow-lg shadow-yellow-500/30'
+                            : 'bg-white/5 border-white/10 hover:border-yellow-500/50'
+                            }`}
+                    >
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">7️⃣</span>
                             <h3 className="text-sm font-bold text-yellow-300">Phase 7</h3>
                             <p className="text-[10px] text-purple-300/50 mt-1">Full Stack + AI</p>
                         </div>
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -398,18 +463,27 @@ export const QuestionManager: React.FC = () => {
                 {selectedModule === 'all' ? (
                     <div className="text-center py-8 border-2 border-dashed border-purple-500/30 rounded-xl">
                         <span className="text-4xl mb-3 block">👆</span>
-                        <p className="text-purple-300 font-semibold">पहले ऊपर से कोई Module select करें</p>
-                        <p className="text-purple-300/60 text-sm mt-1">Screening Test, Module 0, या Module 1 में से कोई चुनें</p>
+                        <p className="text-purple-300 font-semibold">पहले ऊपर से कोई Module/Phase select करें</p>
+                        <p className="text-purple-300/60 text-sm mt-1">कोई भी box click करें question add करने के लिए</p>
                     </div>
                 ) : (
                 <form onSubmit={handleAddQuestion} className="space-y-4">
                         <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl text-green-200 text-sm mb-4">
-                            <p className="font-bold">✅ Target Module: <span className="text-white">
+                            <p className="font-bold">✅ Target: <span className="text-white">
                                 {selectedModule === 'screen-test' ? 'Screening Test' :
-                                        selectedModule === 'module-0' ? 'Module 0' :
-                                            'Module 1'}
+                                selectedModule === 'module-0' ? 'Module 0' :
+                                selectedModule === 'module-1' ? 'Module 1' :
+                                selectedModule === 'number-system' ? 'Number System' :
+                                selectedModule === 'flowchart' ? 'Flowchart' :
+                                selectedModule === 'phase-1' ? 'Phase 1 (HTML)' :
+                                selectedModule === 'phase-2' ? 'Phase 2 (CSS)' :
+                                selectedModule === 'phase-3' ? 'Phase 3 (JavaScript)' :
+                                selectedModule === 'phase-4' ? 'Phase 4 (React.js)' :
+                                selectedModule === 'phase-5' ? 'Phase 5 (Node.js)' :
+                                selectedModule === 'phase-6' ? 'Phase 6 (MongoDB)' :
+                                selectedModule === 'phase-7' ? 'Phase 7 (Full Stack)' : selectedModule}
                             </span></p>
-                            <p className="text-xs mt-1 opacity-70">Question इस module में add होगा</p>
+                            <p className="text-xs mt-1 opacity-70">Question इस module/phase में add होगा</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -504,18 +578,97 @@ export const QuestionManager: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Marks ★</label>
+                                <div className="flex gap-2">
+                                    <select
+                                        value={marks}
+                                        onChange={(e) => setMarks(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}
+                                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                                    >
+                                        <option value={1} className="text-black">1 Mark</option>
+                                        <option value={2} className="text-black">2 Marks</option>
+                                        <option value={3} className="text-black">3 Marks</option>
+                                        <option value={4} className="text-black">4 Marks</option>
+                                        <option value={5} className="text-black">5 Marks</option>
+                                        <option value="custom" className="text-black">✏️ Custom</option>
+                                    </select>
+                                    {marks === 'custom' && (
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={customMarks || ''}
+                                            onChange={(e) => setCustomMarks(Number(e.target.value))}
+                                            placeholder="Enter"
+                                            className="w-20 px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-yellow-300 placeholder-yellow-300/50 focus:outline-none focus:border-yellow-500 text-center"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Time Duration */}
+                        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 p-4 rounded-xl">
+                            <label className="block text-sm font-medium text-orange-300 mb-2">⏱️ Test Time Duration</label>
+                            <div className="flex flex-wrap gap-2 items-center">
                                 <select
-                                    value={marks}
-                                    onChange={(e) => setMarks(Number(e.target.value))}
-                                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                                    value={timeLimit}
+                                    onChange={(e) => setTimeLimit(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}
+                                    className="flex-1 min-w-[150px] px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-orange-500"
                                 >
-                                    <option value={1} className="text-black">1 Mark</option>
-                                    <option value={2} className="text-black">2 Marks</option>
-                                    <option value={3} className="text-black">3 Marks</option>
-                                    <option value={4} className="text-black">4 Marks</option>
-                                    <option value={5} className="text-black">5 Marks</option>
+                                    <option value={15} className="text-black">15 Minutes</option>
+                                    <option value={30} className="text-black">30 Minutes</option>
+                                    <option value={45} className="text-black">45 Minutes</option>
+                                    <option value={60} className="text-black">1 Hour</option>
+                                    <option value={90} className="text-black">1.5 Hours</option>
+                                    <option value={120} className="text-black">2 Hours</option>
+                                    <option value={180} className="text-black">3 Hours</option>
+                                    <option value="custom" className="text-black">✏️ Custom - अपना Time डालें</option>
                                 </select>
                             </div>
+                            {timeLimit === 'custom' && (
+                                <div className="mt-3 p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                                    <p className="text-xs text-orange-300 mb-2">🎯 अपना मनचाहा time enter करें:</p>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="24"
+                                                value={Math.floor(customTime / 60) || ''}
+                                                onChange={(e) => {
+                                                    const hours = Number(e.target.value) || 0;
+                                                    const currentMins = customTime % 60;
+                                                    setCustomTime(hours * 60 + currentMins);
+                                                }}
+                                                placeholder="0"
+                                                className="w-16 px-3 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-orange-300 placeholder-orange-300/50 focus:outline-none focus:border-orange-500 text-center"
+                                            />
+                                            <span className="text-orange-300 text-sm font-medium">घंटे</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                value={customTime % 60 || ''}
+                                                onChange={(e) => {
+                                                    const mins = Number(e.target.value) || 0;
+                                                    const currentHours = Math.floor(customTime / 60);
+                                                    setCustomTime(currentHours * 60 + mins);
+                                                }}
+                                                placeholder="0"
+                                                className="w-16 px-3 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-orange-300 placeholder-orange-300/50 focus:outline-none focus:border-orange-500 text-center"
+                                            />
+                                            <span className="text-orange-300 text-sm font-medium">मिनट</span>
+                                        </div>
+                                        {customTime > 0 && (
+                                            <span className="text-xs text-green-400 bg-green-500/20 px-3 py-1 rounded-full">
+                                                = {customTime} minutes total
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            <p className="text-xs text-orange-300/60 mt-2">💡 पूरे test का time set करें - Custom में घंटे और मिनट अलग से डालें</p>
                         </div>
 
                         <button
