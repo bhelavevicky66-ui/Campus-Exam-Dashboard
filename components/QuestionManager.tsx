@@ -386,21 +386,30 @@ export const QuestionManager: React.FC = () => {
                 </button>
             )}
             {/* Add Question Form */}
-            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+            <div className={`bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 ${selectedModule === 'all' ? 'opacity-50 pointer-events-none' : ''}`}>
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                     <Plus size={22} className="text-green-400" />
                     Add New Question
+                    {selectedModule === 'all' && (
+                        <span className="ml-2 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-lg">🔒 पहले ऊपर से Module select करें</span>
+                    )}
                 </h3>
 
+                {selectedModule === 'all' ? (
+                    <div className="text-center py-8 border-2 border-dashed border-purple-500/30 rounded-xl">
+                        <span className="text-4xl mb-3 block">👆</span>
+                        <p className="text-purple-300 font-semibold">पहले ऊपर से कोई Module select करें</p>
+                        <p className="text-purple-300/60 text-sm mt-1">Screening Test, Module 0, या Module 1 में से कोई चुनें</p>
+                    </div>
+                ) : (
                 <form onSubmit={handleAddQuestion} className="space-y-4">
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200 text-sm mb-4">
-                            <p className="font-bold">📌 Target Module: <span className="text-white">
-                                {selectedModule === 'all' ? 'Screening Test (default)' :
-                                    selectedModule === 'screen-test' ? 'Screening Test' :
+                        <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl text-green-200 text-sm mb-4">
+                            <p className="font-bold">✅ Target Module: <span className="text-white">
+                                {selectedModule === 'screen-test' ? 'Screening Test' :
                                         selectedModule === 'module-0' ? 'Module 0' :
                                             'Module 1'}
                             </span></p>
-                            <p className="text-xs mt-1 opacity-70">Click a module card above to change the target module</p>
+                            <p className="text-xs mt-1 opacity-70">Question इस module में add होगा</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -417,6 +426,7 @@ export const QuestionManager: React.FC = () => {
                                 </select>
                             </div>
                         </div>
+
 
                         {/* MCQ Options - Show only when MCQ is selected */}
                         {type === 'mcq' && (
@@ -517,6 +527,7 @@ export const QuestionManager: React.FC = () => {
                             Save Question
                         </button>
                     </form>
+                )}
             </div>
 
             {/* Questions List */}
