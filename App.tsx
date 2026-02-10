@@ -413,7 +413,7 @@ const AppContent: React.FC = () => {
       ) : (
         <>
           {state === QuizState.DASHBOARD && <Dashboard onStart={handleDashboardStart} user={user} onLogout={handleLogout} role={role} />}
-          {state === QuizState.INTRO && <Intro onStart={handleStart} onBack={handleRestart} />}
+          {state === QuizState.INTRO && <Intro onStart={handleStart} onBack={handleRestart} moduleId={selectedModuleId || undefined} />}
           {state === QuizState.QUIZ && (
             <Quiz
               userName={userName}

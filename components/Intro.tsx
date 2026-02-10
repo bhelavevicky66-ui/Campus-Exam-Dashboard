@@ -6,19 +6,28 @@ import { sendOTPEmail, getStandardAdminEmails } from '../services/emailService';
 import { useAuth } from '../contexts/AuthContext';
 import { db, getAdminEmails } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { MODULES } from '../constants';
 
 interface IntroProps {
   onStart: (name: string) => void;
   onBack: () => void;
+  moduleId?: string;
 }
 
-export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
+export const Intro: React.FC<IntroProps> = ({ onStart, onBack, moduleId }) => {
   const { user } = useAuth();
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
   const [isRealEmailActive, setIsRealEmailActive] = useState(false);
+
+  // Get module config for dynamic data
+  const moduleConfig = moduleId ? MODULES[moduleId as keyof typeof MODULES] : null;
+  const totalQuestions = moduleConfig?.questions?.length || 30;
+  const timeInMinutes = moduleConfig?.time ? Math.floor(moduleConfig.time / 60) : 60;
+  const categories = moduleConfig?.questions ? [...new Set(moduleConfig.questions.map(q => q.category))].length : 3;
+  const passingScore = 60; // 60% passing criteria
 
   const handleStartClick = async () => {
     // Generate unique session ID
@@ -180,10 +189,10 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
             <div className="relative z-10">
               <div className="flex items-baseline gap-1 mb-1">
-                <div className="text-4xl font-black text-white">30</div>
+                <div className="text-4xl font-black text-white">{totalQuestions}</div>
                 <div className="text-xs font-bold text-slate-500">Qs</div>
               </div>
-              <div className="text-sm font-bold text-slate-400 mb-6">Across 3 categories</div>
+              <div className="text-sm font-bold text-slate-400 mb-6">Across {categories} categories</div>
 
               {/* Progress Bar */}
               <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden">
@@ -205,7 +214,7 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
             <div className="relative z-10">
               <div className="flex items-baseline gap-1 mb-1">
-                <div className="text-4xl font-black text-white">60</div>
+                <div className="text-4xl font-black text-white">{timeInMinutes}</div>
                 <div className="text-xs font-bold text-slate-500">min</div>
               </div>
               <div className="text-sm font-bold text-slate-400 mb-6">To complete the exam</div>
@@ -229,13 +238,13 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack }) => {
 
             <div className="relative z-10">
               <div className="flex items-baseline gap-1 mb-1">
-                <div className="text-4xl font-black text-white">75</div>
+                <div className="text-4xl font-black text-white">{passingScore}</div>
                 <div className="text-xs font-bold text-slate-500">%</div>
               </div>
               <div className="text-sm font-bold text-slate-400 mb-6">Required to pass</div>
 
               <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{width: `${passingScore}%`}}></div>
               </div>
             </div>
           </div>

@@ -2,88 +2,88 @@
 import { Question } from './types';
 
 export const MATH_QUESTIONS: Question[] = [
-  // BODMAS (10 Questions)
-  { id: 1, question: "6 + 4 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 2, question: "18 ÷ 3 + 5", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 3, question: "10 − 2 × 3", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 4, question: "(8 + 4) × 3 ÷ 6", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 5, question: "20 − (6 + 4) ÷ 2", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 6, question: "30 ÷ 5 + 4 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 7, question: "36 ÷ (6 + 3) × 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 8, question: "50 − [8 + 2 × (9 − 5)]", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 9, question: "(24 ÷ 4) × (3 + 2) − 5", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 10, question: "60 − 12 ÷ (3 × 2) + 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  // BODMAS (10 Questions) - 1 mark each
+  { id: 1, question: "6 + 4 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 2, question: "18 ÷ 3 + 5", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 3, question: "10 − 2 × 3", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 4, question: "(8 + 4) × 3 ÷ 6", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 5, question: "20 − (6 + 4) ÷ 2", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 6, question: "30 ÷ 5 + 4 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 7, question: "36 ÷ (6 + 3) × 4", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 8, question: "50 − [8 + 2 × (9 − 5)]", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 9, question: "(24 ÷ 4) × (3 + 2) − 5", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 10, question: "60 − 12 ÷ (3 × 2) + 4", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
 
-  // Number Types (5 Questions)
-  { id: 11, question: "Is 14 even or odd?", type: 'text', category: 'Number Types', placeholder: 'Answer' },
-  { id: 12, question: "Is 11 a prime number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No' },
-  { id: 13, question: "Write all prime numbers between 10 and 25", type: 'text', category: 'Number Types', placeholder: 'e.g. 11, 13, ...' },
-  { id: 14, question: "Is 1 a prime, composite, or natural number?", type: 'text', category: 'Number Types', placeholder: 'Answer' },
-  { id: 15, question: "Find the smallest composite natural number", type: 'number', category: 'Number Types', placeholder: 'Result' },
+  // Number Types (5 Questions) - 2 marks each
+  { id: 11, question: "Is 14 even or odd?", type: 'text', category: 'Number Types', placeholder: 'Answer', marks: 2 },
+  { id: 12, question: "Is 11 a prime number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No', marks: 2 },
+  { id: 13, question: "Write all prime numbers between 10 and 25", type: 'text', category: 'Number Types', placeholder: 'e.g. 11, 13, ...', marks: 2 },
+  { id: 14, question: "Is 1 a prime, composite, or natural number?", type: 'text', category: 'Number Types', placeholder: 'Answer', marks: 2 },
+  { id: 15, question: "Find the smallest composite natural number", type: 'number', category: 'Number Types', placeholder: 'Result', marks: 2 },
 
-  // Long Division (5 Questions)
-  { id: 16, question: "48 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 17, question: "3.6 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 18, question: "7.2 ÷ 0.6", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 19, question: "0.84 ÷ 7", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 20, question: "5 ÷ 20", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  // Long Division (5 Questions) - 2 marks each
+  { id: 16, question: "48 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 17, question: "3.6 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 18, question: "7.2 ÷ 0.6", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 19, question: "0.84 ÷ 7", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 20, question: "5 ÷ 20", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
 
-  // HCF and LCM (5 Questions)
-  { id: 21, question: "Find HCF of 8 and 12", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 22, question: "Find LCM of 4 and 5", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 23, question: "Find HCF of 24 and 36", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 24, question: "Find LCM of 6, 12, and 18", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 25, question: "Find HCF of 45 and 75", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+  // HCF and LCM (5 Questions) - 2 marks each
+  { id: 21, question: "Find HCF of 8 and 12", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 22, question: "Find LCM of 4 and 5", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 23, question: "Find HCF of 24 and 36", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 24, question: "Find LCM of 6, 12, and 18", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 25, question: "Find HCF of 45 and 75", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
 
-  // Basic Algebra (5 Questions)
-  { id: 26, question: "Solve for x: x + 5 = 12", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 27, question: "Solve for x: 2x = 10", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 28, question: "Solve for x: 3x + 7 = 25", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 29, question: "Solve for x: 5x − 10 = 15", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 30, question: "If x = 4, find: 2x² − 3x", type: 'number', category: 'Basic Algebra', placeholder: 'Result' }
+  // Basic Algebra (5 Questions) - 2 marks each
+  { id: 26, question: "Solve for x: x + 5 = 12", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 27, question: "Solve for x: 2x = 10", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 28, question: "Solve for x: 3x + 7 = 25", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 29, question: "Solve for x: 5x − 10 = 15", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 30, question: "If x = 4, find: 2x² − 3x", type: 'number', category: 'Basic Algebra', placeholder: 'Result', marks: 2 }
 ];
 
 // ============= MODULE 1 NEW QUESTIONS =============
 export const MODULE_1_NEW_QUESTIONS: Question[] = [
-  // 🟦 BODMAS – 10 Questions
-  { id: 101, question: "18 + 6 × 4 − 8", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 102, question: "(20 − 5) × 3 ÷ 5", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 103, question: "36 ÷ 6 + 7 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 104, question: "50 − 30 ÷ 5 + 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 105, question: "(12 + 8) ÷ 4 × 3", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 106, question: "60 ÷ (5 + 5) × (8 − 2)", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 107, question: "(45 − 15) ÷ 3 + 6 × 4", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 108, question: "100 − (20 ÷ 5) × (6 + 4)", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 109, question: "(72 ÷ 6 + 4) × 5 − 10", type: 'number', category: 'BODMAS', placeholder: 'Result' },
-  { id: 110, question: "120 ÷ {3 × (4 + 6)}", type: 'number', category: 'BODMAS', placeholder: 'Result' },
+  // 🟦 BODMAS – 10 Questions - 1 mark each
+  { id: 101, question: "18 + 6 × 4 − 8", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 102, question: "(20 − 5) × 3 ÷ 5", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 103, question: "36 ÷ 6 + 7 × 2", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 104, question: "50 − 30 ÷ 5 + 4", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 105, question: "(12 + 8) ÷ 4 × 3", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 106, question: "60 ÷ (5 + 5) × (8 − 2)", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 107, question: "(45 − 15) ÷ 3 + 6 × 4", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 108, question: "100 − (20 ÷ 5) × (6 + 4)", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 109, question: "(72 ÷ 6 + 4) × 5 − 10", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
+  { id: 110, question: "120 ÷ {3 × (4 + 6)}", type: 'number', category: 'BODMAS', placeholder: 'Result', marks: 1 },
 
-  // 🟦 Number Types – 5 Questions
-  { id: 111, question: "Check whether 51 is prime or composite", type: 'text', category: 'Number Types', placeholder: 'Prime or Composite' },
-  { id: 112, question: "Write three odd numbers between 20 and 30", type: 'text', category: 'Number Types', placeholder: 'e.g. 21, 23, 25' },
-  { id: 113, question: "Is 0 a natural number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No' },
-  { id: 114, question: "Find how many prime numbers are there between 1 and 50", type: 'number', category: 'Number Types', placeholder: 'Count' },
-  { id: 130, question: "What is the smallest even prime number?", type: 'number', category: 'Number Types', placeholder: 'Result' },
+  // 🟦 Number Types – 5 Questions - 2 marks each
+  { id: 111, question: "Check whether 51 is prime or composite", type: 'text', category: 'Number Types', placeholder: 'Prime or Composite', marks: 2 },
+  { id: 112, question: "Write three odd numbers between 20 and 30", type: 'text', category: 'Number Types', placeholder: 'e.g. 21, 23, 25', marks: 2 },
+  { id: 113, question: "Is 0 a natural number?", type: 'text', category: 'Number Types', placeholder: 'Yes or No', marks: 2 },
+  { id: 114, question: "Find how many prime numbers are there between 1 and 50", type: 'number', category: 'Number Types', placeholder: 'Count', marks: 2 },
+  { id: 130, question: "What is the smallest even prime number?", type: 'number', category: 'Number Types', placeholder: 'Result', marks: 2 },
 
-  // 🟦 Long Division – 5 Questions
-  { id: 115, question: "864 ÷ 12", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 116, question: "4.8 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 117, question: "625 ÷ 25", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 118, question: "7.5 ÷ 0.25", type: 'number', category: 'Long Division', placeholder: 'Result' },
-  { id: 119, question: "18 ÷ 0.6", type: 'number', category: 'Long Division', placeholder: 'Result' },
+  // 🟦 Long Division – 5 Questions - 2 marks each
+  { id: 115, question: "864 ÷ 12", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 116, question: "4.8 ÷ 6", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 117, question: "625 ÷ 25", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 118, question: "7.5 ÷ 0.25", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
+  { id: 119, question: "18 ÷ 0.6", type: 'number', category: 'Long Division', placeholder: 'Result', marks: 2 },
 
-  // 🟦 HCF & LCM – 5 Questions
-  { id: 120, question: "Find HCF of 18 and 24", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 121, question: "Find LCM of 6 and 14", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 122, question: "Find HCF of 20 and 30", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
-  { id: 123, question: "Find HCF and LCM of 24, 36, and 60 (Write as HCF, LCM)", type: 'text', category: 'HCF and LCM', placeholder: 'e.g. 12, 360' },
-  { id: 124, question: "Two numbers have HCF = 12 and LCM = 180. If one number is 36, find the other number", type: 'number', category: 'HCF and LCM', placeholder: 'Result' },
+  // 🟦 HCF & LCM – 5 Questions - 2 marks each
+  { id: 120, question: "Find HCF of 18 and 24", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 121, question: "Find LCM of 6 and 14", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 122, question: "Find HCF of 20 and 30", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
+  { id: 123, question: "Find HCF and LCM of 24, 36, and 60 (Write as HCF, LCM)", type: 'text', category: 'HCF and LCM', placeholder: 'e.g. 12, 360', marks: 2 },
+  { id: 124, question: "Two numbers have HCF = 12 and LCM = 180. If one number is 36, find the other number", type: 'number', category: 'HCF and LCM', placeholder: 'Result', marks: 2 },
 
-  // 🟦 Basic Algebra – 5 Questions
-  { id: 125, question: "Find x: 3x + 5 = 20", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 126, question: "Find y: y − 7 = 2y − 20", type: 'number', category: 'Basic Algebra', placeholder: 'y = ?' },
-  { id: 127, question: "Simplify: 4a + 3a − 2a", type: 'text', category: 'Basic Algebra', placeholder: 'Result (e.g. 5a)' },
-  { id: 128, question: "Find x: 2(x − 3) + 4 = 3x − 2", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' },
-  { id: 129, question: "If 5x − 2 = 3x + 6, find the value of x", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?' }
+  // 🟦 Basic Algebra – 5 Questions - 2 marks each
+  { id: 125, question: "Find x: 3x + 5 = 20", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 126, question: "Find y: y − 7 = 2y − 20", type: 'number', category: 'Basic Algebra', placeholder: 'y = ?', marks: 2 },
+  { id: 127, question: "Simplify: 4a + 3a − 2a", type: 'text', category: 'Basic Algebra', placeholder: 'Result (e.g. 5a)', marks: 2 },
+  { id: 128, question: "Find x: 2(x − 3) + 4 = 3x − 2", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 },
+  { id: 129, question: "If 5x − 2 = 3x + 6, find the value of x", type: 'number', category: 'Basic Algebra', placeholder: 'x = ?', marks: 2 }
 ];
 
 export const SCREEN_TEST_QUESTIONS: Question[] = MATH_QUESTIONS.slice(0, 10);

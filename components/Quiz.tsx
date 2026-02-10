@@ -121,8 +121,9 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
               ? (direction === 'next' ? 'opacity-0 -translate-x-8' : 'opacity-0 translate-x-8')
               : 'opacity-100 translate-x-0'}`}>
 
-            <div className="mb-4 flex justify-center">
-              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-1 rounded-full border border-indigo-100/30">
+            {/* Category Name - Big Letters Above */}
+            <div className="mb-6 flex justify-center">
+              <span className="text-2xl md:text-3xl font-black text-indigo-600 uppercase tracking-wider">
                 {currentQuestion.category}
               </span>
             </div>
@@ -133,7 +134,15 @@ export const Quiz: React.FC<QuizProps> = ({ userName, timeLeft, questions, onCom
               onCopy={(e) => e.preventDefault()}
               onCut={(e) => e.preventDefault()}
             >
+              {/* Left accent bar */}
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-indigo-500 rounded-r-full"></div>
+              
+              {/* Marks Badge - Top Right Corner */}
+              <span className="absolute top-4 right-4 text-xs font-black text-green-600 uppercase tracking-wide bg-green-50 px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1 shadow-sm">
+                <span className="text-green-500">★</span>
+                {currentQuestion.marks || 1} {(currentQuestion.marks || 1) === 1 ? 'Mark' : 'Marks'}
+              </span>
+              
               <h2 className="text-2xl md:text-4xl font-black text-slate-800 text-center leading-tight font-montserrat tracking-tight group-hover:scale-[1.02] transition-transform no-select">
                 {currentQuestion.question}
               </h2>

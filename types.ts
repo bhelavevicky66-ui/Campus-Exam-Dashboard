@@ -25,6 +25,7 @@ export interface Question {
   moduleId?: string;
   answer?: string;
   options?: string[];
+  marks?: number; // Marks for this question
 }
 
 export interface QuizResult {
