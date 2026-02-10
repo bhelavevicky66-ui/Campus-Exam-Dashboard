@@ -56,6 +56,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
     const [selectedResult, setSelectedResult] = useState<TestResultHistory | null>(null);
     const [latestOTP, setLatestOTP] = useState<LatestOTP | null>(null);
     const [otpTimeLeft, setOtpTimeLeft] = useState<number>(0);
+    
+    // Unlock password modal state
+    const [showUnlockModal, setShowUnlockModal] = useState(false);
+    const [unlockModuleId, setUnlockModuleId] = useState<string>('');
+    const [unlockPassword, setUnlockPassword] = useState('');
+    const [unlockError, setUnlockError] = useState('');
+    const [manuallyUnlocked, setManuallyUnlocked] = useState<string[]>([]);
 
     // Module Sequence Definition
     const MODULE_CHAIN = [
@@ -73,14 +80,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
         { id: 'module-11', name: 'Phase 7', prevId: 'module-10' },
     ];
 
-    // Check if a module is locked
+    // Check if a module is locked (but allow manually unlocked modules)
     const isLocked = (moduleId: string): boolean => {
+        // If manually unlocked by admin, not locked
+        if (manuallyUnlocked.includes(moduleId)) return false;
+        
         const moduleConfig = MODULE_CHAIN.find(m => m.id === moduleId);
         if (!moduleConfig || !moduleConfig.prevId) return false;
 
         // Check if previous module is passed
         const prevResult = testResults[moduleConfig.prevId];
         return !prevResult?.passed;
+    };
+
+    // Handle locked module click for admin/super admin
+    const handleLockedClick = (moduleId: string) => {
+        if (isAdmin || isSuperAdmin) {
+            setUnlockModuleId(moduleId);
+            setUnlockPassword('');
+            setUnlockError('');
+            setShowUnlockModal(true);
+        }
+    };
+
+    // Verify unlock password
+    const handleUnlockSubmit = () => {
+        // Get stored unlock password from localStorage (set by admin panel)
+        const storedPassword = localStorage.getItem('navgurukul_unlock_password') || 'NAVGURUKUL2024';
+        
+        if (unlockPassword === storedPassword) {
+            setManuallyUnlocked(prev => [...prev, unlockModuleId]);
+            setShowUnlockModal(false);
+            setUnlockPassword('');
+            setUnlockError('');
+            // Now open the module
+            onStart(unlockModuleId);
+        } else {
+            setUnlockError('Invalid password! Please try again.');
+        }
     };
 
     // Load test results on mount
@@ -232,74 +269,74 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
 
 
 
-                    <button onClick={() => !isLocked('module-0') && onStart('module-0')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-0') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-0') ? handleLockedClick('module-0') : onStart('module-0')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-0') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-0') ? 'bg-slate-100 text-slate-300' : 'bg-orange-50 text-orange-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-0') ? <Lock size={18} /> : <Terminal size={18} />}
                         </div>
                         <span>Module 0 Test</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-1') && onStart('module-1')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-1') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-1') ? handleLockedClick('module-1') : onStart('module-1')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-1') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-1') ? 'bg-slate-100 text-slate-300' : 'bg-emerald-50 text-emerald-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-1') ? <Lock size={18} /> : <Braces size={18} />}
                         </div>
                         <span>Module 1 Test</span>
                     </button>
-                    <button onClick={() => !isLocked('number-system') && onStart('number-system')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('number-system') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('number-system') ? handleLockedClick('number-system') : onStart('number-system')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('number-system') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('number-system') ? 'bg-slate-100 text-slate-300' : 'bg-purple-50 text-purple-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('number-system') ? <Lock size={18} /> : <LayoutDashboard size={18} />}
                         </div>
                         <span>Number System </span>
                     </button>
 
-                    <button onClick={() => !isLocked('flowchart') && onStart('flowchart')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('flowchart') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('flowchart') ? handleLockedClick('flowchart') : onStart('flowchart')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('flowchart') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('flowchart') ? 'bg-slate-100 text-slate-300' : 'bg-cyan-50 text-cyan-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('flowchart') ? <Lock size={18} /> : <GitBranch size={18} />}
                         </div>
                         <span>Flowchart</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-5') && onStart('module-5')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-5') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-5') ? handleLockedClick('module-5') : onStart('module-5')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-5') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-5') ? 'bg-slate-100 text-slate-300' : 'bg-indigo-50 text-indigo-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-5') ? <Lock size={18} /> : <Code size={18} />}
                         </div>
                         <span>Phase 1</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-6') && onStart('module-6')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-6') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-6') ? handleLockedClick('module-6') : onStart('module-6')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-6') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-6') ? 'bg-slate-100 text-slate-300' : 'bg-purple-50 text-purple-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-6') ? <Lock size={18} /> : <Palette size={18} />}
                         </div>
                         <span>Phase 2</span>
                     </button>
-                    <button onClick={() => !isLocked('module-7') && onStart('module-7')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-7') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-7') ? handleLockedClick('module-7') : onStart('module-7')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-7') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-7') ? 'bg-slate-100 text-slate-300' : 'bg-yellow-50 text-yellow-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-7') ? <Lock size={18} /> : <Zap size={18} />}
                         </div>
                         <span>Phase 3</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-8') && onStart('module-8')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-8') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-8') ? handleLockedClick('module-8') : onStart('module-8')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-8') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-8') ? 'bg-slate-100 text-slate-300' : 'bg-indigo-50 text-indigo-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-8') ? <Lock size={18} /> : <Code size={18} />}
                         </div>
                         <span>Phase 4</span>
                     </button>
-                    <button onClick={() => !isLocked('module-9') && onStart('module-9')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-9') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-9') ? handleLockedClick('module-9') : onStart('module-9')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-9') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-9') ? 'bg-slate-100 text-slate-300' : 'bg-emerald-50 text-emerald-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-9') ? <Lock size={18} /> : <Terminal size={18} />}
                         </div>
                         <span>Phase 5</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-10') && onStart('module-10')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-10') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-10') ? handleLockedClick('module-10') : onStart('module-10')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-10') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-10') ? 'bg-slate-100 text-slate-300' : 'bg-orange-50 text-orange-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-10') ? <Lock size={18} /> : <Layers size={18} />}
                         </div>
                         <span>Phase 6</span>
                     </button>
 
-                    <button onClick={() => !isLocked('module-11') && onStart('module-11')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-11') ? 'text-slate-300 pointer-events-none' : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
+                    <button onClick={() => isLocked('module-11') ? handleLockedClick('module-11') : onStart('module-11')} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl font-bold transition-colors group text-left ${isLocked('module-11') ? (isAdmin || isSuperAdmin ? 'text-slate-400 hover:bg-amber-50 cursor-pointer' : 'text-slate-300 pointer-events-none') : 'text-slate-500 hover:bg-slate-50 hover:text-[#6C5DD3]'}`}>
                         <div className={`p-2 rounded-lg transition-colors ${isLocked('module-11') ? 'bg-slate-100 text-slate-300' : 'bg-violet-50 text-violet-500 group-hover:bg-[#6C5DD3] group-hover:text-white'}`}>
                             {isLocked('module-11') ? <Lock size={18} /> : <Zap size={18} />}
                         </div>
@@ -811,6 +848,78 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                                 </div>
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Unlock Password Modal - Only for Admin/Super Admin */}
+            {showUnlockModal && (isAdmin || isSuperAdmin) && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <Key size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold">Unlock Module</h3>
+                                    <p className="text-amber-100 text-sm">Admin Override Access</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            <div className="mb-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                <p className="text-amber-800 text-sm">
+                                    <strong>Module:</strong> {MODULE_CHAIN.find(m => m.id === unlockModuleId)?.name || unlockModuleId}
+                                </p>
+                                <p className="text-amber-600 text-xs mt-1">
+                                    Enter the unlock password to bypass this restriction.
+                                </p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-slate-700 font-bold mb-2 text-sm">Unlock Password</label>
+                                <input
+                                    type="password"
+                                    value={unlockPassword}
+                                    onChange={(e) => setUnlockPassword(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleUnlockSubmit()}
+                                    placeholder="Enter unlock password..."
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none transition-colors text-center text-lg font-mono tracking-widest"
+                                    autoFocus
+                                />
+                            </div>
+
+                            {unlockError && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-sm">
+                                    <AlertCircle size={16} />
+                                    {unlockError}
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowUnlockModal(false);
+                                        setUnlockPassword('');
+                                        setUnlockError('');
+                                    }}
+                                    className="flex-1 py-3 border-2 border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleUnlockSubmit}
+                                    className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Lock size={16} />
+                                    Unlock
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

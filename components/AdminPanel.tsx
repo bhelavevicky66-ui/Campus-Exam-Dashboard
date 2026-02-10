@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search, Clock, Mail, Settings, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search, Clock, Mail, Settings, Save, CheckCircle, Lock, Eye, EyeOff, RefreshCw, Copy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SUPER_ADMIN_EMAILS } from '../roles';
 import { QuestionManager } from './QuestionManager';
@@ -120,7 +120,7 @@ const OTPLogViewer: React.FC = () => {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
-    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'email-settings'>('questions');
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'email-settings' | 'unlock-password'>('questions');
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -144,6 +144,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     // Admin List Search State
     const [adminSearchQuery, setAdminSearchQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Unlock Password State
+    const [unlockPasswordInput, setUnlockPasswordInput] = useState('');
+    const [unlockPasswordSaved, setUnlockPasswordSaved] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+
+    // Generate random password
+    const generateRandomPassword = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let password = 'NG';
+        for (let i = 0; i < 6; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setUnlockPasswordInput(password);
+        setUnlockPasswordSaved(false);
+    };
+
+    // Save unlock password
+    const saveUnlockPassword = () => {
+        if (unlockPasswordInput.trim().length >= 4) {
+            localStorage.setItem('navgurukul_unlock_password', unlockPasswordInput.trim());
+            setUnlockPasswordSaved(true);
+            setSuccess('Unlock password saved successfully!');
+            setTimeout(() => setSuccess(null), 3000);
+        } else {
+            setError('Password must be at least 4 characters');
+            setTimeout(() => setError(null), 3000);
+        }
+    };
+
+    // Load current unlock password on mount
+    useEffect(() => {
+        const savedPassword = localStorage.getItem('navgurukul_unlock_password');
+        if (savedPassword) {
+            setUnlockPasswordInput(savedPassword);
+        }
+    }, []);
 
     // Load logged students when tab is selected
     useEffect(() => {
@@ -425,6 +462,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                             </div>
                         </button>
                     )}
+
+                    {(isSuperAdmin || isAdmin) && (
+                        <button
+                            onClick={() => setActiveTab('unlock-password')}
+                            className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'unlock-password'
+                                ? 'border-amber-400 text-amber-400'
+                                : 'border-transparent text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Lock size={18} />
+                                Unlock Password
+                            </div>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -663,6 +715,116 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                     <li>Create an email template with variables: <code className="bg-white/10 px-1 rounded">to_email</code>, <code className="bg-white/10 px-1 rounded">otp_code</code>, <code className="bg-white/10 px-1 rounded">student_name</code></li>
                                     <li>Copy Service ID, Template ID and Public Key here</li>
                                 </ol>
+                            </div>
+                        </div>
+                    </div>
+                ) : activeTab === 'unlock-password' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-amber-400">Unlock Password Generator</h1>
+                            <p className="text-purple-200/60">Generate and manage password to unlock locked modules</p>
+                        </div>
+
+                        <div className="max-w-xl mx-auto bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-amber-500/20 rounded-xl">
+                                    <Lock size={24} className="text-amber-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg">Module Unlock Password</h3>
+                                    <p className="text-purple-200/60 text-sm">Use this password to unlock locked modules on Dashboard</p>
+                                </div>
+                            </div>
+
+                            {(error || success) && (
+                                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${error ? 'bg-red-500/20 border border-red-500/30' : 'bg-green-500/20 border border-green-500/30'}`}>
+                                    {error ? <AlertCircle className="text-red-400" size={20} /> : <CheckCircle className="text-green-400" size={20} />}
+                                    <p className={error ? 'text-red-300' : 'text-green-300'}>{error || success}</p>
+                                </div>
+                            )}
+
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-purple-200/80 mb-2">Current Unlock Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showCurrentPassword ? "text" : "password"}
+                                            value={unlockPasswordInput}
+                                            onChange={(e) => {
+                                                setUnlockPasswordInput(e.target.value.toUpperCase());
+                                                setUnlockPasswordSaved(false);
+                                            }}
+                                            placeholder="Enter or generate password..."
+                                            className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-xl font-mono tracking-widest placeholder-purple-300/30 focus:outline-none focus:border-amber-500 transition-colors pr-24"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-12 top-1/2 -translate-y-1/2 p-2 text-purple-300/50 hover:text-white transition-colors"
+                                        >
+                                            {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(unlockPasswordInput);
+                                                setSuccess('Password copied to clipboard!');
+                                                setTimeout(() => setSuccess(null), 2000);
+                                            }}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-purple-300/50 hover:text-white transition-colors"
+                                        >
+                                            <Copy size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={generateRandomPassword}
+                                        className="flex-1 px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg"
+                                    >
+                                        <RefreshCw size={20} />
+                                        Generate New
+                                    </button>
+                                    <button
+                                        onClick={saveUnlockPassword}
+                                        disabled={unlockPasswordSaved || !unlockPasswordInput.trim()}
+                                        className="flex-1 px-6 py-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 disabled:opacity-50 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg"
+                                    >
+                                        {unlockPasswordSaved ? (
+                                            <>
+                                                <CheckCircle size={20} />
+                                                Saved!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save size={20} />
+                                                Save Password
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                <h4 className="font-bold text-amber-400 mb-2 flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    How to use Unlock Password
+                                </h4>
+                                <ol className="text-sm text-purple-200/70 space-y-2 list-decimal list-inside">
+                                    <li>Generate a new password or enter your own</li>
+                                    <li>Click "Save Password" to save it</li>
+                                    <li>Go to Dashboard and click on any locked module</li>
+                                    <li>Enter this password to temporarily unlock the module</li>
+                                    <li>Share this password with other admins if needed</li>
+                                </ol>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                <p className="text-sm text-blue-300">
+                                    <strong>Note:</strong> This password is stored locally in your browser. Each admin can set their own password.
+                                    Default password is <code className="bg-white/10 px-2 py-0.5 rounded font-mono">NAVGURUKUL2024</code>
+                                </p>
                             </div>
                         </div>
                     </div>
