@@ -21,6 +21,7 @@ export const QuestionManager: React.FC = () => {
     const [moduleId, setModuleId] = useState('screen-test');
     const [category, setCategory] = useState('');
     const [hint, setHint] = useState('');
+    const [marks, setMarks] = useState<number>(1);
 
     useEffect(() => {
         fetchQuestions();
@@ -148,6 +149,7 @@ export const QuestionManager: React.FC = () => {
             moduleId: targetModule,
             answer,
             placeholder: 'Your Answer',
+            marks: marks,
             ...(category && { category }),
             ...(hint && { hint }),
         };
@@ -160,6 +162,7 @@ export const QuestionManager: React.FC = () => {
             setAnswer('');
             setHint('');
             setCategory('');
+            setMarks(1);
             alert('Question added successfully!');
         } else {
             alert('Failed to add question');
@@ -403,6 +406,20 @@ A: Paris`}
                                     className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500"
                                     required
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-purple-200 mb-1">Marks ★</label>
+                                <select
+                                    value={marks}
+                                    onChange={(e) => setMarks(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                                >
+                                    <option value={1} className="text-black">1 Mark</option>
+                                    <option value={2} className="text-black">2 Marks</option>
+                                    <option value={3} className="text-black">3 Marks</option>
+                                    <option value={4} className="text-black">4 Marks</option>
+                                    <option value={5} className="text-black">5 Marks</option>
+                                </select>
                             </div>
                         </div>
 
