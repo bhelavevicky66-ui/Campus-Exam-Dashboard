@@ -469,7 +469,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         {/* Card 1: Screen Test */}
                         <div
                             onClick={() => !isLocked('screen-test') && onStart('screen-test')}
-                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all cursor-pointer group relative overflow-hidden ${isLocked('screen-test') ? 'opacity-80' : 'hover:shadow-2xl'}`}
+                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all group relative overflow-hidden ${isLocked('screen-test') ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer hover:shadow-2xl'}`}
                         >
                             {isLocked('screen-test') && (
                                 <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">
@@ -533,7 +533,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         {/* Card 2: Module 1 Test */}
                         <div
                             onClick={() => !isLocked('module-1') && onStart('module-1')}
-                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all cursor-pointer group relative overflow-hidden ${isLocked('module-1') ? 'opacity-80' : 'hover:shadow-2xl'}`}
+                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all group relative overflow-hidden ${isLocked('module-1') ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer hover:shadow-2xl'}`}
                         >
                             {isLocked('module-1') && (
                                 <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">
@@ -597,7 +597,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         {/* Card 3: Module 0 Test */}
                         <div
                             onClick={() => !isLocked('module-0') && onStart('module-0')}
-                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all cursor-pointer group border border-slate-50/10 relative overflow-hidden ${isLocked('module-0') ? 'opacity-80' : 'hover:shadow-2xl'}`}
+                            className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all group border border-slate-50/10 relative overflow-hidden ${isLocked('module-0') ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer hover:shadow-2xl'}`}
                         >
                             {isLocked('module-0') && (
                                 <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">
@@ -670,7 +670,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                                 <div
                                     key={module.id}
                                     onClick={() => !locked && onStart(module.id)}
-                                    className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all cursor-pointer group relative overflow-hidden ${locked ? 'opacity-80' : 'hover:shadow-2xl'}`}
+                                    className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all group relative overflow-hidden ${locked ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer hover:shadow-2xl'}`}
                                 >
                                     {locked && (
                                         <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">

@@ -10,21 +10,18 @@ export const NavGurukul: React.FC<NavGurukulProps> = ({ onBack }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-auto">
-            {/* Header with Back Button */}
-            <div className="sticky top-0 z-50 bg-[#0f0c29]/80 backdrop-blur-lg border-b border-white/10">
-                <div className="max-w-5xl mx-auto px-6 py-4">
-                    <button
-                        onClick={onBack}
-                        className="flex items-center gap-2 text-purple-300 hover:text-white transition-all group"
-                    >
-                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        <span className="font-semibold">Back to Dashboard</span>
-                    </button>
-                </div>
-            </div>
 
             {/* Main Content */}
             <div className="max-w-5xl mx-auto px-6 py-12">
+
+                {/* Back Button */}
+                <button
+                    onClick={onBack}
+                    className="mb-8 flex items-center gap-2 text-purple-300 hover:text-white transition-all group"
+                >
+                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-semibold text-sm">Back</span>
+                </button>
 
                 {/* Welcome Section */}
                 <div className="text-center mb-16">

@@ -279,7 +279,19 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack, moduleId }) => {
             </div>
 
             <button
-              onClick={() => setShowInstructions(true)}
+              onClick={async () => {
+                // Go fullscreen first
+                try {
+                  const element = document.documentElement;
+                  if (element.requestFullscreen) {
+                    await element.requestFullscreen();
+                  }
+                } catch (error) {
+                  console.warn("Fullscreen request failed:", error);
+                }
+                // Then show instructions
+                setShowInstructions(true);
+              }}
               className="relative z-10 bg-white text-[#6C5DD3] px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg shadow-indigo-900/20 hover:shadow-xl active:scale-95 whitespace-nowrap"
             >
               Start Test
@@ -304,7 +316,21 @@ export const Intro: React.FC<IntroProps> = ({ onStart, onBack, moduleId }) => {
 
       {/* Back Button - Goes back to Screen 1 */}
       <button
-        onClick={() => setShowInstructions(false)}
+        onClick={async () => {
+          // Exit fullscreen when going back
+          try {
+            if (document.fullscreenElement) {
+              await document.exitFullscreen();
+            } else if ((document as any).webkitFullscreenElement) {
+              await (document as any).webkitExitFullscreen();
+            } else if ((document as any).msFullscreenElement) {
+              await (document as any).msExitFullscreen();
+            }
+          } catch (err) {
+            console.warn('Exit fullscreen failed:', err);
+          }
+          setShowInstructions(false);
+        }}
         className="absolute left-6 top-6 md:left-10 md:top-10 z-20 flex items-center gap-2 text-slate-500 hover:text-[#6C5DD3] font-bold transition-colors group"
       >
         <div className="p-2 bg-slate-50/80 backdrop-blur-sm rounded-lg group-hover:bg-[#6C5DD3]/10 transition-colors border border-slate-100/50">

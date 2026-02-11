@@ -173,6 +173,12 @@ const AppContent: React.FC = () => {
       return;
     }
 
+    // NavGurukul content page - skip intro, go directly
+    if (moduleId === 'navgurukul-names') {
+      setState(QuizState.NAVGURUKUL);
+      return;
+    }
+
     // All test/content modules MUST go through INTRO (OTP + Fullscreen)
     setState(QuizState.INTRO);
   };
@@ -295,8 +301,7 @@ const AppContent: React.FC = () => {
       state === QuizState.PHASE4 ||
       state === QuizState.PHASE5 ||
       state === QuizState.PHASE6 ||
-      state === QuizState.PHASE7 ||
-      state === QuizState.NAVGURUKUL;
+      state === QuizState.PHASE7;
 
     if (!isSecuredPage) {
       handleRestart();
@@ -450,7 +455,7 @@ const AppContent: React.FC = () => {
             <PhaseDashboard onBack={handleRestart} onPhaseClick={handleDashboardStart} />
           )}
           {state === QuizState.NAVGURUKUL && (
-            <NavGurukul onBack={handleExitRequest} />
+            <NavGurukul onBack={handleRestart} />
           )}
         </>
       )}
@@ -481,6 +486,19 @@ const AppContent: React.FC = () => {
             >
               <CheckCircle size={24} />
               Re-enter Full Screen
+            </button>
+            <button
+              onClick={() => {
+                setShowFullscreenWarning(false);
+                setCheatingCount(0);
+                if (document.fullscreenElement) {
+                  document.exitFullscreen().catch(() => {});
+                }
+                handleRestart();
+              }}
+              className="w-full mt-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-base"
+            >
+              🏠 Go to Homepage
             </button>
             <p className="text-xs text-red-500/60 mt-6 font-bold uppercase tracking-widest">
               Security Violation Detected ({cheatingCount})
