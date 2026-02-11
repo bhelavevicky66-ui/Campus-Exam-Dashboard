@@ -352,8 +352,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                 {/* Header */}
                 <header className="px-10 py-6 flex items-center justify-between bg-gradient-to-r from-[#6C5DD3]/10 via-[#FF754C]/8 to-[#6C5DD3]/10 w-full">
                     <div className="flex-1 text-center">
-                        <h2 className="text-6xl font-extrabold text-[#11142D] tracking-tight">Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6C5DD3] to-[#FF754C]">Dharamshala Campus</span></h2>
-                        <p className="text-slate-500 font-medium text-lg mt-2">Your learning journey starts here 🚀</p>
+                        <h2 className="text-4xl font-extrabold text-[#11142D] tracking-tight">Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6C5DD3] to-[#FF754C]">Dharamshala Campus</span></h2>
+                        {/* <p className="text-slate-500 font-medium text-lg mt-2">Your learning journey starts here 🚀</p> */}
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -665,56 +665,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                         {/* DYNAMIC LOCKABLE CARDS */}
                         {MODULE_CHAIN.slice(3).map((module, index) => {
                             const locked = isLocked(module.id);
+                            const prevModuleName = MODULE_CHAIN.find(m => m.id === module.prevId)?.name || 'previous level';
                             return (
                                 <div
                                     key={module.id}
                                     onClick={() => !locked && onStart(module.id)}
-                                    className={`bg-[#11142D]/50 border-2 border-[#11142D]/30 p-6 rounded-[2rem] flex flex-col justify-between transition-all duration-300 relative overflow-hidden h-[240px]
-                                        ${locked
-                                            ? 'opacity-70 border-dashed cursor-not-allowed'
-                                            : 'hover:bg-[#11142D] hover:border-[#11142D] cursor-pointer group'
-                                        }`}
+                                    className={`bg-[#11142D] p-6 rounded-[2rem] shadow-xl transition-all cursor-pointer group relative overflow-hidden ${locked ? 'opacity-80' : 'hover:shadow-2xl'}`}
                                 >
                                     {locked && (
-                                        <div className="absolute inset-0 bg-black/40 z-20 flex flex-col items-center justify-center backdrop-blur-[1px]">
-                                            <div className="bg-slate-800/80 p-3 rounded-full mb-2 shadow-lg border border-slate-700/50">
-                                                <Lock size={24} className="text-slate-400" />
+                                        <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">
+                                            <div className="bg-slate-800 p-4 rounded-full mb-3 shadow-lg border border-slate-700">
+                                                <Lock size={32} className="text-slate-400" />
                                             </div>
-                                            <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">Locked</p>
+                                            <p className="text-slate-300 font-bold text-sm">Locked</p>
+                                            <p className="text-slate-500 text-xs mt-1">Complete {prevModuleName} first</p>
                                         </div>
                                     )}
-
-                                    <div>
+                                    <div className="relative z-10">
                                         <div className="flex justify-between items-start mb-6">
-                                            <h4 className={`text-xl font-bold transition-colors ${locked ? 'text-slate-500' : 'text-slate-400 group-hover:text-white'}`}>
-                                                {module.name}
-                                            </h4>
-                                            {!locked && (
-                                                <div className="bg-slate-200 text-slate-500 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 group-hover:bg-slate-700 group-hover:text-slate-300">
-                                                    Start
-                                                </div>
+                                            <div>
+                                                <h4 className="text-xl font-bold text-white">{module.name}</h4>
+                                            </div>
+                                            {testResults[module.id] ? (
+                                                testResults[module.id]!.passed ? (
+                                                    <div
+                                                        onClick={(e) => handleShowResult(testResults[module.id], e)}
+                                                        className="bg-[#E2FBD7] text-[#34B53A] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer"
+                                                    >
+                                                        <CheckCircle2 size={12} /> PASS
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        onClick={(e) => handleShowResult(testResults[module.id], e)}
+                                                        className="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer"
+                                                    >
+                                                        <XCircle size={12} /> FAIL
+                                                    </div>
+                                                )
+                                            ) : (
+                                                <div className="bg-slate-700 text-slate-400 px-3 py-1 rounded-lg text-xs font-bold">Not Started</div>
                                             )}
                                         </div>
-                                        {!locked && (
-                                            <div className="flex text-slate-300 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {[1, 2, 3, 4, 5].map(i => <Star key={i} size={10} />)}
-                                            </div>
-                                        )}
-                                    </div>
 
-                                    {/* Locked Content Visuals */}
-                                    <div className={`absolute -bottom-6 -right-6 text-slate-200 transition-all duration-500 ${locked ? 'opacity-5' : 'opacity-20 group-hover:opacity-10 group-hover:scale-110'}`}>
-                                        <Layers size={120} />
-                                    </div>
-
-                                    {!locked && (
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-4 group-hover:translate-y-0 relative z-10">
-                                            <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-3">
-                                                <div className="h-full bg-slate-600 w-0 rounded-full group-hover:w-full transition-all duration-1000"></div>
+                                        <div className="flex justify-between items-end mb-6">
+                                            <div>
+                                                <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Score</div>
+                                                <div className="text-3xl font-black text-white">
+                                                    {testResults[module.id] ? `${Math.round(testResults[module.id]!.score)}%` : '0%'}
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-slate-500 font-medium">Click to unlock knowledge</p>
+                                            {testResults[module.id] && renderStars(testResults[module.id]!.score)}
                                         </div>
-                                    )}
+
+                                        <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-3">
+                                            <div
+                                                className={`h-full rounded-full ${testResults[module.id]?.passed ? 'bg-emerald-400' : 'bg-[#6C5DD3]'}`}
+                                                style={{ width: `${testResults[module.id]?.score || 0}%` }}
+                                            ></div>
+                                        </div>
+                                        <p className="text-xs text-slate-500 font-medium">
+                                            {testResults[module.id]
+                                                ? `${testResults[module.id]!.correctCount}/${testResults[module.id]!.totalQuestions} correct • ${testResults[module.id]!.date}`
+                                                : 'Click to start test'}
+                                        </p>
+                                    </div>
                                 </div>
                             );
                         })}
