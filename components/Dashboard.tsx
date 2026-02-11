@@ -350,10 +350,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
             <main className="flex-1 flex flex-col min-w-0 bg-[#FAFBFF]">
 
                 {/* Header */}
-                <header className="px-10 py-8 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold text-[#11142D]">Test Dashboard</h2>
-                        <p className="text-slate-500 font-medium mt-1">Focus on what's important today</p>
+                <header className="px-10 py-6 flex items-center justify-between bg-gradient-to-r from-[#6C5DD3]/10 via-[#FF754C]/8 to-[#6C5DD3]/10 w-full">
+                    <div className="flex-1 text-center">
+                        <h2 className="text-6xl font-extrabold text-[#11142D] tracking-tight">Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6C5DD3] to-[#FF754C]">Dharamshala Campus</span></h2>
+                        <p className="text-slate-500 font-medium text-lg mt-2">Your learning journey starts here 🚀</p>
                     </div>
 
                     <div className="flex items-center gap-6">
