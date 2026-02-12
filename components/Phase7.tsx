@@ -3,6 +3,7 @@ import { ArrowLeft, Video, ExternalLink, CheckCircle, Database, Server, Code, Za
 
 interface Phase7Props {
     onBack: () => void;
+    onComplete?: () => void;
 }
 
 export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {

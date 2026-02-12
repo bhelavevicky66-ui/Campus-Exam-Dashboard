@@ -3,6 +3,7 @@ import { ArrowLeft, Clock, Video, BookOpen, Lightbulb, ExternalLink, CheckCircle
 
 interface Phase6Props {
     onBack: () => void;
+    onComplete?: () => void;
 }
 
 export const Phase6: React.FC<Phase6Props> = ({ onBack }) => {

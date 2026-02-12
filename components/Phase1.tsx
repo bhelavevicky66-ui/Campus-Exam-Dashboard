@@ -5,6 +5,7 @@ import { submitPhaseCode, getUserPhaseSubmission, PhaseSubmission } from '../ser
 
 interface Phase1Props {
     onBack: () => void;
+    onComplete?: () => void;
 }
 
 const PHASE1_QUESTION = 'HTML se ek Table banao (Make a Table using HTML)';
@@ -112,7 +113,7 @@ const HTML_ATTRS: Record<string, { label: string; detail: string }[]> = {
 };
 
 // ─── Component ──────────────────────────────────────────────
-export const Phase1: React.FC<Phase1Props> = ({ onBack }) => {
+export const Phase1: React.FC<Phase1Props> = ({ onBack, onComplete }) => {
     const { user } = useAuth();
     const [code, setCode] = useState(STARTER_CODE);
     const [showPreview, setShowPreview] = useState(true);
@@ -121,6 +122,8 @@ export const Phase1: React.FC<Phase1Props> = ({ onBack }) => {
     const [submitted, setSubmitted] = useState(false);
     const [existingSubmission, setExistingSubmission] = useState<PhaseSubmission | null>(null);
     const [loadingSubmission, setLoadingSubmission] = useState(true);
+    const prevStatusRef = useRef<string | null>(null);
+    const congratsShownRef = useRef(false);
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -148,6 +151,12 @@ export const Phase1: React.FC<Phase1Props> = ({ onBack }) => {
                     if (submission.status === 'pending' || submission.status === 'approved') {
                         setSubmitted(true);
                     }
+                    // Trigger celebration when first approved
+                    if (submission.status === 'approved' && !congratsShownRef.current) {
+                        congratsShownRef.current = true;
+                        onComplete?.();
+                    }
+                    prevStatusRef.current = submission.status;
                 }
             }
             setLoadingSubmission(false);

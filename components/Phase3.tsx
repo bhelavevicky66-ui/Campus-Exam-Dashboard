@@ -3,6 +3,7 @@ import { ArrowLeft, Zap, CheckCircle, ExternalLink, Lightbulb, Code, Target, Pla
 
 interface Phase3Props {
     onBack: () => void;
+    onComplete?: () => void;
 }
 
 export const Phase3: React.FC<Phase3Props> = ({ onBack }) => {

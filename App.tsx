@@ -28,10 +28,26 @@ import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { getDynamicQuestions } from './services/questionService';
 import { getDisabledStaticQuestions } from './services/disabledQuestionService';
 import { OTPModal } from './components/OTPModal';
+import { Congratulations } from './components/Congratulations';
 import { createOTP, verifyOTP } from './services/otpService';
 import { sendOTPEmail, getStandardAdminEmails } from './services/emailService';
 
 const TOTAL_TIME = 3600; // 1 hour in seconds
+
+const MODULE_NAMES: Record<string, string> = {
+  'screen-test': 'Screen Test',
+  'module-0': 'Module 0',
+  'module-1': 'Module 1',
+  'number-system': 'Number System',
+  'flowchart': 'Flowchart',
+  'module-5': 'Phase 1',
+  'module-6': 'Phase 2',
+  'module-7': 'Phase 3',
+  'module-8': 'Phase 4',
+  'module-9': 'Phase 5',
+  'module-10': 'Phase 6',
+  'module-11': 'Phase 7',
+};
 
 const AppContent: React.FC = () => {
   const { user, loading, role, logout } = useAuth();
@@ -51,6 +67,10 @@ const AppContent: React.FC = () => {
   const [isSendingExitOTP, setIsSendingExitOTP] = useState(false);
   const [exitRecipientEmails, setExitRecipientEmails] = useState<string[]>([]);
   const [isRealEmailActive, setIsRealEmailActive] = useState(false);
+
+  // Congratulations celebration screen
+  const [showCongrats, setShowCongrats] = useState(false);
+  const [congratsModuleName, setCongratsModuleName] = useState('');
 
   // Anti-Cheat State
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
@@ -149,6 +169,12 @@ const AppContent: React.FC = () => {
             }))
         };
         saveTestResult(user.email, historyResult);
+
+        // Show celebration if passed
+        if (historyResult.passed) {
+          setCongratsModuleName(MODULE_NAMES[selectedModuleId] || moduleInfo?.title || selectedModuleId);
+          setShowCongrats(true);
+        }
       }
 
       setState(QuizState.RESULT);
@@ -286,6 +312,11 @@ const AppContent: React.FC = () => {
     setActiveQuestions([]);
     setShowAdminPanel(false);
     setState(QuizState.DASHBOARD);
+  };
+
+  const handlePhaseComplete = (moduleId: string) => {
+    setCongratsModuleName(MODULE_NAMES[moduleId] || moduleId);
+    setShowCongrats(true);
   };
 
   const handleLogout = async () => {
@@ -431,25 +462,25 @@ const AppContent: React.FC = () => {
             <Result userName={userName} result={quizResult} onRestart={handleRestart} />
           )}
           {state === QuizState.PHASE1 && (
-            <Phase1 onBack={handleExitRequest} />
+            <Phase1 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-5')} />
           )}
           {state === QuizState.PHASE2 && (
-            <Phase2 onBack={handleExitRequest} />
+            <Phase2 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-6')} />
           )}
           {state === QuizState.PHASE3 && (
-            <Phase3 onBack={handleExitRequest} />
+            <Phase3 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-7')} />
           )}
           {state === QuizState.PHASE4 && (
-            <Phase4 onBack={handleExitRequest} />
+            <Phase4 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-8')} />
           )}
           {state === QuizState.PHASE5 && (
-            <Phase5 onBack={handleExitRequest} />
+            <Phase5 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-9')} />
           )}
           {state === QuizState.PHASE6 && (
-            <Phase6 onBack={handleExitRequest} />
+            <Phase6 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-10')} />
           )}
           {state === QuizState.PHASE7 && (
-            <Phase7 onBack={handleExitRequest} />
+            <Phase7 onBack={handleExitRequest} onComplete={() => handlePhaseComplete('module-11')} />
           )}
           {state === QuizState.PHASE_DASHBOARD && (
             <PhaseDashboard onBack={handleRestart} onPhaseClick={handleDashboardStart} />
@@ -505,6 +536,14 @@ const AppContent: React.FC = () => {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Congratulations Celebration Screen */}
+      {showCongrats && (
+        <Congratulations
+          moduleName={congratsModuleName}
+          onContinue={() => setShowCongrats(false)}
+        />
       )}
     </Layout>
   );

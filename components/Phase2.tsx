@@ -3,6 +3,7 @@ import { ArrowLeft, Play, Eye, RotateCcw, Copy, Check, BookOpen, Clock, Lightbul
 
 interface Phase2Props {
     onBack: () => void;
+    onComplete?: () => void;
 }
 
 // ─── Syntax Highlighting ────────────────────────────────────
