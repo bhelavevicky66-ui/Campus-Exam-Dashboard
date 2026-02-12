@@ -48,6 +48,9 @@ export const QuestionManager: React.FC = () => {
         'phase-7': ['Full Stack', 'Deployment', 'Testing', 'Security', 'Performance']
     };
 
+    // Check if selected module is a Phase (admin-reviewed, no auto-correct answer)
+    const isPhaseModule = ['phase-1', 'phase-2', 'phase-3', 'phase-4', 'phase-5', 'phase-6', 'phase-7'].includes(selectedModule);
+
     useEffect(() => {
         fetchQuestions();
     }, []);
@@ -165,11 +168,12 @@ export const QuestionManager: React.FC = () => {
     const handleAddQuestion = async (e: React.FormEvent) => {
         e.preventDefault();
         const targetModule = selectedModule === 'all' ? 'screen-test' : selectedModule;
-        if (!questionText || !answer || !targetModule) return;
+        // For phase modules, answer is not required (admin reviews manually)
+        if (!questionText || (!isPhaseModule && !answer) || !targetModule) return;
 
         setIsAdding(true);
-        // Build options array for MCQ
-        const mcqOptions = type === 'mcq' ? [option1, option2, option3, option4].filter(opt => opt.trim() !== '') : undefined;
+        // Build options array for MCQ (not used for phases)
+        const mcqOptions = (!isPhaseModule && type === 'mcq') ? [option1, option2, option3, option4].filter(opt => opt.trim() !== '') : undefined;
         
         // Calculate actual marks and time values
         const actualMarks = marks === 'custom' ? customMarks : marks;
@@ -178,9 +182,9 @@ export const QuestionManager: React.FC = () => {
 
         const newQuestion: Omit<Question, 'id'> = {
             question: questionText,
-            type: type === 'mcq' ? 'text' : type, // Store as text type but with options
+            type: isPhaseModule ? 'text' : (type === 'mcq' ? 'text' : type),
             moduleId: targetModule,
-            answer,
+            answer: isPhaseModule ? '(Admin Review)' : answer,
             placeholder: 'Your Answer',
             marks: actualMarks,
             timeLimit: actualTime,
@@ -542,6 +546,8 @@ export const QuestionManager: React.FC = () => {
                             <p className="text-xs text-violet-300/60 mt-2">💡 Test में यह name बड़े letters में दिखेगा (जैसे BODMAS, HCF & LCM)</p>
                         </div>
 
+                        {/* Question Type - Only for non-phase modules */}
+                        {!isPhaseModule && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Question Type</label>
@@ -556,10 +562,10 @@ export const QuestionManager: React.FC = () => {
                                 </select>
                             </div>
                         </div>
+                        )}
 
-
-                        {/* MCQ Options - Show only when MCQ is selected */}
-                        {type === 'mcq' && (
+                        {/* MCQ Options - Show only when MCQ is selected and not a phase */}
+                        {!isPhaseModule && type === 'mcq' && (
                             <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-4 rounded-xl">
                                 <label className="block text-sm font-medium text-cyan-300 mb-3">📋 MCQ Options (Enter 4 options)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -608,19 +614,29 @@ export const QuestionManager: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Phase info banner */}
+                        {isPhaseModule && (
+                            <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-4 rounded-xl">
+                                <p className="text-sm text-blue-300 font-medium">📝 Phase Question Mode</p>
+                                <p className="text-xs text-blue-300/60 mt-1">Phase questions sirf admin manually review karega — correct answer ki zaroorat nahi hai. Sirf question aur marks add karo.</p>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-sm font-medium text-purple-200 mb-1">Question Text</label>
                             <input
                                 type="text"
                                 value={questionText}
                                 onChange={(e) => setQuestionText(e.target.value)}
-                                placeholder="e.g., What is 2 + 2?"
+                                placeholder={isPhaseModule ? "e.g., Student Profile Card banao using HTML & CSS" : "e.g., What is 2 + 2?"}
                                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500"
                                 required
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className={`grid grid-cols-1 ${isPhaseModule ? '' : 'md:grid-cols-2'} gap-4`}>
+                            {/* Correct Answer - Only for non-phase modules */}
+                            {!isPhaseModule && (
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Correct Answer</label>
                                 <input
@@ -632,6 +648,7 @@ export const QuestionManager: React.FC = () => {
                                     required
                                 />
                             </div>
+                            )}
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Marks ★</label>
                                 <select
@@ -793,9 +810,15 @@ export const QuestionManager: React.FC = () => {
                                             )}
                                         </div>
                                         <h4 className="font-semibold text-white mb-1">{q.question}</h4>
-                                        <p className="text-sm text-green-400 font-mono">
-                                            Answer: {q.answer || (typeof q.id === 'number' ? CORRECT_ANSWERS[q.id] : 'N/A')}
-                                        </p>
+                                        {q.answer === '(Admin Review)' || (q.moduleId && q.moduleId.startsWith('phase-')) ? (
+                                            <span className="inline-block text-xs font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded border border-blue-500/30">
+                                                👨‍💻 Admin Review (Manual Check)
+                                            </span>
+                                        ) : (
+                                            <p className="text-sm text-green-400 font-mono">
+                                                Answer: {q.answer || (typeof q.id === 'number' ? CORRECT_ANSWERS[q.id] : 'N/A')}
+                                            </p>
+                                        )}
                                         {q.marks && (
                                             <span className="inline-block mt-1 text-xs font-bold text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded border border-yellow-500/30">
                                                 ★ {q.marks} {q.marks === 1 ? 'Mark' : 'Marks'}
