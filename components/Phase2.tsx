@@ -1,778 +1,266 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { ArrowLeft, Play, Eye, RotateCcw, Copy, Check, BookOpen, Clock, Lightbulb, ExternalLink, Code, X, ChevronRight, Palette } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { ArrowLeft, Play, Eye, RotateCcw, Copy, Check, BookOpen, Clock, Lightbulb, ExternalLink, Code, X, ChevronRight, Send, Loader2, CheckCircle, XCircle, HourglassIcon, Settings } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { submitPhaseCode, getUserPhaseSubmission, PhaseSubmission } from '../services/phaseSubmissionService';
 
 interface Phase2Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-// ─── Syntax Highlighting ────────────────────────────────────
+const PHASE2_QUESTION = 'HTML aur CSS se ek Student Profile Card banao (Make a Student Profile Card using HTML & CSS)';
+const PHASE2_ID = 'module-6';
+const PHASE2_NAME = 'Phase 2 - CSS Profile Card';
+
+const STARTER_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile Card</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+</body>
+</html>`;
+
+const STARTER_CSS = `/* Student Profile Card Styles */
+
+`;
+
+// Syntax Highlighting - HTML
 const highlightHTML = (code: string): string => {
     let h = code
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
-    h = h.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="hl-comment">$1</span>');
-    h = h.replace(/(&lt;!DOCTYPE\s+\w+&gt;)/gi, '<span class="hl-tag">$1</span>');
-    h = h.replace(/(&lt;\/?)([a-zA-Z][a-zA-Z0-9]*)/g, '$1<span class="hl-tag">$2</span>');
-    h = h.replace(/(="[^"]*")/g, '<span class="hl-string">$1</span>');
-    h = h.replace(/\s([a-zA-Z-]+)(?=<span class="hl-string">)/g, ' <span class="hl-attr">$1</span>');
-    h = h.replace(/(&lt;\/?|\/?\s*&gt;)/g, '<span class="hl-bracket">$1</span>');
+
+    const O = (cls: string) => `\x00${cls}\x01`;
+    const C = '\x02';
+
+    h = h.replace(/(&lt;!--[\s\S]*?--&gt;)/g, `${O('comment')}$1${C}`);
+    h = h.replace(/(&lt;!DOCTYPE\s+\w+&gt;)/gi, `${O('tag')}$1${C}`);
+    h = h.replace(/(&lt;\/?)([a-zA-Z][a-zA-Z0-9]*)/g, `$1${O('tag')}$2${C}`);
+    h = h.replace(/(="[^"]*")/g, `${O('string')}$1${C}`);
+    h = h.replace(/\s([a-zA-Z-]+)(?=\x00string\x01)/g, ` ${O('attr')}$1${C}`);
+    h = h.replace(/(&lt;\/?|\/?\s*&gt;)/g, `${O('bracket')}$1${C}`);
+
+    h = h.replace(/\x00(\w+)\x01/g, '<span class="hl-$1">');
+    h = h.replace(/\x02/g, '</span>');
     return h;
 };
 
+// Syntax Highlighting - CSS
 const highlightCSS = (code: string): string => {
-    let c = code
+    let h = code
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
-    // Comments
-    c = c.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="hl-comment">$1</span>');
-    // Properties
-    c = c.replace(/^(\s*)([a-zA-Z-]+)(\s*:)/gm, '$1<span class="hl-css-prop">$2</span><span class="hl-punc">$3</span>');
-    // Numbers with units
-    c = c.replace(/\b(\d+\.?\d*)(px|em|rem|%|vh|vw|s|ms|fr)\b/g, '<span class="hl-num">$1</span><span class="hl-string">$2</span>');
-    // Plain numbers
-    c = c.replace(/(:[\s]*)(\d+\.?\d*)/g, '$1<span class="hl-num">$2</span>');
-    // Hex colors
-    c = c.replace(/(#[0-9a-fA-F]{3,8})\b/g, '<span class="hl-string">$1</span>');
-    // Strings
-    c = c.replace(/("[^"]*"|'[^']*')/g, '<span class="hl-string">$1</span>');
-    // Selectors
-    c = c.replace(/^([^{}\n/][^{}\n]*?)(\s*\{)/gm, '<span class="hl-css-sel">$1</span>$2');
-    // Braces
-    c = c.replace(/([{}])/g, '<span class="hl-punc">$1</span>');
-    // Semicolons
-    c = c.replace(/;/g, '<span class="hl-punc">;</span>');
-    // @rules
-    c = c.replace(/(@[a-zA-Z-]+)/g, '<span class="hl-at-rule">$1</span>');
-    return c;
+
+    const O = (cls: string) => `\x00${cls}\x01`;
+    const C = '\x02';
+
+    h = h.replace(/(\/\*[\s\S]*?\*\/)/g, `${O('comment')}$1${C}`);
+    h = h.replace(/("[^"]*"|'[^']*')/g, `${O('string')}$1${C}`);
+    h = h.replace(/^([^{}\n\/][^{}\n]*?)(\s*\{)/gm, `${O('csssel')}$1${C}$2`);
+    h = h.replace(/^(\s*)([a-zA-Z-]+)(\s*:)/gm, `$1${O('cssprop')}$2${C}$3`);
+    h = h.replace(/(\d+\.?\d*)(px|em|rem|%|vh|vw|s|ms|fr|deg|vmin|vmax)/g, `${O('num')}$1${C}${O('string')}$2${C}`);
+    h = h.replace(/(#[0-9a-fA-F]{3,8})\b/g, `${O('string')}$1${C}`);
+    h = h.replace(/(!\s*important)/g, `${O('tag')}$1${C}`);
+
+    h = h.replace(/\x00(\w+)\x01/g, '<span class="hl-$1">');
+    h = h.replace(/\x02/g, '</span>');
+    return h;
 };
 
-// ─── Tasks ──────────────────────────────────────────────────
-const CSS_TASKS = [
-    {
-        id: 1,
-        title: '🎨 Global Styles',
-        description: 'Add global styles: font-family, background, margin/padding reset, and color theme.',
-        hint: 'Use body, *, html selectors. Set font-family, margin, padding, background-color, color.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Home</title>
-</head>
-<body>
-    <header>
-        <h1>🎓 Student Portal</h1>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">Profile</a>
-            <a href="#">Courses</a>
-            <a href="#">Grades</a>
-            <a href="#">Feedback</a>
-            <a href="#">Contact</a>
-        </nav>
-    </header>
-    <main>
-        <h2>Welcome to Student Portal!</h2>
-        <p>Yeh ek student portal hai jahan aap apni profile, courses, grades dekh sakte ho.</p>
-    </main>
-    <footer>
-        <p>&copy; 2025 Student Portal. All rights reserved.</p>
-    </footer>
-</body>
-</html>`,
-        starterCSS: `/* ===== Global Styles ===== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
-}
-
-a {
-    text-decoration: none;
-    color: #007acc;
-}
-
-a:hover {
-    color: #005a9e;
-}
-`,
-        timeLimit: '45 min',
-        tags: ['font-family', 'margin', 'padding', 'background-color', 'color', 'box-sizing']
-    },
-    {
-        id: 2,
-        title: '📌 Header & Nav',
-        description: 'Style the header with dark background, padding, and horizontal nav links with hover effects.',
-        hint: 'Use display:flex, gap, padding, background, hover pseudo-class for nav links.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Navigation</title>
-</head>
-<body>
-    <header>
-        <h1>🎓 Student Portal</h1>
-        <nav>
-            <a href="#" class="active">Home</a>
-            <a href="#">Profile</a>
-            <a href="#">Courses</a>
-            <a href="#">Grades</a>
-            <a href="#">Feedback</a>
-            <a href="#">Contact</a>
-        </nav>
-    </header>
-    <main>
-        <h2>Header & Navigation Styling</h2>
-        <p>Header aur navigation ko professional banao!</p>
-    </main>
-</body>
-</html>`,
-        starterCSS: `/* ===== Header & Navigation ===== */
-
-header {
-    background-color: #1e1e2e;
-    color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-header h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
-}
-
-nav {
-    display: flex;
-    gap: 0.5rem;
-}
-
-nav a {
-    color: #ccc;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    transition: background 0.2s, color 0.2s;
-}
-
-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-nav a.active {
-    background-color: #007acc;
-    color: white;
-}
-`,
-        timeLimit: '60 min',
-        tags: ['display', 'flex', 'gap', 'padding', 'background', ':hover', 'transition', 'border-radius']
-    },
-    {
-        id: 3,
-        title: '👤 Profile Card',
-        description: 'Style the profile page with centered card, rounded image, and styled lists.',
-        hint: 'Use max-width, margin:auto, border-radius, box-shadow, text-align for centering.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Profile</title>
-</head>
-<body>
-    <div class="profile-card">
-        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Student Photo" class="profile-img">
-        <h1>Rahul Sharma</h1>
-        <p class="bio">Full Stack Developer | NavGurukul Student</p>
-        <div class="section">
-            <h2>🎯 Hobbies</h2>
-            <ul>
-                <li>Coding</li>
-                <li>Reading</li>
-                <li>Gaming</li>
-                <li>Music</li>
-            </ul>
-        </div>
-        <div class="section">
-            <h2>💪 Skills</h2>
-            <div class="skills">
-                <span class="skill-tag">HTML</span>
-                <span class="skill-tag">CSS</span>
-                <span class="skill-tag">JavaScript</span>
-                <span class="skill-tag">React</span>
-            </div>
-        </div>
-    </div>
-</body>
-</html>`,
-        starterCSS: `/* ===== Profile Card ===== */
-
-body {
-    background: #f0f2f5;
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.profile-card {
-    max-width: 420px;
-    width: 100%;
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.profile-img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 4px solid #007acc;
-    margin-bottom: 1rem;
-}
-
-.bio {
-    color: #666;
-    font-style: italic;
-    margin-bottom: 1.5rem;
-}
-
-.section {
-    text-align: left;
-    margin-top: 1.5rem;
-}
-
-.section h2 {
-    font-size: 1.1rem;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.8rem;
-}
-
-.section ul {
-    list-style: none;
-    padding: 0;
-}
-
-.section li {
-    padding: 0.3rem 0;
-    color: #555;
-}
-
-.skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.skill-tag {
-    background: #007acc;
-    color: white;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-`,
-        timeLimit: '75 min',
-        tags: ['max-width', 'margin:auto', 'border-radius', 'box-shadow', 'flex-wrap', 'text-align']
-    },
-    {
-        id: 4,
-        title: '📋 Courses Grid',
-        description: 'Create a responsive grid layout for course cards with hover animations.',
-        hint: 'Use CSS Grid, grid-template-columns, transform, transition for hover.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Courses</title>
-</head>
-<body>
-    <h1 class="page-title">📚 My Courses</h1>
-    <div class="courses-grid">
-        <div class="course-card">
-            <div class="course-icon">🌐</div>
-            <h3>HTML Basics</h3>
-            <p>Learn the structure of web pages.</p>
-            <span class="duration">4 weeks</span>
-        </div>
-        <div class="course-card">
-            <div class="course-icon">🎨</div>
-            <h3>CSS Styling</h3>
-            <p>Make websites beautiful with CSS.</p>
-            <span class="duration">4 weeks</span>
-        </div>
-        <div class="course-card">
-            <div class="course-icon">⚡</div>
-            <h3>JavaScript</h3>
-            <p>Add interactivity to your pages.</p>
-            <span class="duration">6 weeks</span>
-        </div>
-        <div class="course-card">
-            <div class="course-icon">⚛️</div>
-            <h3>React.js</h3>
-            <p>Build modern single-page apps.</p>
-            <span class="duration">8 weeks</span>
-        </div>
-        <div class="course-card">
-            <div class="course-icon">🗃️</div>
-            <h3>Node.js</h3>
-            <p>Server-side JavaScript.</p>
-            <span class="duration">6 weeks</span>
-        </div>
-        <div class="course-card">
-            <div class="course-icon">🛢️</div>
-            <h3>Databases</h3>
-            <p>SQL and NoSQL data management.</p>
-            <span class="duration">4 weeks</span>
-        </div>
-    </div>
-</body>
-</html>`,
-        starterCSS: `/* ===== Courses Grid ===== */
-
-body {
-    background: #f5f5f5;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 2rem;
-}
-
-.page-title {
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 1.8rem;
-    color: #1e1e2e;
-}
-
-.courses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.course-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.course-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.course-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.8rem;
-}
-
-.course-card h3 {
-    color: #1e1e2e;
-    margin: 0.5rem 0;
-}
-
-.course-card p {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.duration {
-    background: #e8f4fd;
-    color: #007acc;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-`,
-        timeLimit: '75 min',
-        tags: ['grid', 'grid-template-columns', 'transform', 'transition', 'box-shadow', ':hover']
-    },
-    {
-        id: 5,
-        title: '📊 Grades Table',
-        description: 'Style the grades table with alternating rows, borders, and header styling.',
-        hint: 'Use border-collapse, nth-child, padding, text-align for table styling.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Grades</title>
-</head>
-<body>
-    <div class="table-container">
-        <h1>📊 My Grades</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Marks</th>
-                    <th>Grade</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>HTML</td><td>92</td><td>A+</td><td><span class="badge pass">Pass</span></td></tr>
-                <tr><td>CSS</td><td>88</td><td>A</td><td><span class="badge pass">Pass</span></td></tr>
-                <tr><td>JavaScript</td><td>75</td><td>B+</td><td><span class="badge pass">Pass</span></td></tr>
-                <tr><td>React</td><td>45</td><td>D</td><td><span class="badge fail">Fail</span></td></tr>
-                <tr><td>Node.js</td><td>82</td><td>A</td><td><span class="badge pass">Pass</span></td></tr>
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>`,
-        starterCSS: `/* ===== Grades Table ===== */
-
-body {
-    background: #f5f5f5;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 2rem;
-}
-
-.table-container {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.table-container h1 {
-    margin-bottom: 1.5rem;
-    color: #1e1e2e;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-thead th {
-    background: #1e1e2e;
-    color: white;
-    padding: 0.8rem 1rem;
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-tbody td {
-    padding: 0.7rem 1rem;
-    border-bottom: 1px solid #eee;
-    color: #444;
-}
-
-tbody tr:nth-child(even) {
-    background: #f9fafb;
-}
-
-tbody tr:hover {
-    background: #e8f4fd;
-}
-
-.badge {
-    padding: 0.2rem 0.7rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.badge.pass {
-    background: #d4edda;
-    color: #155724;
-}
-
-.badge.fail {
-    background: #f8d7da;
-    color: #721c24;
-}
-`,
-        timeLimit: '60 min',
-        tags: ['border-collapse', 'nth-child', 'padding', 'text-align', ':hover']
-    },
-    {
-        id: 6,
-        title: '📱 Responsive Design',
-        description: 'Make your portal responsive with media queries for mobile, tablet, and desktop.',
-        hint: 'Use @media queries, flex-direction, font-size adjustments for different screens.',
-        htmlCode: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Student Portal - Responsive</title>
-</head>
-<body>
-    <header>
-        <h1>🎓 Student Portal</h1>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">Profile</a>
-            <a href="#">Courses</a>
-            <a href="#">Grades</a>
-        </nav>
-    </header>
-    <main>
-        <div class="hero">
-            <h2>Welcome Back, Rahul!</h2>
-            <p>Your learning dashboard is ready.</p>
-        </div>
-        <div class="stats">
-            <div class="stat-card"><h3>12</h3><p>Courses</p></div>
-            <div class="stat-card"><h3>85%</h3><p>Average</p></div>
-            <div class="stat-card"><h3>24</h3><p>Badges</p></div>
-            <div class="stat-card"><h3>156</h3><p>Hours</p></div>
-        </div>
-    </main>
-    <footer><p>&copy; 2025 Student Portal</p></footer>
-</body>
-</html>`,
-        starterCSS: `/* ===== Responsive Design ===== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', sans-serif;
-}
-
-header {
-    background: #1e1e2e;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-}
-
-nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.8rem;
-}
-
-nav a {
-    color: #ccc;
-    text-decoration: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-}
-
-nav a:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-}
-
-.hero {
-    text-align: center;
-    padding: 2rem 1rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    padding: 1.5rem;
-}
-
-.stat-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.stat-card h3 {
-    font-size: 1.8rem;
-    color: #007acc;
-}
-
-.stat-card p {
-    color: #888;
-    font-size: 0.85rem;
-}
-
-footer {
-    text-align: center;
-    padding: 1rem;
-    color: #888;
-    font-size: 0.8rem;
-}
-
-/* Tablet */
-@media (min-width: 768px) {
-    .stats {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    nav {
-        gap: 1rem;
-    }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-    header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2rem;
-        text-align: left;
-    }
-    nav { margin-top: 0; }
-    main {
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-}
-`,
-        timeLimit: '90 min',
-        tags: ['@media', 'min-width', 'grid-template-columns', 'flex-wrap', 'viewport']
-    }
+// HTML + CSS Autocomplete Data
+const HTML_TAGS = [
+    { label: 'div', detail: 'Container element', snippet: '<div>\n    $0\n</div>' },
+    { label: 'p', detail: 'Paragraph', snippet: '<p>$0</p>' },
+    { label: 'h1', detail: 'Heading 1', snippet: '<h1>$0</h1>' },
+    { label: 'h2', detail: 'Heading 2', snippet: '<h2>$0</h2>' },
+    { label: 'h3', detail: 'Heading 3', snippet: '<h3>$0</h3>' },
+    { label: 'span', detail: 'Inline container', snippet: '<span>$0</span>' },
+    { label: 'a', detail: 'Hyperlink', snippet: '<a href="$0"></a>' },
+    { label: 'img', detail: 'Image', snippet: '<img src="$0" alt="">' },
+    { label: 'ul', detail: 'Unordered list', snippet: '<ul>\n    <li>$0</li>\n</ul>' },
+    { label: 'ol', detail: 'Ordered list', snippet: '<ol>\n    <li>$0</li>\n</ol>' },
+    { label: 'li', detail: 'List item', snippet: '<li>$0</li>' },
+    { label: 'br', detail: 'Line break', snippet: '<br>' },
+    { label: 'hr', detail: 'Horizontal rule', snippet: '<hr>' },
+    { label: 'strong', detail: 'Bold text', snippet: '<strong>$0</strong>' },
+    { label: 'em', detail: 'Italic text', snippet: '<em>$0</em>' },
+    { label: 'header', detail: 'Header section', snippet: '<header>\n    $0\n</header>' },
+    { label: 'footer', detail: 'Footer section', snippet: '<footer>\n    $0\n</footer>' },
+    { label: 'section', detail: 'Section', snippet: '<section>\n    $0\n</section>' },
+    { label: 'nav', detail: 'Navigation', snippet: '<nav>\n    $0\n</nav>' },
+    { label: 'main', detail: 'Main content', snippet: '<main>\n    $0\n</main>' },
+    { label: 'style', detail: 'Internal CSS', snippet: '<style>\n    $0\n</style>' },
+    { label: 'table', detail: 'Table', snippet: '<table>\n    <tr>\n        <td>$0</td>\n    </tr>\n</table>' },
+    { label: 'tr', detail: 'Table row', snippet: '<tr>\n    <td>$0</td>\n</tr>' },
+    { label: 'td', detail: 'Table cell', snippet: '<td>$0</td>' },
+    { label: 'th', detail: 'Table header cell', snippet: '<th>$0</th>' },
+    { label: 'link', detail: 'External stylesheet', snippet: '<link rel="stylesheet" href="$0">' },
+    { label: 'title', detail: 'Page title', snippet: '<title>$0</title>' },
+    { label: 'meta', detail: 'Metadata', snippet: '<meta $0>' },
+    { label: 'form', detail: 'Form', snippet: '<form>\n    $0\n</form>' },
+    { label: 'input', detail: 'Input field', snippet: '<input type="$0">' },
+    { label: 'button', detail: 'Button', snippet: '<button>$0</button>' },
+    { label: 'label', detail: 'Label', snippet: '<label>$0</label>' },
+    { label: 'select', detail: 'Dropdown', snippet: '<select>\n    <option>$0</option>\n</select>' },
+    { label: 'textarea', detail: 'Text area', snippet: '<textarea>$0</textarea>' },
 ];
 
-// ─── CSS Autocomplete Data ──────────────────────────────────
+const HTML_ATTRS: Record<string, { label: string; detail: string }[]> = {
+    '*': [
+        { label: 'class', detail: 'CSS class' },
+        { label: 'id', detail: 'Unique ID' },
+        { label: 'style', detail: 'Inline CSS' },
+    ],
+    'div': [{ label: 'class', detail: 'CSS class' }],
+    'img': [{ label: 'src', detail: 'Image URL' }, { label: 'alt', detail: 'Alt text' }, { label: 'width', detail: 'Width' }, { label: 'height', detail: 'Height' }],
+    'a': [{ label: 'href', detail: 'URL' }, { label: 'target', detail: 'Link target' }],
+    'table': [{ label: 'border', detail: 'Table border' }, { label: 'cellpadding', detail: 'Cell padding' }, { label: 'cellspacing', detail: 'Cell spacing' }],
+    'td': [{ label: 'colspan', detail: 'Column span' }, { label: 'rowspan', detail: 'Row span' }],
+    'th': [{ label: 'colspan', detail: 'Column span' }, { label: 'rowspan', detail: 'Row span' }, { label: 'scope', detail: 'Scope' }],
+};
+
+// CSS Autocomplete Data
 const CSS_PROPERTIES = [
-    { label: 'color', detail: 'Text color', values: ['red','blue','green','white','black','#333','inherit'] },
-    { label: 'background-color', detail: 'Background color', values: ['#fff','#f0f0f0','transparent','inherit'] },
-    { label: 'background', detail: 'Background shorthand', values: ['#fff','linear-gradient()','url()','none'] },
-    { label: 'margin', detail: 'Outer spacing', values: ['0','8px','16px','auto','0 auto'] },
-    { label: 'margin-top', detail: 'Top margin', values: ['0','8px','16px','auto'] },
-    { label: 'margin-bottom', detail: 'Bottom margin', values: ['0','8px','16px','auto'] },
-    { label: 'margin-left', detail: 'Left margin', values: ['0','8px','16px','auto'] },
-    { label: 'margin-right', detail: 'Right margin', values: ['0','8px','16px','auto'] },
-    { label: 'padding', detail: 'Inner spacing', values: ['0','8px','16px','24px'] },
-    { label: 'padding-top', detail: 'Top padding', values: ['0','8px','16px'] },
-    { label: 'padding-bottom', detail: 'Bottom padding', values: ['0','8px','16px'] },
-    { label: 'padding-left', detail: 'Left padding', values: ['0','8px','16px'] },
-    { label: 'padding-right', detail: 'Right padding', values: ['0','8px','16px'] },
-    { label: 'display', detail: 'Display type', values: ['block','inline','flex','grid','none','inline-block'] },
-    { label: 'flex-direction', detail: 'Flex direction', values: ['row','column','row-reverse','column-reverse'] },
-    { label: 'justify-content', detail: 'Main axis align', values: ['center','flex-start','flex-end','space-between','space-around'] },
-    { label: 'align-items', detail: 'Cross axis align', values: ['center','flex-start','flex-end','stretch','baseline'] },
-    { label: 'flex-wrap', detail: 'Wrap flex items', values: ['wrap','nowrap','wrap-reverse'] },
-    { label: 'gap', detail: 'Gap between items', values: ['4px','8px','16px','24px'] },
-    { label: 'font-family', detail: 'Font face', values: ["'Arial'","'Helvetica'","'sans-serif'","'monospace'"] },
-    { label: 'font-size', detail: 'Text size', values: ['12px','14px','16px','18px','24px','1rem','1.5rem'] },
-    { label: 'font-weight', detail: 'Text weight', values: ['normal','bold','100','400','600','700','900'] },
-    { label: 'text-align', detail: 'Text alignment', values: ['left','center','right','justify'] },
-    { label: 'text-decoration', detail: 'Text decoration', values: ['none','underline','line-through','overline'] },
-    { label: 'text-transform', detail: 'Text case', values: ['none','uppercase','lowercase','capitalize'] },
-    { label: 'line-height', detail: 'Line spacing', values: ['1','1.4','1.6','2','normal'] },
-    { label: 'letter-spacing', detail: 'Letter gap', values: ['0','0.5px','1px','2px','normal'] },
-    { label: 'width', detail: 'Element width', values: ['100%','auto','300px','50%','fit-content'] },
-    { label: 'height', detail: 'Element height', values: ['auto','100%','100vh','300px','fit-content'] },
-    { label: 'max-width', detail: 'Maximum width', values: ['100%','1200px','768px','none'] },
-    { label: 'min-height', detail: 'Minimum height', values: ['100vh','auto','300px'] },
-    { label: 'border', detail: 'Border shorthand', values: ['1px solid #ccc','2px solid #333','none'] },
-    { label: 'border-radius', detail: 'Corner rounding', values: ['4px','8px','12px','50%','0'] },
-    { label: 'border-bottom', detail: 'Bottom border', values: ['1px solid #ccc','2px solid #333','none'] },
-    { label: 'box-shadow', detail: 'Shadow', values: ['0 2px 8px rgba(0,0,0,0.1)','none'] },
-    { label: 'overflow', detail: 'Overflow behavior', values: ['hidden','auto','scroll','visible'] },
-    { label: 'position', detail: 'Positioning', values: ['relative','absolute','fixed','sticky','static'] },
-    { label: 'top', detail: 'Top offset', values: ['0','50%','auto'] },
-    { label: 'left', detail: 'Left offset', values: ['0','50%','auto'] },
-    { label: 'right', detail: 'Right offset', values: ['0','auto'] },
-    { label: 'bottom', detail: 'Bottom offset', values: ['0','auto'] },
-    { label: 'z-index', detail: 'Stack order', values: ['1','10','100','999','-1'] },
-    { label: 'opacity', detail: 'Transparency', values: ['1','0.8','0.5','0'] },
-    { label: 'cursor', detail: 'Cursor style', values: ['pointer','default','not-allowed','grab','text'] },
-    { label: 'transition', detail: 'Transition', values: ['all 0.3s ease','none','background 0.2s'] },
-    { label: 'transform', detail: 'Transform', values: ['none','scale(1.05)','translateY(-2px)','rotate(45deg)'] },
-    { label: 'list-style', detail: 'List marker', values: ['none','disc','decimal','square'] },
-    { label: 'list-style-type', detail: 'Marker type', values: ['none','disc','circle','square','decimal'] },
-    { label: 'grid-template-columns', detail: 'Grid columns', values: ['1fr 1fr','repeat(3, 1fr)','auto'] },
-    { label: 'object-fit', detail: 'Image fit', values: ['cover','contain','fill','none'] },
+    { label: 'color', detail: 'Text color' },
+    { label: 'background', detail: 'Background shorthand' },
+    { label: 'background-color', detail: 'Background color' },
+    { label: 'background-image', detail: 'Background image' },
+    { label: 'background-size', detail: 'Background size' },
+    { label: 'margin', detail: 'Margin shorthand' },
+    { label: 'margin-top', detail: 'Top margin' },
+    { label: 'margin-bottom', detail: 'Bottom margin' },
+    { label: 'margin-left', detail: 'Left margin' },
+    { label: 'margin-right', detail: 'Right margin' },
+    { label: 'padding', detail: 'Padding shorthand' },
+    { label: 'padding-top', detail: 'Top padding' },
+    { label: 'padding-bottom', detail: 'Bottom padding' },
+    { label: 'padding-left', detail: 'Left padding' },
+    { label: 'padding-right', detail: 'Right padding' },
+    { label: 'border', detail: 'Border shorthand' },
+    { label: 'border-radius', detail: 'Rounded corners' },
+    { label: 'border-color', detail: 'Border color' },
+    { label: 'border-width', detail: 'Border width' },
+    { label: 'border-style', detail: 'Border style' },
+    { label: 'width', detail: 'Element width' },
+    { label: 'height', detail: 'Element height' },
+    { label: 'max-width', detail: 'Maximum width' },
+    { label: 'min-width', detail: 'Minimum width' },
+    { label: 'max-height', detail: 'Maximum height' },
+    { label: 'min-height', detail: 'Minimum height' },
+    { label: 'display', detail: 'Display type' },
+    { label: 'flex-direction', detail: 'Flex direction' },
+    { label: 'justify-content', detail: 'Justify content' },
+    { label: 'align-items', detail: 'Align items' },
+    { label: 'align-self', detail: 'Align self' },
+    { label: 'flex-wrap', detail: 'Flex wrap' },
+    { label: 'gap', detail: 'Gap between items' },
+    { label: 'grid-template-columns', detail: 'Grid columns' },
+    { label: 'grid-template-rows', detail: 'Grid rows' },
+    { label: 'font-size', detail: 'Font size' },
+    { label: 'font-weight', detail: 'Font weight' },
+    { label: 'font-family', detail: 'Font family' },
+    { label: 'font-style', detail: 'Font style' },
+    { label: 'text-align', detail: 'Text alignment' },
+    { label: 'text-decoration', detail: 'Text decoration' },
+    { label: 'text-transform', detail: 'Text transform' },
+    { label: 'line-height', detail: 'Line height' },
+    { label: 'letter-spacing', detail: 'Letter spacing' },
+    { label: 'position', detail: 'Position type' },
+    { label: 'top', detail: 'Top offset' },
+    { label: 'bottom', detail: 'Bottom offset' },
+    { label: 'left', detail: 'Left offset' },
+    { label: 'right', detail: 'Right offset' },
+    { label: 'z-index', detail: 'Stack order' },
+    { label: 'overflow', detail: 'Overflow behavior' },
+    { label: 'opacity', detail: 'Opacity level' },
+    { label: 'box-shadow', detail: 'Box shadow' },
+    { label: 'text-shadow', detail: 'Text shadow' },
+    { label: 'transition', detail: 'CSS transition' },
+    { label: 'transform', detail: 'CSS transform' },
+    { label: 'cursor', detail: 'Cursor type' },
+    { label: 'list-style', detail: 'List style' },
+    { label: 'object-fit', detail: 'Object fit' },
+    { label: 'vertical-align', detail: 'Vertical align' },
+    { label: 'white-space', detail: 'White space' },
+    { label: 'word-break', detail: 'Word break' },
+    { label: 'float', detail: 'Float direction' },
+    { label: 'clear', detail: 'Clear float' },
+    { label: 'visibility', detail: 'Visibility' },
+    { label: 'animation', detail: 'Animation shorthand' },
+    { label: 'content', detail: 'Generated content' },
+    { label: 'outline', detail: 'Outline shorthand' },
+    { label: 'box-sizing', detail: 'Box sizing model' },
 ];
 
-const CSS_SELECTORS_LIST = [
+const CSS_VALUES: Record<string, string[]> = {
+    'display': ['flex', 'grid', 'block', 'inline', 'inline-block', 'inline-flex', 'none'],
+    'flex-direction': ['row', 'column', 'row-reverse', 'column-reverse'],
+    'justify-content': ['center', 'flex-start', 'flex-end', 'space-between', 'space-around', 'space-evenly'],
+    'align-items': ['center', 'flex-start', 'flex-end', 'stretch', 'baseline'],
+    'position': ['relative', 'absolute', 'fixed', 'sticky', 'static'],
+    'text-align': ['center', 'left', 'right', 'justify'],
+    'font-weight': ['bold', 'normal', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
+    'text-decoration': ['none', 'underline', 'overline', 'line-through'],
+    'text-transform': ['uppercase', 'lowercase', 'capitalize', 'none'],
+    'overflow': ['hidden', 'auto', 'scroll', 'visible'],
+    'cursor': ['pointer', 'default', 'grab', 'text', 'move', 'not-allowed', 'crosshair'],
+    'border-style': ['solid', 'dashed', 'dotted', 'double', 'none'],
+    'font-style': ['normal', 'italic', 'oblique'],
+    'flex-wrap': ['wrap', 'nowrap', 'wrap-reverse'],
+    'object-fit': ['cover', 'contain', 'fill', 'none', 'scale-down'],
+    'visibility': ['visible', 'hidden', 'collapse'],
+    'box-sizing': ['border-box', 'content-box'],
+    'float': ['left', 'right', 'none'],
+    'clear': ['both', 'left', 'right', 'none'],
+    'white-space': ['nowrap', 'normal', 'pre', 'pre-wrap', 'pre-line'],
+};
+
+const CSS_SELECTORS = [
     { label: 'body', detail: 'Body element' },
-    { label: 'header', detail: 'Header element' },
-    { label: 'footer', detail: 'Footer element' },
-    { label: 'nav', detail: 'Navigation' },
-    { label: 'main', detail: 'Main content' },
-    { label: 'section', detail: 'Section element' },
+    { label: 'div', detail: 'Div elements' },
     { label: 'h1', detail: 'Heading 1' },
     { label: 'h2', detail: 'Heading 2' },
     { label: 'h3', detail: 'Heading 3' },
     { label: 'p', detail: 'Paragraph' },
-    { label: 'a', detail: 'Anchor' },
+    { label: 'a', detail: 'Links' },
+    { label: 'img', detail: 'Images' },
     { label: 'ul', detail: 'Unordered list' },
-    { label: 'ol', detail: 'Ordered list' },
     { label: 'li', detail: 'List item' },
+    { label: 'span', detail: 'Span elements' },
+    { label: 'header', detail: 'Header' },
+    { label: 'footer', detail: 'Footer' },
+    { label: 'section', detail: 'Section' },
+    { label: 'nav', detail: 'Navigation' },
+    { label: 'main', detail: 'Main content' },
     { label: 'table', detail: 'Table' },
-    { label: 'th', detail: 'Table header' },
-    { label: 'td', detail: 'Table cell' },
-    { label: 'tr', detail: 'Table row' },
-    { label: 'form', detail: 'Form element' },
-    { label: 'input', detail: 'Input field' },
     { label: 'button', detail: 'Button' },
-    { label: 'label', detail: 'Label element' },
-    { label: 'textarea', detail: 'Text area' },
-    { label: 'select', detail: 'Select dropdown' },
-    { label: 'img', detail: 'Image' },
-    { label: '*', detail: 'Universal selector' },
-    { label: ':hover', detail: 'Hover state' },
-    { label: ':focus', detail: 'Focus state' },
-    { label: '::before', detail: 'Before pseudo' },
-    { label: '::after', detail: 'After pseudo' },
-    { label: ':first-child', detail: 'First child' },
-    { label: ':last-child', detail: 'Last child' },
-    { label: ':nth-child()', detail: 'Nth child' },
-    { label: '@media', detail: 'Media query' },
+    { label: 'input', detail: 'Input' },
+    { label: 'form', detail: 'Form' },
 ];
 
-// ─── Component ──────────────────────────────────────────────
-export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
-    const [activeTask, setActiveTask] = useState(0);
-    const [cssValues, setCssValues] = useState<string[]>(CSS_TASKS.map(t => t.starterCSS));
-    const [showPreview, setShowPreview] = useState(false);
+// Component
+export const Phase2: React.FC<Phase2Props> = ({ onBack, onComplete }) => {
+    const { user } = useAuth();
+    const [htmlCode, setHtmlCode] = useState(STARTER_HTML);
+    const [cssCode, setCssCode] = useState(STARTER_CSS);
+    const [activeTab, setActiveTab] = useState<'html' | 'css'>('html');
+    const [showPreview, setShowPreview] = useState(true);
     const [copied, setCopied] = useState(false);
-    const [showInstructions, setShowInstructions] = useState(true);
-    const [activeTab, setActiveTab] = useState<'html' | 'css'>('css');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [existingSubmission, setExistingSubmission] = useState<PhaseSubmission | null>(null);
+    const [loadingSubmission, setLoadingSubmission] = useState(true);
+    const prevStatusRef = useRef<string | null>(null);
+    const congratsShownRef = useRef(false);
+
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLPreElement>(null);
@@ -784,127 +272,283 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
     const [selectedSuggestion, setSelectedSuggestion] = useState(0);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0 });
+    const [triggerWord, setTriggerWord] = useState('');
 
-    const currentTask = CSS_TASKS[activeTask];
-    const currentCSS = cssValues[activeTask];
-    const displayCode = activeTab === 'html' ? currentTask.htmlCode : currentCSS;
-    const lineCount = displayCode.split('\n').length;
+    const currentCode = activeTab === 'html' ? htmlCode : cssCode;
+    const lineCount = currentCode.split('\n').length;
 
-    const updateCSS = (value: string) => {
-        const c = [...cssValues];
-        c[activeTask] = value;
-        setCssValues(c);
+    // Combine HTML + CSS for preview
+    const getCombinedCode = useCallback(() => {
+        return htmlCode.replace(
+            '<link rel="stylesheet" href="style.css">',
+            `<style>\n${cssCode}\n</style>`
+        );
+    }, [htmlCode, cssCode]);
+
+    // Check for existing submission on load
+    useEffect(() => {
+        const checkExisting = async () => {
+            if (user?.email) {
+                const submission = await getUserPhaseSubmission(PHASE2_ID, user.email);
+                if (submission) {
+                    setExistingSubmission(submission);
+                    // Parse stored code - split HTML and CSS
+                    if (submission.code.includes('<!--CSS_CODE_START-->')) {
+                        const parts = submission.code.split('<!--CSS_CODE_START-->');
+                        setHtmlCode(parts[0].replace('<!--HTML_CODE_END-->', '').trim());
+                        setCssCode(parts[1]?.replace('<!--CSS_CODE_END-->', '').trim() || STARTER_CSS);
+                    } else {
+                        setHtmlCode(submission.code);
+                    }
+                    if (submission.status === 'pending' || submission.status === 'approved') {
+                        setSubmitted(true);
+                    }
+                    if (submission.status === 'approved' && !congratsShownRef.current) {
+                        congratsShownRef.current = true;
+                        onComplete?.();
+                    }
+                    prevStatusRef.current = submission.status;
+                }
+            }
+            setLoadingSubmission(false);
+        };
+        checkExisting();
+    }, [user?.email]);
+
+    // Auto-run preview whenever code changes
+    useEffect(() => {
+        if (showPreview && iframeRef.current) {
+            const combined = getCombinedCode();
+            const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+            if (doc) { doc.open(); doc.write(combined); doc.close(); }
+        }
+    }, [htmlCode, cssCode, showPreview, getCombinedCode]);
+
+    // Reset scroll when switching tabs
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.scrollTop = 0;
+            textareaRef.current.scrollLeft = 0;
+        }
+        if (highlightRef.current) {
+            highlightRef.current.scrollTop = 0;
+            highlightRef.current.scrollLeft = 0;
+        }
+        if (lineNumRef.current) {
+            lineNumRef.current.scrollTop = 0;
+        }
+        setShowSuggestions(false);
+    }, [activeTab]);
+
+    const updateCode = (value: string) => {
+        if (activeTab === 'html') {
+            setHtmlCode(value);
+        } else {
+            setCssCode(value);
+        }
     };
 
     const runCode = () => {
         setShowPreview(true);
         setTimeout(() => {
             if (iframeRef.current) {
+                const combined = getCombinedCode();
                 const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-                if (doc) {
-                    const combined = currentTask.htmlCode.replace(
-                        '<link rel="stylesheet" href="style.css">',
-                        `<style>${currentCSS}</style>`
-                    );
-                    doc.open(); doc.write(combined); doc.close();
-                }
+                if (doc) { doc.open(); doc.write(combined); doc.close(); }
             }
         }, 50);
     };
 
-    const resetCSS = () => {
-        const c = [...cssValues];
-        c[activeTask] = CSS_TASKS[activeTask].starterCSS;
-        setCssValues(c);
-        setShowPreview(false);
+    const resetCode = () => {
+        setHtmlCode(STARTER_HTML);
+        setCssCode(STARTER_CSS);
     };
 
     const copyCode = () => {
-        navigator.clipboard.writeText(displayCode);
+        navigator.clipboard.writeText(currentCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // ─── CSS Autocomplete Logic (IntelliSense-style) ────
-    const getCSSContext = (code: string, pos: number): { word: string; start: number; context: 'property' | 'value' | 'selector'; propName: string } => {
+    const handleSubmit = async () => {
+        if (!user?.email || !user?.displayName) return;
+
+        setIsSubmitting(true);
+        try {
+            const combinedForStorage = `${htmlCode}<!--HTML_CODE_END--><!--CSS_CODE_START-->${cssCode}<!--CSS_CODE_END-->`;
+            await submitPhaseCode({
+                phaseId: PHASE2_ID,
+                phaseName: PHASE2_NAME,
+                userEmail: user.email,
+                userName: user.displayName,
+                userPhoto: user.photoURL || undefined,
+                code: combinedForStorage,
+                question: PHASE2_QUESTION,
+            });
+            setSubmitted(true);
+            setExistingSubmission({
+                phaseId: PHASE2_ID,
+                phaseName: PHASE2_NAME,
+                userEmail: user.email,
+                userName: user.displayName,
+                code: combinedForStorage,
+                question: PHASE2_QUESTION,
+                status: 'pending',
+                submittedAt: Date.now(),
+            });
+        } catch (error) {
+            console.error('Submit failed:', error);
+            alert('Submit failed! Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleResubmit = () => {
+        setSubmitted(false);
+        setExistingSubmission(null);
+    };
+
+    // ===== HTML Autocomplete Logic =====
+    const getHTMLContext = (text: string, pos: number) => {
         let i = pos - 1;
         let word = '';
-        while (i >= 0 && /[a-zA-Z0-9-@:*()#.%']/.test(code[i])) { word = code[i] + word; i--; }
+        while (i >= 0 && /[a-zA-Z0-9-]/.test(text[i])) { word = text[i] + word; i--; }
         const start = i + 1;
+        const charBefore = i >= 0 ? text[i] : '';
+        const hasAngleBracket = charBefore === '<' || (charBefore === '/' && i > 0 && text[i - 1] === '<');
 
-        // Check if we're inside { }
-        let depth = 0;
-        for (let j = 0; j < pos; j++) {
-            if (code[j] === '{') depth++;
-            if (code[j] === '}') depth--;
-        }
-        const insideBlock = depth > 0;
-
-        let propName = '';
-        if (insideBlock) {
-            let lineStart = code.lastIndexOf('\n', pos - 1) + 1;
-            let lineText = code.substring(lineStart, pos);
-            let colonIdx = lineText.indexOf(':');
-            if (colonIdx >= 0) {
-                propName = lineText.substring(0, colonIdx).trim();
-                return { word: word.toLowerCase(), start, context: 'value', propName };
+        let isAttr = false;
+        let tagName = '';
+        if (!hasAngleBracket) {
+            let j = i;
+            while (j >= 0 && text[j] !== '<' && text[j] !== '>') j--;
+            if (j >= 0 && text[j] === '<') {
+                let k = j + 1;
+                let tn = '';
+                while (k < text.length && /[a-zA-Z]/.test(text[k])) { tn += text[k]; k++; }
+                if (tn && k < start) {
+                    isAttr = true;
+                    tagName = tn.toLowerCase();
+                }
             }
-            return { word: word.toLowerCase(), start, context: 'property', propName: '' };
         }
-        return { word: word.toLowerCase(), start, context: 'selector', propName: '' };
+        return { word: word.toLowerCase(), start, hasAngleBracket, isAttr, tagName };
     };
 
-    const computeCSSSuggestions = (code: string, pos: number) => {
-        if (activeTab !== 'css') { setShowSuggestions(false); return; }
-        const { word, context, propName } = getCSSContext(code, pos);
+    const computeHTMLSuggestions = (codeStr: string, pos: number) => {
+        const { word, hasAngleBracket, isAttr, tagName } = getHTMLContext(codeStr, pos);
         if (word.length === 0) { setShowSuggestions(false); return; }
+        setTriggerWord(word);
 
-        let matches: {label:string;detail:string;snippet?:string;kind?:string}[] = [];
-
-        if (context === 'property') {
-            matches = CSS_PROPERTIES
-                .filter(p => p.label.startsWith(word))
-                .map(p => ({ label: p.label, detail: p.detail, snippet: p.label + ': ;', kind: 'prop' }))
-                .slice(0, 10);
-        } else if (context === 'value') {
-            const prop = CSS_PROPERTIES.find(p => p.label === propName.trim());
-            if (prop) {
-                matches = prop.values
-                    .filter(v => v.toLowerCase().startsWith(word))
-                    .map(v => ({ label: v, detail: propName + ' value', kind: 'value' }))
-                    .slice(0, 10);
+        if (isAttr) {
+            const globalAttrs = HTML_ATTRS['*'] || [];
+            const tagAttrs = HTML_ATTRS[tagName] || [];
+            const all = [...tagAttrs, ...globalAttrs];
+            const matches = all.filter(a => a.label.startsWith(word) && a.label !== word)
+                .map(a => ({ ...a, kind: 'attr' as const }));
+            if (matches.length > 0) {
+                setSuggestions(matches.slice(0, 10));
+                setSelectedSuggestion(0);
+                setShowSuggestions(true);
+                updateSuggestionPos(pos);
+                return;
             }
-            // Also search all values if no specific prop match
-            if (matches.length === 0) {
-                const allVals: {label:string;detail:string;kind:string}[] = [];
-                CSS_PROPERTIES.forEach(p => {
-                    p.values.filter(v => v.toLowerCase().startsWith(word)).forEach(v => {
-                        if (!allVals.find(x => x.label === v)) allVals.push({ label: v, detail: p.label, kind: 'value' });
-                    });
-                });
-                matches = allVals.slice(0, 10);
-            }
-        } else {
-            matches = CSS_SELECTORS_LIST
-                .filter(s => s.label.startsWith(word))
-                .map(s => ({ label: s.label, detail: s.detail, snippet: s.label + ' {\n    \n}', kind: 'sel' }))
-                .slice(0, 10);
         }
 
+        const matches = HTML_TAGS
+            .filter(t => t.label.startsWith(word))
+            .map(t => ({ ...t, kind: 'tag' as const }));
         if (matches.length > 0) {
-            setSuggestions(matches);
+            setSuggestions(matches.slice(0, 10));
             setSelectedSuggestion(0);
             setShowSuggestions(true);
-            updateCSSSuggestionPos(pos);
-        } else {
-            setShowSuggestions(false);
+            updateSuggestionPos(pos);
+            return;
         }
+        setShowSuggestions(false);
     };
 
-    const updateCSSSuggestionPos = (pos: number) => {
+    // ===== CSS Autocomplete Logic =====
+    const getCSSContext = (text: string, pos: number) => {
+        let braceDepth = 0;
+        for (let i = 0; i < pos; i++) {
+            if (text[i] === '{') braceDepth++;
+            if (text[i] === '}') braceDepth--;
+        }
+        const insideBlock = braceDepth > 0;
+
+        let i = pos - 1;
+        let word = '';
+        while (i >= 0 && /[a-zA-Z0-9-]/.test(text[i])) { word = text[i] + word; i--; }
+        const start = i + 1;
+        const charBefore = i >= 0 ? text[i] : '';
+
+        let isValue = false;
+        let propertyName = '';
+        if (insideBlock) {
+            let j = i;
+            while (j >= 0 && text[j] !== ':' && text[j] !== ';' && text[j] !== '{' && text[j] !== '}') j--;
+            if (j >= 0 && text[j] === ':') {
+                isValue = true;
+                let k = j - 1;
+                while (k >= 0 && text[k] === ' ') k--;
+                let pn = '';
+                while (k >= 0 && /[a-zA-Z-]/.test(text[k])) { pn = text[k] + pn; k--; }
+                propertyName = pn;
+            }
+        }
+
+        return { word: word.toLowerCase(), start, insideBlock, isValue, propertyName, charBefore };
+    };
+
+    const computeCSSSuggestions = (codeStr: string, pos: number) => {
+        const { word, insideBlock, isValue, propertyName } = getCSSContext(codeStr, pos);
+        if (word.length === 0) { setShowSuggestions(false); return; }
+        setTriggerWord(word);
+
+        if (isValue && propertyName) {
+            const values = CSS_VALUES[propertyName] || [];
+            const matches = values
+                .filter(v => v.startsWith(word) && v !== word)
+                .map(v => ({ label: v, detail: `Value for ${propertyName}`, kind: 'value' as const }));
+            if (matches.length > 0) {
+                setSuggestions(matches.slice(0, 10));
+                setSelectedSuggestion(0);
+                setShowSuggestions(true);
+                updateSuggestionPos(pos);
+                return;
+            }
+        } else if (insideBlock) {
+            const matches = CSS_PROPERTIES
+                .filter(p => p.label.startsWith(word) && p.label !== word)
+                .map(p => ({ ...p, kind: 'prop' as const }));
+            if (matches.length > 0) {
+                setSuggestions(matches.slice(0, 10));
+                setSelectedSuggestion(0);
+                setShowSuggestions(true);
+                updateSuggestionPos(pos);
+                return;
+            }
+        } else {
+            const matches = CSS_SELECTORS
+                .filter(s => s.label.startsWith(word) && s.label !== word)
+                .map(s => ({ ...s, kind: 'selector' as const }));
+            if (matches.length > 0) {
+                setSuggestions(matches.slice(0, 10));
+                setSelectedSuggestion(0);
+                setShowSuggestions(true);
+                updateSuggestionPos(pos);
+                return;
+            }
+        }
+        setShowSuggestions(false);
+    };
+
+    const updateSuggestionPos = (pos: number) => {
         if (!textareaRef.current) return;
         const ta = textareaRef.current;
-        const textBefore = currentCSS.substring(0, pos);
+        const textBefore = currentCode.substring(0, pos);
         const lines = textBefore.split('\n');
         const lineIdx = lines.length - 1;
         const colIdx = lines[lineIdx].length;
@@ -913,71 +557,85 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
         setSuggestionPos({ top: Math.max(0, top), left: Math.max(0, Math.min(left, 400)) });
     };
 
-    const applyCSSSuggestion = (sug: {label:string;detail:string;snippet?:string}) => {
+    const applySuggestion = (sug: {label:string;detail:string;snippet?:string;kind?:string}) => {
         if (!textareaRef.current) return;
         const ta = textareaRef.current;
         const pos = ta.selectionStart;
-        const { word, start, context } = getCSSContext(currentCSS, pos);
-        const before = currentCSS.substring(0, start);
-        const after = currentCSS.substring(pos);
+        const code = currentCode;
 
-        if (context === 'property' && sug.snippet) {
-            const newCode = before + sug.snippet + after;
-            updateCSS(newCode);
-            const cursorPos = before.length + sug.snippet.length - 1; // before ;
-            setTimeout(() => { ta.selectionStart = ta.selectionEnd = cursorPos; ta.focus(); }, 0);
-        } else if (context === 'selector' && sug.snippet) {
-            const newCode = before + sug.snippet + after;
-            updateCSS(newCode);
-            const cursorPos = before.length + sug.snippet.indexOf('\n') + 5;
-            setTimeout(() => { ta.selectionStart = ta.selectionEnd = cursorPos; ta.focus(); }, 0);
+        if (activeTab === 'html') {
+            const { word, start, hasAngleBracket, isAttr } = getHTMLContext(code, pos);
+            if (isAttr) {
+                const before = code.substring(0, start);
+                const after = code.substring(pos);
+                const attrInsert = sug.label + '=""';
+                const newCode = before + attrInsert + after;
+                updateCode(newCode);
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = before.length + attrInsert.length - 1; ta.focus(); }, 0);
+            } else if (sug.snippet) {
+                const insert = sug.snippet.replace('$0', '');
+                const removeFrom = hasAngleBracket ? start - 1 : start;
+                const before = code.substring(0, removeFrom);
+                const after = code.substring(pos);
+                const newCode = before + insert + after;
+                updateCode(newCode);
+                const innerPos = insert.indexOf('><');
+                const cursorPos = innerPos >= 0 ? before.length + innerPos + 1 : before.length + insert.length;
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = cursorPos; ta.focus(); }, 0);
+            }
         } else {
-            const insert = sug.label;
-            const newCode = before + insert + after;
-            updateCSS(newCode);
-            setTimeout(() => { ta.selectionStart = ta.selectionEnd = before.length + insert.length; ta.focus(); }, 0);
+            // CSS autocomplete apply
+            const { word, start, insideBlock, isValue } = getCSSContext(code, pos);
+            const before = code.substring(0, start);
+            const after = code.substring(pos);
+
+            if (isValue) {
+                const newCode = before + sug.label + after;
+                updateCode(newCode);
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = before.length + sug.label.length; ta.focus(); }, 0);
+            } else if (insideBlock) {
+                const propInsert = sug.label + ': ';
+                const newCode = before + propInsert + after;
+                updateCode(newCode);
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = before.length + propInsert.length; ta.focus(); }, 0);
+            } else {
+                const selInsert = sug.label + ' {\n    \n}';
+                const newCode = before + selInsert + after;
+                updateCode(newCode);
+                const cursorPos = before.length + sug.label.length + 6;
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = cursorPos; ta.focus(); }, 0);
+            }
         }
         setShowSuggestions(false);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        // Autocomplete navigation
-        if (showSuggestions) {
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setSelectedSuggestion(prev => Math.min(prev + 1, suggestions.length - 1));
-                return;
-            }
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setSelectedSuggestion(prev => Math.max(prev - 1, 0));
-                return;
-            }
-            if (e.key === 'Enter' || e.key === 'Tab') {
-                e.preventDefault();
-                applyCSSSuggestion(suggestions[selectedSuggestion]);
-                return;
-            }
-            if (e.key === 'Escape') {
-                setShowSuggestions(false);
-                return;
-            }
+        if (showSuggestions && suggestions.length > 0) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedSuggestion(prev => Math.min(prev + 1, suggestions.length - 1)); return; }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedSuggestion(prev => Math.max(prev - 1, 0)); return; }
+            if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); applySuggestion(suggestions[selectedSuggestion]); return; }
+            if (e.key === 'Escape') { e.preventDefault(); setShowSuggestions(false); return; }
         }
-
-        if (e.key === 'Tab') {
+        if (e.key === 'Tab' && !showSuggestions) {
             e.preventDefault();
             const t = e.target as HTMLTextAreaElement;
             const s = t.selectionStart, en = t.selectionEnd;
-            updateCSS(currentCSS.substring(0, s) + '    ' + currentCSS.substring(en));
+            updateCode(currentCode.substring(0, s) + '    ' + currentCode.substring(en));
             setTimeout(() => { t.selectionStart = t.selectionEnd = s + 4; }, 0);
         }
     };
 
-    const handleCSSInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newVal = e.target.value;
-        updateCSS(newVal);
+        updateCode(newVal);
         const pos = e.target.selectionStart;
-        setTimeout(() => computeCSSSuggestions(newVal, pos), 0);
+        setTimeout(() => {
+            if (activeTab === 'html') {
+                computeHTMLSuggestions(newVal, pos);
+            } else {
+                computeCSSSuggestions(newVal, pos);
+            }
+        }, 0);
     };
 
     const syncScroll = useCallback(() => {
@@ -989,77 +647,77 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
         }
     }, []);
 
-    // ─── INSTRUCTIONS VIEW ─────────────────────────────────
-    if (showInstructions) {
+    // Loading state
+    if (loadingSubmission) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
-                <style>{`
-                    .hl-tag{color:#569CD6}.hl-attr{color:#9CDCFE}.hl-string{color:#CE9178}
-                    .hl-comment{color:#6A9955;font-style:italic}.hl-bracket{color:#808080}
-                    .hl-css-prop{color:#9CDCFE}.hl-css-sel{color:#D7BA7D}.hl-num{color:#B5CEA8}
-                    .hl-punc{color:#D4D4D4}.hl-at-rule{color:#C586C0}
-                `}</style>
-                <div className="sticky top-0 z-50 bg-[#0f0c29]/80 backdrop-blur-lg border-b border-white/10">
-                    <div className="max-w-5xl mx-auto px-6 py-4">
-                        <button onClick={onBack} className="flex items-center gap-2 text-purple-300 hover:text-white transition-all group">
-                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="font-semibold">Back to Dashboard</span>
-                        </button>
-                    </div>
+            <div className="flex items-center justify-center h-screen bg-[#1e1e1e]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#007acc] animate-spin mx-auto mb-4" />
+                    <p className="text-[#ccc] text-sm">Loading...</p>
                 </div>
-                <div className="max-w-5xl mx-auto px-6 py-12">
-                    <div className="bg-gradient-to-r from-pink-600 to-orange-500 rounded-3xl p-8 text-white mb-8 shadow-xl border border-white/10">
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">Phase 2 — CSS Styling Challenge</h1>
-                        <p className="text-pink-100 text-lg">(HTML + CSS) — VS Code Style Editor with Live Preview</p>
-                    </div>
-                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl mb-8">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                            <Lightbulb className="text-yellow-400" size={24} /> Kya Karna Hai?
-                        </h2>
-                        <p className="text-purple-100/90 leading-relaxed mb-4">
-                            Phase 1 ke HTML pages ko ab <strong className="text-pink-400">CSS</strong> se style karna hai!
-                            Dono files — <strong className="text-yellow-400">index.html</strong> aur <strong className="text-yellow-400">style.css</strong> — already boilerplate ke saath hain.
-                            CSS edit karo aur <strong className="text-green-400">Run Code</strong> click karke live preview dekho!
-                        </p>
-                        <div className="bg-pink-500/10 border-l-4 border-pink-500 p-4 rounded-r-lg">
-                            <p className="text-pink-200"><strong>🌟 Note:</strong> HTML (read-only) + CSS (editable) dono files hain. Boilerplate already likha hua hai!</p>
-                        </div>
-                    </section>
-                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl mb-8">
-                        <h2 className="text-2xl font-bold text-white mb-6">📋 Tasks (6 Styling Challenges)</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {CSS_TASKS.map((task) => (
-                                <div key={task.id} className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="font-bold text-white">{task.title}</h3>
-                                        <span className="text-xs bg-pink-500/20 text-pink-300 px-2 py-1 rounded-full">{task.timeLimit}</span>
-                                    </div>
-                                    <p className="text-purple-200/70 text-sm">{task.description}</p>
+            </div>
+        );
+    }
+
+    // SUBMITTED STATE - Waiting for admin review
+    if (submitted) {
+        const status = existingSubmission?.status || 'pending';
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex items-center justify-center p-6">
+                <div className="max-w-lg w-full">
+                    <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-10 border border-white/10 shadow-2xl text-center">
+                        {status === 'pending' && (
+                            <>
+                                <div className="w-24 h-24 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <HourglassIcon size={48} className="text-yellow-400 animate-pulse" />
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-                    <section className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl mb-8">
-                        <h2 className="text-2xl font-bold text-white mb-4">📚 Resources</h2>
-                        <div className="space-y-3">
-                            <a href="https://www.w3schools.com/css/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/10">
-                                <ExternalLink className="text-pink-400" size={18} /><span className="text-white font-medium">W3Schools CSS Tutorial</span>
-                            </a>
-                            <a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/10">
-                                <ExternalLink className="text-pink-400" size={18} /><span className="text-white font-medium">CSS-Tricks — Flexbox Guide</span>
-                            </a>
-                            <a href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/10">
-                                <ExternalLink className="text-pink-400" size={18} /><span className="text-white font-medium">CSS-Tricks — Grid Guide</span>
-                            </a>
-                        </div>
-                    </section>
-                    <div className="w-full bg-gradient-to-r from-pink-600 to-orange-500 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-2xl">
-                        <div className="mb-6 md:mb-0 text-center md:text-left">
-                            <h2 className="text-2xl font-bold text-white mb-2">Ready to Style? 🎨</h2>
-                            <p className="text-pink-100 text-sm">Dono files ready hain — CSS edit karo aur live preview dekho!</p>
-                        </div>
-                        <button onClick={() => setShowInstructions(false)} className="bg-white text-pink-600 px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-slate-50 transition-all shadow-lg active:scale-95">
-                            <Palette size={20} /> Open Code Editor
+                                <h1 className="text-3xl font-bold mb-3">Test Submitted! </h1>
+                                <p className="text-purple-200/70 text-lg mb-2">Aapka code admin ko bhej diya gaya hai.</p>
+                                <p className="text-purple-200/50 text-sm mb-8">Admin review karne ke baad aapko result milega. Agar <strong className="text-green-400">Right </strong> milta hai toh Phase 3 unlock ho jayega.</p>
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6">
+                                    <p className="text-yellow-300 text-sm font-medium"> Status: Pending Review</p>
+                                </div>
+                            </>
+                        )}
+                        {status === 'approved' && (
+                            <>
+                                <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <CheckCircle size={48} className="text-green-400" />
+                                </div>
+                                <h1 className="text-3xl font-bold mb-3 text-green-400">Approved! </h1>
+                                <p className="text-purple-200/70 text-lg mb-2">Admin ne aapka code approve kar diya!</p>
+                                <p className="text-purple-200/50 text-sm mb-8">Phase 3 ab unlock ho gaya hai. Dashboard pe jaake Phase 3 start karo!</p>
+                                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-6">
+                                    <p className="text-green-300 text-sm font-medium"> Status: Approved</p>
+                                    {existingSubmission?.feedback && <p className="text-green-200/70 text-xs mt-1">Feedback: {existingSubmission.feedback}</p>}
+                                </div>
+                            </>
+                        )}
+                        {status === 'rejected' && (
+                            <>
+                                <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <XCircle size={48} className="text-red-400" />
+                                </div>
+                                <h1 className="text-3xl font-bold mb-3 text-red-400">Wrong </h1>
+                                <p className="text-purple-200/70 text-lg mb-2">Admin ne aapka code reject kar diya.</p>
+                                <p className="text-purple-200/50 text-sm mb-8">Dobara try karo! Code edit karke phir se submit karo.</p>
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+                                    <p className="text-red-300 text-sm font-medium"> Status: Rejected</p>
+                                    {existingSubmission?.feedback && <p className="text-red-200/70 text-xs mt-1">Feedback: {existingSubmission.feedback}</p>}
+                                </div>
+                                <button
+                                    onClick={handleResubmit}
+                                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] mb-3"
+                                >
+                                     Edit & Resubmit
+                                </button>
+                            </>
+                        )}
+                        <button
+                            onClick={onBack}
+                            className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-4 rounded-2xl transition-all active:scale-[0.98]"
+                        >
+                             Back to Dashboard
                         </button>
                     </div>
                 </div>
@@ -1067,120 +725,119 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
         );
     }
 
-    // ─── VS CODE EDITOR VIEW ────────────────────────────────
+    // VS CODE EDITOR VIEW
     return (
         <div className="flex flex-col h-screen bg-[#1e1e1e] text-white overflow-hidden">
+            {/* Syntax highlight styles */}
             <style>{`
-                .hl-tag{color:#569CD6}.hl-attr{color:#9CDCFE}.hl-string{color:#CE9178}
-                .hl-comment{color:#6A9955;font-style:italic}.hl-bracket{color:#808080}
-                .hl-css-prop{color:#9CDCFE}.hl-css-sel{color:#D7BA7D}.hl-num{color:#B5CEA8}
-                .hl-punc{color:#D4D4D4}.hl-at-rule{color:#C586C0}
+                .hl-tag { color: #569CD6; }
+                .hl-attr { color: #9CDCFE; }
+                .hl-string { color: #CE9178; }
+                .hl-comment { color: #6A9955; font-style: italic; }
+                .hl-bracket { color: #808080; }
+                .hl-cssprop { color: #9CDCFE; }
+                .hl-csssel { color: #D7BA7D; }
+                .hl-num { color: #B5CEA8; }
             `}</style>
 
-            {/* ── Top Bar ── */}
+            {/* Top Bar */}
             <div className="flex items-center justify-between bg-[#181818] px-3 py-1.5 border-b border-[#333] flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setShowInstructions(true)} className="flex items-center gap-1.5 text-[#858585] hover:text-white transition-all text-xs">
-                        <ArrowLeft size={14} /> Instructions
+                    <button onClick={onBack} className="flex items-center gap-1.5 text-[#858585] hover:text-white transition-all text-xs">
+                        <ArrowLeft size={14} /> Back
                     </button>
                     <div className="w-px h-4 bg-[#333]" />
-                    <span className="text-[#cccccc] font-medium text-xs">Phase 2 — HTML + CSS</span>
+                    <span className="text-[#cccccc] font-medium text-xs">Phase 2 � CSS Profile Card</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <button onClick={copyCode} className="flex items-center gap-1 px-2.5 py-1 bg-[#2d2d2d] hover:bg-[#3c3c3c] rounded text-[11px] text-[#ccc] transition-colors">
                         {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />} {copied ? 'Copied' : 'Copy'}
                     </button>
-                    <button onClick={resetCSS} className="flex items-center gap-1 px-2.5 py-1 bg-[#2d2d2d] hover:bg-[#3c3c3c] rounded text-[11px] text-[#ccc] transition-colors">
-                        <RotateCcw size={12} /> Reset CSS
+                    <button className="flex items-center gap-1 px-2 py-1 bg-[#2d2d2d] hover:bg-[#3c3c3c] rounded text-[11px] text-[#ccc] transition-colors">
+                        <Settings size={12} />
+                    </button>
+                    <button onClick={resetCode} className="flex items-center gap-1 px-2.5 py-1 bg-[#2d2d2d] hover:bg-[#3c3c3c] rounded text-[11px] text-[#ccc] transition-colors">
+                        <RotateCcw size={12} /> Reset
                     </button>
                     <button onClick={runCode} className="flex items-center gap-1 px-3 py-1 bg-[#388a34] hover:bg-[#45a340] rounded text-[11px] text-white font-bold transition-colors">
                         <Play size={12} fill="white" /> Run Code
                     </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="flex items-center gap-1 px-4 py-1 bg-[#007acc] hover:bg-[#0098ff] rounded text-[11px] text-white font-bold transition-colors disabled:opacity-50"
+                    >
+                        {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                    </button>
                 </div>
             </div>
 
-            {/* ── Task Tabs ── */}
-            <div className="flex items-center bg-[#252526] border-b border-[#333] overflow-x-auto flex-shrink-0">
-                {CSS_TASKS.map((task, i) => (
-                    <button
-                        key={task.id}
-                        onClick={() => { setActiveTask(i); setShowPreview(false); setActiveTab('css'); }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] whitespace-nowrap border-r border-[#333] transition-all ${
-                            activeTask === i
-                                ? 'bg-[#1e1e1e] text-white border-t-2 border-t-[#007acc]'
-                                : 'bg-[#2d2d2d] text-[#969696] hover:bg-[#2a2a2a]'
-                        }`}
-                        style={{ borderTopWidth: activeTask === i ? '2px' : '0' }}
-                    >
-                        <span className="text-[10px]">{task.title.split(' ')[0]}</span>
-                        <span className="font-medium">{task.title.split(' ').slice(1).join(' ')}</span>
-                    </button>
-                ))}
+            {/* Question Bar */}
+            <div className="bg-gradient-to-r from-[#1a3a5c] to-[#1a2a4c] px-4 py-3 border-b border-[#333] flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#007acc]/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BookOpen size={16} className="text-[#007acc]" />
+                    </div>
+                    <div>
+                        <p className="text-[13px] text-white font-bold"> Question: {PHASE2_QUESTION}</p>
+                        <p className="text-[11px] text-[#9cdcfe] mt-0.5"> Hint: <span className="text-[#e44d26]">index.html</span> me HTML likho, <span className="text-[#42a5f5]">style.css</span> me CSS likho | CSS: <span className="text-[#ce9178]">border-radius</span>, <span className="text-[#ce9178]">box-shadow</span>, <span className="text-[#ce9178]">background</span>, <span className="text-[#ce9178]">flexbox</span> use karo</p>
+                    </div>
+                </div>
             </div>
 
-            {/* ── File Tabs (index.html + style.css) ── */}
+            {/* File Tabs */}
             <div className="flex items-center bg-[#252526] border-b border-[#1e1e1e] flex-shrink-0">
-                <button
+                {/* index.html tab */}
+                <div
                     onClick={() => setActiveTab('html')}
-                    className={`flex items-center gap-1.5 px-3 py-1 border-r border-[#333] transition-colors ${
-                        activeTab === 'html' ? 'bg-[#1e1e1e] border-t-2 border-t-[#007acc]' : 'bg-[#2d2d2d] text-[#969696] hover:bg-[#2a2a2a]'
+                    className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer border-r border-[#333] ${
+                        activeTab === 'html'
+                            ? 'bg-[#1e1e1e] border-t-2 border-t-[#007acc]'
+                            : 'bg-[#2d2d2d] border-t-2 border-t-transparent hover:bg-[#333]'
                     }`}
-                    style={{ borderTopWidth: activeTab === 'html' ? '2px' : '0' }}
                 >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#e44d26"/><path d="M2 17l10 5 10-5" stroke="#e44d26" strokeWidth="2"/><path d="M2 12l10 5 10-5" stroke="#e44d26" strokeWidth="2"/></svg>
-                    <span className={`text-[12px] ${activeTab === 'html' ? 'text-white' : 'text-[#969696]'}`}>index.html</span>
-                    {activeTab === 'html' && <span className="text-[8px] bg-[#4d4d4d] text-[#aaa] px-1 rounded ml-1">READ ONLY</span>}
-                    <X size={13} className="text-[#858585] hover:text-white ml-0.5" />
-                </button>
-                <button
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#e44d26"/><path d="M2 17l10 5 10-5" stroke="#e44d26" strokeWidth="2"/><path d="M2 12l10 5 10-5" stroke="#e44d26" strokeWidth="2"/></svg>
+                    <span className={`text-[12px] font-normal ${activeTab === 'html' ? 'text-white' : 'text-[#858585]'}`}>index.html</span>
+                </div>
+                {/* style.css tab */}
+                <div
                     onClick={() => setActiveTab('css')}
-                    className={`flex items-center gap-1.5 px-3 py-1 border-r border-[#333] transition-colors ${
-                        activeTab === 'css' ? 'bg-[#1e1e1e] border-t-2 border-t-[#007acc]' : 'bg-[#2d2d2d] text-[#969696] hover:bg-[#2a2a2a]'
+                    className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer border-r border-[#333] ${
+                        activeTab === 'css'
+                            ? 'bg-[#1e1e1e] border-t-2 border-t-[#007acc]'
+                            : 'bg-[#2d2d2d] border-t-2 border-t-transparent hover:bg-[#333]'
                     }`}
-                    style={{ borderTopWidth: activeTab === 'css' ? '2px' : '0' }}
                 >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1572b6"/><text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">CSS</text></svg>
-                    <span className={`text-[12px] ${activeTab === 'css' ? 'text-white' : 'text-[#969696]'}`}>style.css</span>
-                    <X size={13} className="text-[#858585] hover:text-white ml-0.5" />
-                </button>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 2h16l-2 20-6 2-6-2L4 2z" fill="#42a5f5"/><path d="M12 4v18l4.5-1.5L18 4H12z" fill="#1565c0"/></svg>
+                    <span className={`text-[12px] font-normal ${activeTab === 'css' ? 'text-white' : 'text-[#858585]'}`}>style.css</span>
+                </div>
             </div>
 
-            {/* ── Breadcrumb ── */}
+            {/* Breadcrumb */}
             <div className="flex items-center gap-1 px-4 py-1 bg-[#1e1e1e] border-b border-[#333] text-[11px] text-[#858585] flex-shrink-0">
                 {activeTab === 'html' ? (
                     <>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#e44d26"/></svg>
-                        <span>index.html</span><ChevronRight size={10} /><span className="text-[#ccc]">html</span><ChevronRight size={10} /><span className="text-[#ccc]">body</span>
+                        <span>index.html</span>
+                        <ChevronRight size={10} />
+                        <span className="text-[#cccccc]">html</span>
+                        <ChevronRight size={10} />
+                        <span className="text-[#cccccc]">body</span>
                     </>
                 ) : (
                     <>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1572b6"/></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 2h16l-2 20-6 2-6-2L4 2z" fill="#42a5f5"/></svg>
                         <span>style.css</span>
+                        <ChevronRight size={10} />
+                        <span className="text-[#cccccc]">stylesheet</span>
                     </>
                 )}
             </div>
 
-            {/* ── Task Info ── */}
-            <div className="bg-[#252526] px-4 py-2 border-b border-[#333] flex-shrink-0">
-                <div className="flex items-start gap-2">
-                    <BookOpen size={14} className="text-[#007acc] mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[12px] text-[#ccc] font-medium">{currentTask.description}</p>
-                        <p className="text-[11px] text-[#d7ba7d] mt-0.5">💡 {currentTask.hint}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                            {currentTask.tags.map(tag => (
-                                <span key={tag} className="text-[9px] bg-[#3b2e58] text-[#c586c0] px-1.5 py-0.5 rounded font-mono">{tag}</span>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-[11px] text-[#858585] flex-shrink-0">
-                        <Clock size={11} /> {currentTask.timeLimit}
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Editor + Preview ── */}
+            {/* Editor + Preview */}
             <div className="flex-1 flex overflow-hidden">
+                {/* Code Editor */}
                 <div className={`flex flex-col ${showPreview ? 'w-1/2' : 'w-full'} border-r border-[#333]`}>
                     <div className="flex-1 flex overflow-hidden">
                         {/* Line Numbers */}
@@ -1196,36 +853,33 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
 
                         {/* Code Area */}
                         <div className="flex-1 relative overflow-hidden">
-                            {/* Syntax Highlighted Overlay */}
                             <pre
                                 ref={highlightRef}
                                 className="absolute inset-0 m-0 pt-2 pl-3 pr-3 overflow-auto pointer-events-none whitespace-pre-wrap break-words"
                                 style={{ fontFamily: "'Consolas','Courier New',monospace", fontSize: '13px', lineHeight: '20px', color: '#d4d4d4', background: 'transparent' }}
                                 aria-hidden="true"
-                                dangerouslySetInnerHTML={{ __html: (activeTab === 'html' ? highlightHTML(currentTask.htmlCode) : highlightCSS(currentCSS)) + '\n' }}
+                                dangerouslySetInnerHTML={{ __html: (activeTab === 'html' ? highlightHTML(currentCode) : highlightCSS(currentCode)) + '\n' }}
                             />
-                            {/* Textarea */}
                             <textarea
-                                ref={activeTab === 'css' ? textareaRef : undefined}
-                                value={displayCode}
-                                onChange={activeTab === 'css' ? handleCSSInput : undefined}
-                                onKeyDown={activeTab === 'css' ? handleKeyDown : undefined}
+                                ref={textareaRef}
+                                value={currentCode}
+                                onChange={handleInput}
+                                onKeyDown={handleKeyDown}
                                 onScroll={syncScroll}
-                                readOnly={activeTab === 'html'}
-                                className={`w-full h-full bg-[#1e1e1e] pt-2 pl-3 pr-3 resize-none outline-none overflow-auto ${activeTab === 'html' ? 'cursor-default' : ''}`}
+                                className="w-full h-full bg-[#1e1e1e] pt-2 pl-3 pr-3 resize-none outline-none overflow-auto"
                                 spellCheck={false}
                                 style={{
                                     fontFamily: "'Consolas','Courier New',monospace",
                                     fontSize: '13px',
                                     lineHeight: '20px',
                                     color: 'transparent',
-                                    caretColor: activeTab === 'css' ? '#aeafad' : 'transparent',
+                                    caretColor: '#aeafad',
                                     WebkitTextFillColor: 'transparent',
                                     tabSize: 4,
                                 }}
                             />
-                            {/* ── Autocomplete Dropdown ── */}
-                            {showSuggestions && suggestions.length > 0 && activeTab === 'css' && (
+                            {/* Autocomplete Dropdown */}
+                            {showSuggestions && suggestions.length > 0 && (
                                 <div
                                     ref={autocompleteRef}
                                     className="absolute z-50 bg-[#252526] border border-[#454545] rounded-md shadow-2xl overflow-hidden"
@@ -1235,7 +889,7 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
                                         {suggestions.map((s: any, i: number) => (
                                             <div
                                                 key={s.label + i}
-                                                onClick={() => applyCSSSuggestion(s)}
+                                                onClick={() => applySuggestion(s)}
                                                 className={`flex items-center gap-2 px-2.5 py-[5px] cursor-pointer text-[12px] border-l-2 ${
                                                     i === selectedSuggestion
                                                         ? 'bg-[#04395e] text-white border-l-[#007acc]'
@@ -1243,25 +897,22 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
                                                 }`}
                                             >
                                                 <span className={`w-[18px] h-[18px] flex items-center justify-center rounded-sm text-[9px] font-bold flex-shrink-0 ${
-                                                    s.kind === 'prop' ? 'bg-[#1572b6] text-white'
-                                                    : s.kind === 'value' ? 'bg-[#b5cea8] text-[#1e1e1e]'
-                                                    : s.kind === 'sel' ? 'bg-[#d7ba7d] text-[#1e1e1e]'
-                                                    : 'bg-[#007acc] text-white'
+                                                    s.kind === 'attr' ? 'bg-[#b180d7] text-white' :
+                                                    s.kind === 'prop' ? 'bg-[#9CDCFE] text-[#1e1e1e]' :
+                                                    s.kind === 'value' ? 'bg-[#CE9178] text-white' :
+                                                    s.kind === 'selector' ? 'bg-[#D7BA7D] text-[#1e1e1e]' :
+                                                    'bg-[#e44d26] text-white'
                                                 }`}>
-                                                    {s.kind === 'prop' ? 'P' : s.kind === 'value' ? 'V' : s.kind === 'sel' ? 'S' : '?'}
+                                                    {s.kind === 'attr' ? 'A' : s.kind === 'prop' ? 'P' : s.kind === 'value' ? 'V' : s.kind === 'selector' ? 'S' : '</>'}
                                                 </span>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
-                                                        <span className={`font-mono font-bold ${
-                                                            s.kind === 'prop' ? 'text-[#9CDCFE]'
-                                                            : s.kind === 'value' ? 'text-[#CE9178]'
-                                                            : 'text-[#D7BA7D]'
-                                                        }`}>{s.label}</span>
+                                                        <span className="font-mono font-bold text-[#569CD6]">{s.label}</span>
                                                         <span className="text-[#858585] text-[10px] truncate">{s.detail}</span>
                                                     </div>
                                                     {s.snippet && (
                                                         <div className="text-[10px] text-[#6A9955] font-mono truncate mt-[-1px]">
-                                                            {s.snippet.replace(/\n/g, ' ')}
+                                                            {s.snippet.replace('$0', '|').replace(/\n/g, ' ')}
                                                         </div>
                                                     )}
                                                 </div>
@@ -1269,7 +920,7 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
                                         ))}
                                     </div>
                                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1e1e1e] border-t border-[#454545] text-[9px] text-[#858585]">
-                                        <span className="bg-[#333] px-1 py-0.5 rounded text-[8px]">↑↓</span>
+                                        <span className="bg-[#333] px-1 py-0.5 rounded text-[8px]"></span>
                                         <span className="mr-1">navigate</span>
                                         <span className="bg-[#333] px-1 py-0.5 rounded text-[8px]">Enter</span>
                                         <span className="mr-1">accept</span>
@@ -1282,21 +933,21 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Preview */}
+                {/* Live Preview */}
                 {showPreview && (
                     <div className="w-1/2 flex flex-col">
                         <div className="flex items-center gap-2 px-3 py-1 bg-[#252526] border-b border-[#333]">
                             <Eye size={13} className="text-green-400" />
-                            <span className="text-[11px] font-medium text-[#ccc]">Live Preview</span>
+                            <span className="text-[11px] font-medium text-[#ccc]">Live Output</span>
                         </div>
                         <div className="flex-1 bg-white">
-                            <iframe ref={iframeRef} title="preview" className="w-full h-full border-0" sandbox="allow-same-origin" />
+                            <iframe ref={iframeRef} title="preview" className="w-full h-full border-0" sandbox="allow-same-origin allow-scripts" />
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* ── Status Bar ── */}
+            {/* Status Bar */}
             <div className="flex items-center justify-between bg-[#007acc] px-3 py-0.5 text-[11px] text-white flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <span>Ln {lineCount}, Col 1</span>
