@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search, Clock, Mail, Settings, Save, CheckCircle, Lock, Eye, EyeOff, RefreshCw, Copy } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, UserPlus, Trash2, Shield, ShieldCheck, Crown, Loader2, AlertCircle, FileQuestion, Users, Search, Clock, Mail, Settings, Save, CheckCircle, Lock, Eye, EyeOff, RefreshCw, Copy, Code, XCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SUPER_ADMIN_EMAILS } from '../roles';
 import { QuestionManager } from './QuestionManager';
@@ -7,6 +7,7 @@ import { getAllLoggedUsers, LoggedUser } from '../services/loggedUsersService';
 import { collection, query, orderBy, limit, onSnapshot, getDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { EmailLog } from '../services/emailService';
+import { listenToSubmissions, approveSubmission, rejectSubmission, PhaseSubmission } from '../services/phaseSubmissionService';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -120,7 +121,7 @@ const OTPLogViewer: React.FC = () => {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const { adminEmails, addAdmin, removeAdmin, isSuperAdmin, isAdmin, canManageAdmins } = useAuth();
-    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'email-settings' | 'unlock-password'>('questions');
+    const [activeTab, setActiveTab] = useState<'questions' | 'admins' | 'students' | 'otps' | 'email-settings' | 'unlock-password' | 'submissions'>('submissions');
 
     // Admin Management State
     const [newEmail, setNewEmail] = useState('');
@@ -149,6 +150,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [unlockPasswordInput, setUnlockPasswordInput] = useState('');
     const [unlockPasswordSaved, setUnlockPasswordSaved] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+
+    // Phase Submissions State
+    const [submissions, setSubmissions] = useState<PhaseSubmission[]>([]);
+    const [loadingSubmissions, setLoadingSubmissions] = useState(true);
+    const [reviewingId, setReviewingId] = useState<string | null>(null);
+    const [previewCode, setPreviewCode] = useState<string | null>(null);
+    const [previewStudentName, setPreviewStudentName] = useState('');
+    const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
     // Generate random password
     const generateRandomPassword = () => {
@@ -195,6 +204,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             loadEmailConfig();
         }
     }, [activeTab, emailConfigLoaded]);
+
+    // Listen to phase submissions in real-time
+    useEffect(() => {
+        const unsubscribe = listenToSubmissions((subs) => {
+            setSubmissions(subs);
+            setLoadingSubmissions(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const loadEmailConfig = async () => {
         try {
@@ -367,6 +385,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         }
     };
 
+    // Phase Submission Review Handlers
+    const handleApprove = async (submission: PhaseSubmission) => {
+        if (!submission.id) return;
+        setReviewingId(submission.id);
+        try {
+            const adminEmail = adminEmails[0] || 'admin';
+            await approveSubmission(submission.id, adminEmail);
+            setSuccess(`✅ ${submission.userName} ka code APPROVE kar diya!`);
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (error) {
+            setError('Failed to approve submission');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setReviewingId(null);
+        }
+    };
+
+    const handleReject = async (submission: PhaseSubmission) => {
+        if (!submission.id) return;
+        setReviewingId(submission.id);
+        try {
+            const adminEmail = adminEmails[0] || 'admin';
+            await rejectSubmission(submission.id, adminEmail);
+            setSuccess(`❌ ${submission.userName} ka code REJECT kar diya.`);
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (error) {
+            setError('Failed to reject submission');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setReviewingId(null);
+        }
+    };
+
+    const openPreview = (code: string, studentName: string) => {
+        setPreviewCode(code);
+        setPreviewStudentName(studentName);
+        setTimeout(() => {
+            if (previewIframeRef.current) {
+                const doc = previewIframeRef.current.contentDocument || previewIframeRef.current.contentWindow?.document;
+                if (doc) { doc.open(); doc.write(code); doc.close(); }
+            }
+        }, 100);
+    };
+
     return (
         <div className="h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto custom-scrollbar">
             {/* Header */}
@@ -394,6 +456,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
                 {/* Navigation Tabs */}
                 <div className="max-w-6xl mx-auto px-6 flex gap-6 mt-2">
+                    <button
+                        onClick={() => setActiveTab('submissions')}
+                        className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'submissions'
+                            ? 'border-pink-400 text-pink-400'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Code size={18} />
+                            Phase Submissions
+                            {submissions.filter(s => s.status === 'pending').length > 0 && (
+                                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {submissions.filter(s => s.status === 'pending').length}
+                                </span>
+                            )}
+                        </div>
+                    </button>
+
                     <button
                         onClick={() => setActiveTab('questions')}
                         className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'questions'
@@ -482,7 +562,170 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
             {/* Main Content */}
             <div className="max-w-6xl mx-auto px-6 py-8">
-                {activeTab === 'questions' ? (
+                {activeTab === 'submissions' ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-pink-400">Phase Code Submissions</h1>
+                            <p className="text-purple-200/60">Review student code and approve (Right ✅) or reject (Wrong ❌)</p>
+                        </div>
+
+                        {/* Alerts */}
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-300">
+                                <AlertCircle size={20} /> {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center gap-3 text-green-300">
+                                <CheckCircle size={20} /> {success}
+                            </div>
+                        )}
+
+                        {loadingSubmissions ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <Loader2 className="w-10 h-10 text-pink-400 animate-spin mb-4" />
+                                <p className="text-purple-200/60">Loading submissions...</p>
+                            </div>
+                        ) : submissions.length === 0 ? (
+                            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/10">
+                                <Code size={48} className="mx-auto mb-4 text-slate-500" />
+                                <h3 className="text-xl font-bold mb-2">No Submissions Yet</h3>
+                                <p className="text-purple-200/60">Student submissions will appear here when they submit their code</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {submissions.map((sub) => (
+                                    <div key={sub.id} className={`bg-white/5 backdrop-blur-lg rounded-2xl p-6 border transition-all ${
+                                        sub.status === 'pending' ? 'border-yellow-500/30 hover:border-yellow-500/50' :
+                                        sub.status === 'approved' ? 'border-green-500/20' : 'border-red-500/20'
+                                    }`}>
+                                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                            {/* Student Info */}
+                                            <div className="flex items-center gap-4 flex-1">
+                                                {sub.userPhoto ? (
+                                                    <img src={sub.userPhoto} alt={sub.userName} className="w-12 h-12 rounded-full" />
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-full bg-pink-500/30 flex items-center justify-center">
+                                                        <span className="text-pink-400 font-bold text-lg">{sub.userName.charAt(0).toUpperCase()}</span>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-white">{sub.userName}</h3>
+                                                    <p className="text-purple-200/60 text-sm">{sub.userEmail}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full">{sub.phaseName}</span>
+                                                        <span className="text-xs text-purple-200/40">
+                                                            {new Date(sub.submittedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Status + Actions */}
+                                            <div className="flex items-center gap-3">
+                                                {sub.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => openPreview(sub.code, sub.userName)}
+                                                            className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+                                                        >
+                                                            <Eye size={16} /> Preview
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleApprove(sub)}
+                                                            disabled={reviewingId === sub.id}
+                                                            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg"
+                                                        >
+                                                            {reviewingId === sub.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                                                            Right ✅
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(sub)}
+                                                            disabled={reviewingId === sub.id}
+                                                            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg"
+                                                        >
+                                                            {reviewingId === sub.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                                                            Wrong ❌
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {sub.status === 'approved' && (
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => openPreview(sub.code, sub.userName)}
+                                                            className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                                                        >
+                                                            <Eye size={14} /> View
+                                                        </button>
+                                                        <span className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                            <CheckCircle2 size={16} /> Approved ✅
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {sub.status === 'rejected' && (
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => openPreview(sub.code, sub.userName)}
+                                                            className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                                                        >
+                                                            <Eye size={14} /> View
+                                                        </button>
+                                                        <span className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                            <XCircle size={16} /> Rejected ❌
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Question */}
+                                        <div className="mt-3 px-4 py-2 bg-white/5 rounded-lg">
+                                            <p className="text-xs text-purple-200/50 uppercase tracking-wider font-bold mb-1">Question</p>
+                                            <p className="text-sm text-[#9cdcfe]">{sub.question}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Code Preview Modal */}
+                        {previewCode !== null && (
+                            <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+                                <div className="bg-[#1e1e1e] rounded-2xl shadow-2xl w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden border border-[#333]">
+                                    <div className="flex items-center justify-between px-4 py-3 bg-[#252526] border-b border-[#333]">
+                                        <div className="flex items-center gap-3">
+                                            <Code size={18} className="text-pink-400" />
+                                            <span className="text-white font-bold">{previewStudentName} ka Code</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setPreviewCode(null)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-[#858585] hover:text-white"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 flex overflow-hidden">
+                                        {/* Code View */}
+                                        <div className="w-1/2 overflow-auto border-r border-[#333] p-4">
+                                            <pre className="text-[12px] text-[#d4d4d4] font-mono whitespace-pre-wrap" style={{ fontFamily: "'Consolas','Courier New',monospace" }}>
+                                                {previewCode}
+                                            </pre>
+                                        </div>
+                                        {/* Output View */}
+                                        <div className="w-1/2 flex flex-col">
+                                            <div className="px-3 py-1.5 bg-[#252526] border-b border-[#333] text-[11px] text-[#ccc] font-medium flex items-center gap-2">
+                                                <Eye size={13} className="text-green-400" /> Live Output
+                                            </div>
+                                            <div className="flex-1 bg-white">
+                                                <iframe ref={previewIframeRef} title="admin-preview" className="w-full h-full border-0" sandbox="allow-same-origin" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : activeTab === 'questions' ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="text-center mb-10">
                             <h1 className="text-3xl font-bold mb-2">Question Bank</h1>

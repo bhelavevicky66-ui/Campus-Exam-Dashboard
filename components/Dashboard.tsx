@@ -33,6 +33,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getLatestResult, getPassCount, getFailCount, getStarRating, TestResultHistory } from '../services/testHistoryService';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { getUserPhaseSubmission } from '../services/phaseSubmissionService';
 
 interface DashboardProps {
     onStart: (moduleId: string) => void;
@@ -64,6 +65,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
     const [unlockError, setUnlockError] = useState('');
     const [manuallyUnlocked, setManuallyUnlocked] = useState<string[]>([]);
 
+    // Phase submission approval status (for phase modules like module-5)
+    const [phaseApprovals, setPhaseApprovals] = useState<Record<string, boolean>>({});
+
     // Module Sequence Definition
     const MODULE_CHAIN = [
         { id: 'screen-test', name: 'Screen Test', prevId: null },
@@ -88,8 +92,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
         const moduleConfig = MODULE_CHAIN.find(m => m.id === moduleId);
         if (!moduleConfig || !moduleConfig.prevId) return false;
 
-        // Check if previous module is passed
-        const prevResult = testResults[moduleConfig.prevId];
+        const prevId = moduleConfig.prevId;
+
+        // For phase modules (module-5 etc), check Firestore approval status
+        if (phaseApprovals[prevId] === true) return false;
+
+        // Check if previous module is passed (localStorage test results)
+        const prevResult = testResults[prevId];
         return !prevResult?.passed;
     };
 
@@ -128,6 +137,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                 results[module.id] = getLatestResult(user.email!, module.id);
             });
             setTestResults(results);
+
+            // Check phase submission approvals from Firestore
+            const checkPhaseApprovals = async () => {
+                const phaseModules = ['module-5', 'module-6', 'module-7', 'module-8', 'module-9', 'module-10', 'module-11'];
+                const approvals: Record<string, boolean> = {};
+                for (const phaseId of phaseModules) {
+                    const submission = await getUserPhaseSubmission(phaseId, user.email!);
+                    if (submission?.status === 'approved') {
+                        approvals[phaseId] = true;
+                    }
+                }
+                setPhaseApprovals(approvals);
+            };
+            checkPhaseApprovals();
         }
     }, [user?.email]);
 
