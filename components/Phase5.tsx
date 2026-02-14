@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Clock, Video, BookOpen, Lightbulb, ExternalLink, CheckCircle, Server, Code, Database, Zap, Lock, Terminal, Globe, Cpu, FileCode } from 'lucide-react';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase5Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-export const Phase5: React.FC<Phase5Props> = ({ onBack }) => {
+const PHASE5_MODULE_ID = 'phase-5';
+const PHASE5_ID = 'module-9';
+const PHASE5_NAME = 'Phase 5 - Node.js & Express';
+
+export const Phase5: React.FC<Phase5Props> = ({ onBack, onComplete }) => {
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE5_ID}
+                phaseName={PHASE5_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    return (
+        <ChallengeList
+            phaseModuleId={PHASE5_MODULE_ID}
+            phaseId={PHASE5_ID}
+            phaseName={PHASE5_NAME}
+            phaseTitle="Phase 5 - Node.js & Express"
+            onSolveChallenge={(q) => setActiveChallenge(q)}
+            onBack={onBack}
+            onSubmitTest={onComplete}
+        />
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}

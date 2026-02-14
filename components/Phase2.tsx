@@ -2,13 +2,17 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ArrowLeft, Play, Eye, RotateCcw, Copy, Check, BookOpen, Clock, Lightbulb, ExternalLink, Code, X, ChevronRight, Send, Loader2, CheckCircle, XCircle, HourglassIcon, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { submitPhaseCode, getUserPhaseSubmission, PhaseSubmission } from '../services/phaseSubmissionService';
+import { getDynamicQuestions } from '../services/questionService';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase2Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-const PHASE2_QUESTION = 'HTML aur CSS se ek Student Profile Card banao (Make a Student Profile Card using HTML & CSS)';
+const DEFAULT_PHASE2_QUESTION = 'HTML aur CSS se ek Student Profile Card banao (Make a Student Profile Card using HTML & CSS)';
 const PHASE2_ID = 'module-6';
 const PHASE2_NAME = 'Phase 2 - CSS Profile Card';
 
@@ -29,6 +33,64 @@ const STARTER_HTML = `<!DOCTYPE html>
 const STARTER_CSS = `/* Student Profile Card Styles */
 
 `;
+
+// Default reference image HTML (shown when no Firestore dynamic image)
+const DEFAULT_REFERENCE_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+  .card { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; width: 350px; }
+  .card-header { background: linear-gradient(135deg, #667eea, #764ba2); height: 120px; position: relative; }
+  .avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); background: #ddd; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .card-body { padding: 60px 30px 30px; text-align: center; }
+  .card-body h2 { font-size: 22px; color: #333; margin-bottom: 4px; }
+  .card-body .role { color: #888; font-size: 14px; margin-bottom: 20px; }
+  .info { text-align: left; margin-bottom: 20px; }
+  .info-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .info-item:last-child { border-bottom: none; }
+  .info-item .icon { width: 36px; height: 36px; background: #f0f2ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .info-item .label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-item .value { font-size: 14px; color: #333; font-weight: 600; }
+  .skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+  .skill { background: #f0f2ff; color: #667eea; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .card-footer { padding: 0 30px 25px; display: flex; gap: 10px; }
+  .btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+  .btn-secondary { background: #f0f2ff; color: #667eea; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header"></div>
+    <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="avatar"></div>
+    <div class="card-body">
+      <h2>Rahul Sharma</h2>
+      <p class="role">Computer Science Student</p>
+      <div class="info">
+        <div class="info-item"><div class="icon">📧</div><div><div class="label">Email</div><div class="value">rahul@student.edu</div></div></div>
+        <div class="info-item"><div class="icon">📱</div><div><div class="label">Phone</div><div class="value">+91 98765 43210</div></div></div>
+        <div class="info-item"><div class="icon">🎓</div><div><div class="label">Batch</div><div class="value">2025</div></div></div>
+        <div class="info-item"><div class="icon">📍</div><div><div class="label">Campus</div><div class="value">Dharamshala</div></div></div>
+      </div>
+      <div class="skills">
+        <span class="skill">HTML</span>
+        <span class="skill">CSS</span>
+        <span class="skill">JavaScript</span>
+        <span class="skill">React</span>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-primary">Follow</button>
+      <button class="btn btn-secondary">Message</button>
+    </div>
+  </div>
+</body>
+</html>`;
 
 // Syntax Highlighting - HTML
 const highlightHTML = (code: string): string => {
@@ -249,6 +311,10 @@ const CSS_SELECTORS = [
 // Component
 export const Phase2: React.FC<Phase2Props> = ({ onBack, onComplete }) => {
     const { user } = useAuth();
+    const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+    const [showChallengeList, setShowChallengeList] = useState(true);
+    const [loadingAllQuestions, setLoadingAllQuestions] = useState(true);
     const [htmlCode, setHtmlCode] = useState(STARTER_HTML);
     const [cssCode, setCssCode] = useState(STARTER_CSS);
     const [activeTab, setActiveTab] = useState<'html' | 'css'>('html');
@@ -273,9 +339,32 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack, onComplete }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0 });
     const [triggerWord, setTriggerWord] = useState('');
+    const [dynamicQuestion, setDynamicQuestion] = useState<string>('');
+    const [dynamicImage, setDynamicImage] = useState<string>('');
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const currentCode = activeTab === 'html' ? htmlCode : cssCode;
     const lineCount = currentCode.split('\n').length;
+    const PHASE2_QUESTION = dynamicQuestion || DEFAULT_PHASE2_QUESTION;
+
+    // Fetch ALL dynamic questions from Firestore
+    useEffect(() => {
+        const fetchAllQuestions = async () => {
+            try {
+                const questions = await getDynamicQuestions('phase-2');
+                setAllQuestions(questions);
+                if (questions.length > 0) {
+                    setDynamicQuestion(questions[0].question);
+                    if (questions[0].image) setDynamicImage(questions[0].image);
+                }
+            } catch (e) {
+                console.error('Failed to fetch phase-2 questions:', e);
+            } finally {
+                setLoadingAllQuestions(false);
+            }
+        };
+        fetchAllQuestions();
+    }, []);
 
     // Combine HTML + CSS for preview
     const getCombinedCode = useCallback(() => {
@@ -647,6 +736,34 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack, onComplete }) => {
         }
     }, []);
 
+    // ─── Challenge List View ────────────────────────────────
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE2_ID}
+                phaseName={PHASE2_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    if (showChallengeList && !loadingAllQuestions) {
+        return (
+            <ChallengeList
+                phaseModuleId="phase-2"
+                phaseId={PHASE2_ID}
+                phaseName={PHASE2_NAME}
+                phaseTitle="Phase 2 - CSS Profile Card"
+                onSolveChallenge={(q) => setActiveChallenge(q)}
+                onBack={onBack}
+                onSubmitTest={onComplete}
+            />
+        );
+    }
+
     // Loading state
     if (loadingSubmission) {
         return (
@@ -779,12 +896,44 @@ export const Phase2: React.FC<Phase2Props> = ({ onBack, onComplete }) => {
                     <div className="w-8 h-8 bg-[#007acc]/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <BookOpen size={16} className="text-[#007acc]" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                         <p className="text-[13px] text-white font-bold"> Question: {PHASE2_QUESTION}</p>
-                        <p className="text-[11px] text-[#9cdcfe] mt-0.5"> Hint: <span className="text-[#e44d26]">index.html</span> me HTML likho, <span className="text-[#42a5f5]">style.css</span> me CSS likho | CSS: <span className="text-[#ce9178]">border-radius</span>, <span className="text-[#ce9178]">box-shadow</span>, <span className="text-[#ce9178]">background</span>, <span className="text-[#ce9178]">flexbox</span> use karo</p>
                     </div>
+                    <button
+                        onClick={() => setShowImageModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#007acc]/30 hover:bg-[#007acc]/50 border border-[#007acc]/40 rounded-lg text-[11px] text-[#4fc3f7] font-medium transition-all flex-shrink-0 hover:scale-105 active:scale-95"
+                    >
+                        🖼️ Show Image
+                    </button>
                 </div>
             </div>
+
+            {/* Image Modal */}
+            {showImageModal && (
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowImageModal(false)}>
+                    <div className="relative max-w-4xl max-h-[85vh] w-full bg-[#252526] rounded-2xl border border-[#555] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1e1e1e] border-b border-[#333]">
+                            <span className="text-[12px] text-[#ccc] font-medium">🖼️ Reference Image — Aise banana hai</span>
+                            <button onClick={() => setShowImageModal(false)} className="text-[#858585] hover:text-white transition-colors p-1 hover:bg-white/10 rounded">
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <div className="p-6 flex items-center justify-center overflow-auto bg-[#1e1e1e]" style={{ minHeight: '400px' }}>
+                            {dynamicImage ? (
+                                <img src={dynamicImage} alt="Reference" className="max-w-full max-h-[70vh] rounded-lg shadow-lg" />
+                            ) : (
+                                <iframe
+                                    srcDoc={DEFAULT_REFERENCE_HTML}
+                                    title="Reference Preview"
+                                    className="w-full rounded-lg shadow-lg border border-[#444]"
+                                    style={{ height: '70vh', maxHeight: '600px', background: '#f0f2f5' }}
+                                    sandbox="allow-same-origin"
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* File Tabs */}
             <div className="flex items-center bg-[#252526] border-b border-[#1e1e1e] flex-shrink-0">

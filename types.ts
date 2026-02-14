@@ -27,6 +27,8 @@ export interface Question {
   options?: string[];
   marks?: number; // Marks for this question
   timeLimit?: number; // Time limit in minutes for this question/test
+  image?: string; // Reference image URL for phase questions
+  difficulty?: 'Easy' | 'Medium' | 'Hard'; // Difficulty level for challenge display
 }
 
 export interface QuizResult {

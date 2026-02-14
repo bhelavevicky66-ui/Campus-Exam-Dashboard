@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Video, ExternalLink, CheckCircle, Database, Server, Code, Zap, Lock, FileCode, Layers, Users, FolderTree, Rocket, Shield, Globe, Upload, BarChart3, Share2, Bot, Briefcase, GitBranch } from 'lucide-react';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase7Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-export const Phase7: React.FC<Phase7Props> = ({ onBack }) => {
+const PHASE7_MODULE_ID = 'phase-7';
+const PHASE7_ID = 'module-11';
+const PHASE7_NAME = 'Phase 7 - Full Stack Capstone';
+
+export const Phase7: React.FC<Phase7Props> = ({ onBack, onComplete }) => {
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE7_ID}
+                phaseName={PHASE7_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    return (
+        <ChallengeList
+            phaseModuleId={PHASE7_MODULE_ID}
+            phaseId={PHASE7_ID}
+            phaseName={PHASE7_NAME}
+            phaseTitle="Phase 7 - Full Stack Capstone"
+            onSolveChallenge={(q) => setActiveChallenge(q)}
+            onBack={onBack}
+            onSubmitTest={onComplete}
+        />
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}

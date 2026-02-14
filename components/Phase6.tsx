@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Clock, Video, BookOpen, Lightbulb, ExternalLink, CheckCircle, Database, Server, Code, Zap, Lock, FileCode, HardDrive, Layers, Save, Search } from 'lucide-react';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase6Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-export const Phase6: React.FC<Phase6Props> = ({ onBack }) => {
+const PHASE6_MODULE_ID = 'phase-6';
+const PHASE6_ID = 'module-10';
+const PHASE6_NAME = 'Phase 6 - MongoDB & Mongoose';
+
+export const Phase6: React.FC<Phase6Props> = ({ onBack, onComplete }) => {
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE6_ID}
+                phaseName={PHASE6_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    return (
+        <ChallengeList
+            phaseModuleId={PHASE6_MODULE_ID}
+            phaseId={PHASE6_ID}
+            phaseName={PHASE6_NAME}
+            phaseTitle="Phase 6 - MongoDB & Mongoose"
+            onSolveChallenge={(q) => setActiveChallenge(q)}
+            onBack={onBack}
+            onSubmitTest={onComplete}
+        />
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}

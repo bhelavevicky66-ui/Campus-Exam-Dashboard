@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Cpu, CheckCircle, ExternalLink, Lightbulb, Code, Target, Play, BookOpen, Sparkles, Video, Database, Zap } from 'lucide-react';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase4Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-export const Phase4: React.FC<Phase4Props> = ({ onBack }) => {
+const PHASE4_MODULE_ID = 'phase-4';
+const PHASE4_ID = 'module-8';
+const PHASE4_NAME = 'Phase 4 - ES6 & Gemini API';
+
+export const Phase4: React.FC<Phase4Props> = ({ onBack, onComplete }) => {
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE4_ID}
+                phaseName={PHASE4_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    return (
+        <ChallengeList
+            phaseModuleId={PHASE4_MODULE_ID}
+            phaseId={PHASE4_ID}
+            phaseName={PHASE4_NAME}
+            phaseTitle="Phase 4 - ES6 & Gemini API"
+            onSolveChallenge={(q) => setActiveChallenge(q)}
+            onBack={onBack}
+            onSubmitTest={onComplete}
+        />
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}

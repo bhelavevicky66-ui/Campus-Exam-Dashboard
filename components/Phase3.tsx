@@ -1,12 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Zap, CheckCircle, ExternalLink, Lightbulb, Code, Target, Play, BookOpen, Cpu } from 'lucide-react';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase3Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-export const Phase3: React.FC<Phase3Props> = ({ onBack }) => {
+const PHASE3_MODULE_ID = 'phase-3';
+const PHASE3_ID = 'module-7';
+const PHASE3_NAME = 'Phase 3 - JavaScript';
+
+export const Phase3: React.FC<Phase3Props> = ({ onBack, onComplete }) => {
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+
+    // If a challenge is selected, show the editor
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE3_ID}
+                phaseName={PHASE3_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    return (
+        <ChallengeList
+            phaseModuleId={PHASE3_MODULE_ID}
+            phaseId={PHASE3_ID}
+            phaseName={PHASE3_NAME}
+            phaseTitle="Phase 3 - JavaScript"
+            onSolveChallenge={(q) => setActiveChallenge(q)}
+            onBack={onBack}
+            onSubmitTest={onComplete}
+        />
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-y-auto">
             {/* Header */}

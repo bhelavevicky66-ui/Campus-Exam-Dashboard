@@ -26,11 +26,13 @@ export const QuestionManager: React.FC = () => {
     const [customMarks, setCustomMarks] = useState<number>(0);
     const [timeLimit, setTimeLimit] = useState<number | 'custom'>(30);
     const [customTime, setCustomTime] = useState<number>(0);
+    const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Easy');
     // MCQ Options
     const [option1, setOption1] = useState('');
     const [option2, setOption2] = useState('');
     const [option3, setOption3] = useState('');
     const [option4, setOption4] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
 
     // Predefined categories for each module/phase
     const categoryOptions: Record<string, string[]> = {
@@ -188,9 +190,11 @@ export const QuestionManager: React.FC = () => {
             placeholder: 'Your Answer',
             marks: actualMarks,
             timeLimit: actualTime,
+            difficulty: difficulty,
             ...(actualCategory && { category: actualCategory }),
             ...(hint && { hint }),
             ...(mcqOptions && mcqOptions.length > 0 && { options: mcqOptions }),
+            ...(imageUrl.trim() && { image: imageUrl.trim() }),
         };
 
         const id = await addQuestion(newQuestion);
@@ -206,10 +210,12 @@ export const QuestionManager: React.FC = () => {
             setCustomMarks(0);
             setTimeLimit(30);
             setCustomTime(0);
+            setDifficulty('Easy');
             setOption1('');
             setOption2('');
             setOption3('');
             setOption4('');
+            setImageUrl('');
             setType('text');
             alert('Question added successfully!');
         } else {
@@ -258,28 +264,28 @@ export const QuestionManager: React.FC = () => {
             }
         });
 
-    const moduleStats = {
-        'screen-test': questions.filter(q => {
-            if (typeof q.id === 'string') return q.moduleId === 'screen-test';
-            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
-                module.questions?.some(mq => mq.id === q.id)
-            );
-            return moduleEntry?.[0] === 'screen-test';
-        }).length,
-        'module-0': questions.filter(q => {
-            if (typeof q.id === 'string') return q.moduleId === 'module-0';
-            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
-                module.questions?.some(mq => mq.id === q.id)
-            );
-            return moduleEntry?.[0] === 'module-0';
-        }).length,
-        'module-1': questions.filter(q => {
-            if (typeof q.id === 'string') return q.moduleId === 'module-1';
-            const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
-                module.questions?.some(mq => mq.id === q.id)
-            );
-            return moduleEntry?.[0] === 'module-1';
-        }).length,
+    // Count questions for any module
+    const getModuleCount = (modId: string) => questions.filter(q => {
+        if (typeof q.id === 'string') return q.moduleId === modId;
+        const moduleEntry = Object.entries(MODULES).find(([key, module]) =>
+            module.questions?.some(mq => mq.id === q.id)
+        );
+        return moduleEntry?.[0] === modId;
+    }).length;
+
+    const moduleStats: Record<string, number> = {
+        'screen-test': getModuleCount('screen-test'),
+        'module-0': getModuleCount('module-0'),
+        'module-1': getModuleCount('module-1'),
+        'number-system': getModuleCount('number-system'),
+        'flowchart': getModuleCount('flowchart'),
+        'phase-1': getModuleCount('phase-1'),
+        'phase-2': getModuleCount('phase-2'),
+        'phase-3': getModuleCount('phase-3'),
+        'phase-4': getModuleCount('phase-4'),
+        'phase-5': getModuleCount('phase-5'),
+        'phase-6': getModuleCount('phase-6'),
+        'phase-7': getModuleCount('phase-7'),
     };
 
     return (
@@ -344,7 +350,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">🔢</span>
                             <h3 className="text-sm font-bold text-lime-300">Number System</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">Binary/Decimal</p>
+                            <p className="text-xl font-black text-lime-400">{moduleStats['number-system']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -359,7 +366,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">📊</span>
                             <h3 className="text-sm font-bold text-cyan-300">Flowchart</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">Logic Design</p>
+                            <p className="text-xl font-black text-cyan-400">{moduleStats['flowchart']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -373,7 +381,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">1️⃣</span>
                             <h3 className="text-sm font-bold text-violet-300">Phase 1</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">HTML Basics</p>
+                            <p className="text-xl font-black text-violet-400">{moduleStats['phase-1']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -387,7 +396,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">2️⃣</span>
                             <h3 className="text-sm font-bold text-pink-300">Phase 2</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">CSS Styling</p>
+                            <p className="text-xl font-black text-pink-400">{moduleStats['phase-2']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -401,7 +411,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">3️⃣</span>
                             <h3 className="text-sm font-bold text-amber-300">Phase 3</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">JavaScript</p>
+                            <p className="text-xl font-black text-amber-400">{moduleStats['phase-3']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -416,7 +427,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">4️⃣</span>
                             <h3 className="text-sm font-bold text-rose-300">Phase 4</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">React.js</p>
+                            <p className="text-xl font-black text-rose-400">{moduleStats['phase-4']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -430,7 +442,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">5️⃣</span>
                             <h3 className="text-sm font-bold text-teal-300">Phase 5</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">Node.js</p>
+                            <p className="text-xl font-black text-teal-400">{moduleStats['phase-5']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -444,7 +457,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">6️⃣</span>
                             <h3 className="text-sm font-bold text-indigo-300">Phase 6</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">MongoDB</p>
+                            <p className="text-xl font-black text-indigo-400">{moduleStats['phase-6']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
 
@@ -458,7 +472,8 @@ export const QuestionManager: React.FC = () => {
                         <div className="text-center">
                             <span className="text-2xl mb-1 block">7️⃣</span>
                             <h3 className="text-sm font-bold text-yellow-300">Phase 7</h3>
-                            <p className="text-[10px] text-purple-300/50 mt-1">Full Stack + AI</p>
+                            <p className="text-xl font-black text-yellow-400">{moduleStats['phase-7']}</p>
+                            <p className="text-[10px] text-purple-300/50">Questions</p>
                         </div>
                     </button>
                 </div>
@@ -618,7 +633,63 @@ export const QuestionManager: React.FC = () => {
                         {isPhaseModule && (
                             <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-4 rounded-xl">
                                 <p className="text-sm text-blue-300 font-medium">📝 Phase Question Mode</p>
-                                <p className="text-xs text-blue-300/60 mt-1">Phase questions sirf admin manually review karega — correct answer ki zaroorat nahi hai. Sirf question aur marks add karo.</p>
+                                <p className="text-xs text-blue-300/60 mt-1">Phase questions sirf admin manually review karega — correct answer ki zaroorat nahi hai. Sirf question, marks aur reference image add karo.</p>
+                            </div>
+                        )}
+
+                        {/* Reference Image Upload for Phases */}
+                        {isPhaseModule && (
+                            <div>
+                                <label className="block text-sm font-medium text-purple-200 mb-2">🖼️ Reference Image (Student ko dikhegi)</label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        id="phase-image-upload"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                alert('Image 2MB se chhoti honi chahiye!');
+                                                return;
+                                            }
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setImageUrl(reader.result as string);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }}
+                                    />
+                                    {!imageUrl ? (
+                                        <label
+                                            htmlFor="phase-image-upload"
+                                            className="flex flex-col items-center justify-center gap-3 p-6 bg-white/5 border-2 border-dashed border-white/20 hover:border-purple-500/50 rounded-2xl cursor-pointer transition-all hover:bg-white/10"
+                                        >
+                                            <div className="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                                <Upload size={24} className="text-purple-400" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm text-purple-200 font-medium">📁 Laptop se Image Choose karo</p>
+                                                <p className="text-[10px] text-purple-300/40 mt-1">PNG, JPG, JPEG supported • Max 2MB</p>
+                                            </div>
+                                        </label>
+                                    ) : (
+                                        <div className="p-3 bg-white/5 rounded-xl border border-green-500/20">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-[11px] text-green-400 font-medium">✅ Image Selected</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setImageUrl(''); const inp = document.getElementById('phase-image-upload') as HTMLInputElement; if(inp) inp.value = ''; }}
+                                                    className="text-[10px] text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded-lg transition-all"
+                                                >
+                                                    ❌ Remove
+                                                </button>
+                                            </div>
+                                            <img src={imageUrl} alt="Preview" className="max-h-48 rounded-lg border border-white/10 mx-auto" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -689,6 +760,31 @@ export const QuestionManager: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Difficulty Level */}
+                        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-4 rounded-xl">
+                            <label className="block text-sm font-medium text-cyan-300 mb-2">🎯 Difficulty Level</label>
+                            <div className="flex gap-3">
+                                {(['Easy', 'Medium', 'Hard'] as const).map((level) => (
+                                    <button
+                                        key={level}
+                                        type="button"
+                                        onClick={() => setDifficulty(level)}
+                                        className={`flex-1 py-2.5 rounded-xl font-bold text-sm border transition-all ${
+                                            difficulty === level
+                                                ? level === 'Easy'
+                                                    ? 'bg-green-500/30 border-green-500 text-green-300'
+                                                    : level === 'Medium'
+                                                    ? 'bg-yellow-500/30 border-yellow-500 text-yellow-300'
+                                                    : 'bg-red-500/30 border-red-500 text-red-300'
+                                                : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        {level === 'Easy' ? '🟢' : level === 'Medium' ? '🟡' : '🔴'} {level}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
                         {/* Time Duration */}
                         <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 p-4 rounded-xl">

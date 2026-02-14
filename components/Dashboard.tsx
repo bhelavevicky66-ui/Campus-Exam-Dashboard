@@ -27,12 +27,26 @@ import {
     XCircle,
     Lock,
     AlertCircle,
-    Key
+    Key,
+    Eye,
+    Mail,
+    Award,
+    TrendingUp,
+    X,
+    Calendar,
+    Building2,
+    Home as HomeIcon,
+    MessageCircle,
+    Save,
+    Loader2,
+    Camera,
+    ImagePlus
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getLatestResult, getPassCount, getFailCount, getStarRating, TestResultHistory } from '../services/testHistoryService';
-import { db } from '../firebase';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { db, storage } from '../firebase';
+import { collection, query, orderBy, limit, onSnapshot, doc, getDoc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getUserPhaseSubmission } from '../services/phaseSubmissionService';
 
 interface DashboardProps {
@@ -67,6 +81,117 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
 
     // Phase submission approval status (for phase modules like module-5)
     const [phaseApprovals, setPhaseApprovals] = useState<Record<string, boolean>>({});
+
+    // View Profile modal state
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [profileCampus, setProfileCampus] = useState('Dharamshala');
+    const [profileHouse, setProfileHouse] = useState('');
+    const [profileDiscordId, setProfileDiscordId] = useState('');
+    const [profileDateJoined, setProfileDateJoined] = useState('');
+    const [profileSaving, setProfileSaving] = useState(false);
+    const [profileSaved, setProfileSaved] = useState(false);
+    const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
+    const [profileBgUrl, setProfileBgUrl] = useState('');
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [uploadingBg, setUploadingBg] = useState(false);
+    const profilePhotoRef = React.useRef<HTMLInputElement>(null);
+    const profileBgRef = React.useRef<HTMLInputElement>(null);
+
+    // Load profile data from Firestore
+    useEffect(() => {
+        if (!user?.email) return;
+        const loadProfile = async () => {
+            try {
+                const profileRef = doc(db, 'userProfiles', user.email!);
+                const profileSnap = await getDoc(profileRef);
+                if (profileSnap.exists()) {
+                    const data = profileSnap.data();
+                    setProfileCampus(data.campus || 'Dharamshala');
+                    setProfileHouse(data.house || '');
+                    setProfileDiscordId(data.discordId || '');
+                    setProfileDateJoined(data.dateJoined || '');
+                    setProfilePhotoUrl(data.photoUrl || '');
+                    setProfileBgUrl(data.bgUrl || '');
+                } else {
+                    // Set default date joined from user creation
+                    const joined = user.metadata?.creationTime
+                        ? new Date(user.metadata.creationTime).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                        : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                    setProfileDateJoined(joined);
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+            }
+        };
+        loadProfile();
+    }, [user?.email]);
+
+    // Save profile to Firestore
+    const handleSaveProfile = async () => {
+        if (!user?.email) return;
+        setProfileSaving(true);
+        setProfileSaved(false);
+        try {
+            const profileRef = doc(db, 'userProfiles', user.email);
+            await setDoc(profileRef, {
+                campus: profileCampus,
+                house: profileHouse,
+                discordId: profileDiscordId,
+                dateJoined: profileDateJoined || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                email: user.email,
+                name: user.displayName || '',
+                photoUrl: profilePhotoUrl,
+                bgUrl: profileBgUrl,
+                updatedAt: Date.now()
+            }, { merge: true });
+            setProfileSaved(true);
+            setTimeout(() => setProfileSaved(false), 2000);
+        } catch (err) {
+            console.error('Error saving profile:', err);
+        } finally {
+            setProfileSaving(false);
+        }
+    };
+
+    // Upload profile photo
+    const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user?.email) return;
+        setUploadingPhoto(true);
+        try {
+            const storageRef = ref(storage, `profilePhotos/${user.email}/${Date.now()}_${file.name}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            setProfilePhotoUrl(url);
+            // Auto-save to Firestore
+            const profileDocRef = doc(db, 'userProfiles', user.email);
+            await setDoc(profileDocRef, { photoUrl: url, updatedAt: Date.now() }, { merge: true });
+        } catch (err) {
+            console.error('Error uploading profile photo:', err);
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
+    // Upload background image
+    const handleBgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user?.email) return;
+        setUploadingBg(true);
+        try {
+            const storageRef = ref(storage, `profileBgs/${user.email}/${Date.now()}_${file.name}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            setProfileBgUrl(url);
+            // Auto-save to Firestore
+            const profileDocRef = doc(db, 'userProfiles', user.email);
+            await setDoc(profileDocRef, { bgUrl: url, updatedAt: Date.now() }, { merge: true });
+        } catch (err) {
+            console.error('Error uploading background image:', err);
+        } finally {
+            setUploadingBg(false);
+        }
+    };
 
     // Module Sequence Definition
     const MODULE_CHAIN = [
@@ -405,11 +530,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
 
                             {/* Dropdown Menu */}
                             {showDropdown && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
+                                <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
                                     <div className="px-4 py-2 border-b border-slate-100">
                                         <p className="text-xs text-slate-400">Signed in as</p>
                                         <p className="text-sm font-medium text-slate-700 truncate">{user?.email}</p>
                                     </div>
+                                    <button
+                                        onClick={() => {
+                                            setShowDropdown(false);
+                                            setShowProfileModal(true);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-sm text-[#6C5DD3] hover:bg-indigo-50 flex items-center gap-2 transition-colors font-medium"
+                                    >
+                                        <Eye size={16} />
+                                        View Profile
+                                    </button>
                                     <button
                                         onClick={() => {
                                             setShowDropdown(false);
@@ -885,6 +1020,202 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStart, user, onLogout })
                                 </div>
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* View Profile Modal */}
+            {showProfileModal && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    onClick={() => setShowProfileModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Blue Gradient Header - with background image upload */}
+                        <div
+                            className="relative h-36 cursor-pointer group"
+                            style={{
+                                background: profileBgUrl
+                                    ? `url(${profileBgUrl}) center/cover no-repeat`
+                                    : 'linear-gradient(135deg, #2979FF, #448AFF)'
+                            }}
+                            onClick={() => profileBgRef.current?.click()}
+                        >
+                            {/* Overlay for background image */}
+                            {profileBgUrl && <div className="absolute inset-0 bg-black/10"></div>}
+
+                            {/* Upload BG hint */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
+                                {uploadingBg ? (
+                                    <Loader2 size={24} className="text-white animate-spin" />
+                                ) : (
+                                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                                        <ImagePlus size={16} className="text-white" />
+                                        <span className="text-white text-xs font-bold">Change Background</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setShowProfileModal(false); }}
+                                className="absolute top-3 right-3 w-7 h-7 bg-white/25 rounded-full flex items-center justify-center hover:bg-white/40 transition-colors z-20"
+                            >
+                                <X size={14} className="text-white" />
+                            </button>
+
+                            {/* Hidden file input for background */}
+                            <input
+                                ref={profileBgRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleBgImageUpload}
+                            />
+                        </div>
+
+                        {/* Profile Photo - Overlapping with camera edit button */}
+                        <div className="flex flex-col items-center -mt-14 relative z-10">
+                            <div className="relative group">
+                                <div className="w-24 h-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
+                                    <img
+                                        src={profilePhotoUrl || user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'User'}`}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                {/* Camera button overlay */}
+                                <button
+                                    onClick={() => profilePhotoRef.current?.click()}
+                                    className="absolute bottom-0 right-0 w-8 h-8 bg-[#2979FF] rounded-full border-2 border-white flex items-center justify-center shadow-md hover:bg-[#1E6AE1] transition-colors"
+                                >
+                                    {uploadingPhoto ? (
+                                        <Loader2 size={13} className="text-white animate-spin" />
+                                    ) : (
+                                        <Camera size={13} className="text-white" />
+                                    )}
+                                </button>
+                                {/* Hidden file input for profile photo */}
+                                <input
+                                    ref={profilePhotoRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleProfilePhotoUpload}
+                                />
+                            </div>
+                            <h3 className="text-xl font-bold text-[#11142D] mt-3">{user?.displayName || 'User'}</h3>
+                        </div>
+
+                        {/* Profile Fields */}
+                        <div className="px-6 pt-5 pb-4 space-y-5">
+
+                            {/* Email */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Mail size={14} className="text-slate-400" />
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</span>
+                                </div>
+                                <p className="text-sm font-semibold text-[#11142D] pl-6">{user?.email || 'N/A'}</p>
+                            </div>
+
+                            {/* Date Joined */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Calendar size={14} className="text-slate-400" />
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Date Joined</span>
+                                </div>
+                                <p className="text-sm font-semibold text-[#11142D] pl-6">
+                                    {profileDateJoined || (user?.metadata?.creationTime
+                                        ? new Date(user.metadata.creationTime).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                                        : 'N/A')}
+                                </p>
+                            </div>
+
+                            {/* Campus */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Building2 size={14} className="text-slate-400" />
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Campus</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={profileCampus}
+                                    onChange={(e) => setProfileCampus(e.target.value)}
+                                    className="w-full ml-6 mr-6 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-[#11142D] focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                                    style={{ width: 'calc(100% - 1.5rem)' }}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 pl-6">Contact admin to change campus</p>
+                            </div>
+
+                            {/* House */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <HomeIcon size={14} className="text-slate-400" />
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">House</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={profileHouse}
+                                    onChange={(e) => setProfileHouse(e.target.value)}
+                                    placeholder="Enter your house name"
+                                    className="w-full ml-6 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-[#11142D] placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                                    style={{ width: 'calc(100% - 1.5rem)' }}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 pl-6">Contact admin to change house</p>
+                            </div>
+
+                            {/* Discord User ID */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <MessageCircle size={14} className="text-slate-400" />
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Discord User ID</span>
+                                </div>
+                                <div className="relative" style={{ marginLeft: '1.5rem', width: 'calc(100% - 1.5rem)' }}>
+                                    <input
+                                        type="password"
+                                        value={profileDiscordId}
+                                        onChange={(e) => setProfileDiscordId(e.target.value)}
+                                        placeholder="Enter Discord ID"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-[#11142D] placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all pr-10"
+                                    />
+                                    <Eye size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                </div>
+                            </div>
+
+                            {/* Save Changes Button */}
+                            <button
+                                onClick={handleSaveProfile}
+                                disabled={profileSaving}
+                                className={`w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] ${
+                                    profileSaved
+                                        ? 'bg-green-500 text-white shadow-green-200'
+                                        : 'bg-[#2979FF] text-white hover:bg-[#1E6AE1] shadow-blue-200'
+                                }`}
+                            >
+                                {profileSaving ? (
+                                    <><Loader2 size={16} className="animate-spin" /> Saving...</>
+                                ) : profileSaved ? (
+                                    <><CheckCircle2 size={16} /> Saved!</>
+                                ) : (
+                                    <><Save size={16} /> Save Changes</>
+                                )}
+                            </button>
+
+                            {/* Sign Out Button */}
+                            <button
+                                onClick={() => {
+                                    setShowProfileModal(false);
+                                    onLogout?.();
+                                }}
+                                className="w-full py-3 rounded-2xl font-bold text-sm text-red-500 border-2 border-red-100 hover:bg-red-50 flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <LogOut size={16} />
+                                Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

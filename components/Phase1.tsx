@@ -2,13 +2,17 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ArrowLeft, Play, Eye, RotateCcw, Copy, Check, BookOpen, Clock, Lightbulb, ExternalLink, Code, X, ChevronRight, Send, Loader2, CheckCircle, XCircle, HourglassIcon, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { submitPhaseCode, getUserPhaseSubmission, PhaseSubmission } from '../services/phaseSubmissionService';
+import { getDynamicQuestions } from '../services/questionService';
+import { ChallengeList } from './ChallengeList';
+import { ChallengeEditor } from './ChallengeEditor';
+import { Question } from '../types';
 
 interface Phase1Props {
     onBack: () => void;
     onComplete?: () => void;
 }
 
-const PHASE1_QUESTION = 'HTML se ek Table banao (Make a Table using HTML)';
+const DEFAULT_PHASE1_QUESTION = 'HTML se ek Table banao (Make a Table using HTML)';
 const PHASE1_ID = 'module-5';
 const PHASE1_NAME = 'Phase 1 - HTML Table';
 
@@ -115,6 +119,10 @@ const HTML_ATTRS: Record<string, { label: string; detail: string }[]> = {
 // ─── Component ──────────────────────────────────────────────
 export const Phase1: React.FC<Phase1Props> = ({ onBack, onComplete }) => {
     const { user } = useAuth();
+    const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+    const [activeChallenge, setActiveChallenge] = useState<Question | null>(null);
+    const [showChallengeList, setShowChallengeList] = useState(true);
+    const [loadingAllQuestions, setLoadingAllQuestions] = useState(true);
     const [code, setCode] = useState(STARTER_CODE);
     const [showPreview, setShowPreview] = useState(true);
     const [copied, setCopied] = useState(false);
@@ -137,8 +145,31 @@ export const Phase1: React.FC<Phase1Props> = ({ onBack, onComplete }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0 });
     const [triggerWord, setTriggerWord] = useState('');
+    const [dynamicQuestion, setDynamicQuestion] = useState<string>('');
+    const [dynamicImage, setDynamicImage] = useState<string>('');
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const lineCount = code.split('\n').length;
+    const PHASE1_QUESTION = dynamicQuestion || DEFAULT_PHASE1_QUESTION;
+
+    // Fetch ALL dynamic questions from Firestore
+    useEffect(() => {
+        const fetchAllQuestions = async () => {
+            try {
+                const questions = await getDynamicQuestions('phase-1');
+                setAllQuestions(questions);
+                if (questions.length > 0) {
+                    setDynamicQuestion(questions[0].question);
+                    if (questions[0].image) setDynamicImage(questions[0].image);
+                }
+            } catch (e) {
+                console.error('Failed to fetch phase-1 questions:', e);
+            } finally {
+                setLoadingAllQuestions(false);
+            }
+        };
+        fetchAllQuestions();
+    }, []);
 
     // Check for existing submission on load
     useEffect(() => {
@@ -365,6 +396,34 @@ export const Phase1: React.FC<Phase1Props> = ({ onBack, onComplete }) => {
         }
     }, []);
 
+    // ─── Challenge List View ────────────────────────────────
+    if (activeChallenge) {
+        return (
+            <ChallengeEditor
+                question={activeChallenge}
+                phaseId={PHASE1_ID}
+                phaseName={PHASE1_NAME}
+                onBack={() => setActiveChallenge(null)}
+                onSubmitSuccess={() => setActiveChallenge(null)}
+            />
+        );
+    }
+
+    // Always show challenge list as primary view
+    if (showChallengeList && !loadingAllQuestions) {
+        return (
+            <ChallengeList
+                phaseModuleId="phase-1"
+                phaseId={PHASE1_ID}
+                phaseName={PHASE1_NAME}
+                phaseTitle="Phase 1 - HTML Table"
+                onSolveChallenge={(q) => setActiveChallenge(q)}
+                onBack={onBack}
+                onSubmitTest={onComplete}
+            />
+        );
+    }
+
     // Loading state
     if (loadingSubmission) {
         return (
@@ -494,12 +553,36 @@ export const Phase1: React.FC<Phase1Props> = ({ onBack, onComplete }) => {
                     <div className="w-8 h-8 bg-[#007acc]/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <BookOpen size={16} className="text-[#007acc]" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                         <p className="text-[13px] text-white font-bold">📝 Question: {PHASE1_QUESTION}</p>
-                        <p className="text-[11px] text-[#9cdcfe] mt-0.5">💡 Hint: Use &lt;table&gt;, &lt;tr&gt;, &lt;th&gt;, &lt;td&gt; tags | Style: inline <span className="text-[#ce9178]">style="..."</span> ya &lt;style&gt; tag dono use kar sakte ho</p>
                     </div>
+                    {dynamicImage && (
+                        <button
+                            onClick={() => setShowImageModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#007acc]/30 hover:bg-[#007acc]/50 border border-[#007acc]/40 rounded-lg text-[11px] text-[#4fc3f7] font-medium transition-all flex-shrink-0 hover:scale-105 active:scale-95"
+                        >
+                            🖼️ Show Image
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Image Modal */}
+            {showImageModal && dynamicImage && (
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowImageModal(false)}>
+                    <div className="relative max-w-4xl max-h-[85vh] bg-[#252526] rounded-2xl border border-[#555] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1e1e1e] border-b border-[#333]">
+                            <span className="text-[12px] text-[#ccc] font-medium">🖼️ Reference Image — Aise banana hai</span>
+                            <button onClick={() => setShowImageModal(false)} className="text-[#858585] hover:text-white transition-colors p-1 hover:bg-white/10 rounded">
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <div className="p-6 flex items-center justify-center overflow-auto bg-[#1e1e1e]">
+                            <img src={dynamicImage} alt="Reference" className="max-w-full max-h-[70vh] rounded-lg shadow-lg" />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── File Tab ── */}
             <div className="flex items-center bg-[#252526] border-b border-[#1e1e1e] flex-shrink-0">
