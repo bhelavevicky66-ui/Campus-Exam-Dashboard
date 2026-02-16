@@ -164,75 +164,143 @@ export const ChallengeList: React.FC<ChallengeListProps> = ({ phaseModuleId, pha
                     </div>
                 ) : (
                     <>
-                        <div className="space-y-4">
-                            {questions.map((q) => {
-                                const difficulty = q.difficulty || getDefaultDifficulty(q.marks);
-                                const badgeClass = getDifficultyColor(difficulty);
-                                const marks = q.marks || (difficulty === 'Easy' ? 8 : difficulty === 'Medium' ? 12 : 16);
-                                const submission = submissions[q.id];
-                                const status = submission?.status;
-
-                                return (
-                                    <div
-                                        key={q.id}
-                                        className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow px-8 py-6 ${
-                                            status === 'approved' ? 'border-green-200 bg-green-50/30' :
-                                            status === 'pending' ? 'border-yellow-200 bg-yellow-50/20' :
-                                            status === 'rejected' ? 'border-red-200 bg-red-50/20' :
-                                            'border-gray-100'
-                                        }`}
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            {/* Left: Question Title */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-bold text-gray-900 leading-snug">
-                                                    {q.question}
-                                                </h3>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    {q.category && (
-                                                        <span className="text-xs text-gray-400">{q.category}</span>
-                                                    )}
-                                                    {status && getStatusBadge(status)}
-                                                </div>
-                                            </div>
-
-                                            {/* Right: Difficulty + Marks + Solve */}
-                                            <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                                                <div className="flex items-center gap-3">
-                                                    {/* Difficulty Badge */}
-                                                    <span className={`px-4 py-1 rounded-full text-xs font-bold ${badgeClass}`}>
-                                                        {difficulty}
-                                                    </span>
-                                                    {/* Marks */}
-                                                    <span className="text-gray-800 font-bold text-sm whitespace-nowrap">
-                                                        {marks} marks
-                                                    </span>
-                                                </div>
-
-                                                {/* Solve Challenge Button */}
-                                                <button
-                                                    onClick={() => handleSolveChallenge(q)}
-                                                    className={`font-semibold text-sm transition-colors ${
-                                                        status === 'approved'
-                                                            ? 'text-green-500 hover:text-green-600'
-                                                            : status === 'rejected'
-                                                            ? 'text-red-500 hover:text-red-600'
-                                                            : status === 'pending'
-                                                            ? 'text-yellow-600 hover:text-yellow-700'
-                                                            : 'text-green-600 hover:text-green-700'
-                                                    }`}
-                                                >
-                                                    {status === 'approved' ? '✅ View Solution' :
-                                                     status === 'rejected' ? '❌ Resubmit' :
-                                                     status === 'pending' ? '⏳ View Submission' :
-                                                     'Solve Challenge'}
-                                                </button>
+                        {/* Group MCQ questions under a heading */}
+                        {(() => {
+                            const mcqQuestions = questions.filter(q => q.type === 'mcq');
+                            const otherQuestions = questions.filter(q => q.type !== 'mcq');
+                            return (
+                                <>
+                                    {mcqQuestions.length > 0 && (
+                                        <div className="mb-6">
+                                            <h2 className="text-xl font-bold text-blue-700 mb-2">MCQ Questions</h2>
+                                            <div className="space-y-4">
+                                                {mcqQuestions.map((q) => {
+                                                    const difficulty = q.difficulty || getDefaultDifficulty(q.marks);
+                                                    const badgeClass = getDifficultyColor(difficulty);
+                                                    const marks = q.marks || (difficulty === 'Easy' ? 8 : difficulty === 'Medium' ? 12 : 16);
+                                                    const submission = submissions[q.id];
+                                                    const status = submission?.status;
+                                                    return (
+                                                        <div
+                                                            key={q.id}
+                                                            className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow px-8 py-6 ${
+                                                                status === 'approved' ? 'border-green-200 bg-green-50/30' :
+                                                                status === 'pending' ? 'border-yellow-200 bg-yellow-50/20' :
+                                                                status === 'rejected' ? 'border-red-200 bg-red-50/20' :
+                                                                'border-gray-100'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h3 className="text-lg font-bold text-gray-900 leading-snug">
+                                                                        {q.question}
+                                                                    </h3>
+                                                                    <div className="flex items-center gap-2 mt-2">
+                                                                        {q.category && (
+                                                                            <span className="text-xs text-gray-400">{q.category}</span>
+                                                                        )}
+                                                                        {status && getStatusBadge(status)}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className={`px-4 py-1 rounded-full text-xs font-bold ${badgeClass}`}>
+                                                                            {difficulty}
+                                                                        </span>
+                                                                        <span className="text-gray-800 font-bold text-sm whitespace-nowrap">
+                                                                            {marks} marks
+                                                                        </span>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleSolveChallenge(q)}
+                                                                        className={`font-semibold text-sm transition-colors ${
+                                                                            status === 'approved'
+                                                                                ? 'text-green-500 hover:text-green-600'
+                                                                                : status === 'rejected'
+                                                                                ? 'text-red-500 hover:text-red-600'
+                                                                                : status === 'pending'
+                                                                                ? 'text-yellow-600 hover:text-yellow-700'
+                                                                                : 'text-green-600 hover:text-green-700'
+                                                                        }`}
+                                                                    >
+                                                                        {status === 'approved' ? '✅ View Solution' :
+                                                                         status === 'rejected' ? '❌ Resubmit' :
+                                                                         status === 'pending' ? '⏳ View Submission' :
+                                                                         'Solve Challenge'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
+                                    )}
+                                    {/* Render other questions below MCQ group */}
+                                    <div className="space-y-4">
+                                        {otherQuestions.map((q) => {
+                                            const difficulty = q.difficulty || getDefaultDifficulty(q.marks);
+                                            const badgeClass = getDifficultyColor(difficulty);
+                                            const marks = q.marks || (difficulty === 'Easy' ? 8 : difficulty === 'Medium' ? 12 : 16);
+                                            const submission = submissions[q.id];
+                                            const status = submission?.status;
+                                            return (
+                                                <div
+                                                    key={q.id}
+                                                    className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow px-8 py-6 ${
+                                                        status === 'approved' ? 'border-green-200 bg-green-50/30' :
+                                                        status === 'pending' ? 'border-yellow-200 bg-yellow-50/20' :
+                                                        status === 'rejected' ? 'border-red-200 bg-red-50/20' :
+                                                        'border-gray-100'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-lg font-bold text-gray-900 leading-snug">
+                                                                {q.question}
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                {q.category && (
+                                                                    <span className="text-xs text-gray-400">{q.category}</span>
+                                                                )}
+                                                                {status && getStatusBadge(status)}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className={`px-4 py-1 rounded-full text-xs font-bold ${badgeClass}`}>
+                                                                    {difficulty}
+                                                                </span>
+                                                                <span className="text-gray-800 font-bold text-sm whitespace-nowrap">
+                                                                    {marks} marks
+                                                                </span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleSolveChallenge(q)}
+                                                                className={`font-semibold text-sm transition-colors ${
+                                                                    status === 'approved'
+                                                                        ? 'text-green-500 hover:text-green-600'
+                                                                        : status === 'rejected'
+                                                                        ? 'text-red-500 hover:text-red-600'
+                                                                        : status === 'pending'
+                                                                        ? 'text-yellow-600 hover:text-yellow-700'
+                                                                        : 'text-green-600 hover:text-green-700'
+                                                                }`}
+                                                            >
+                                                                {status === 'approved' ? '✅ View Solution' :
+                                                                 status === 'rejected' ? '❌ Resubmit' :
+                                                                 status === 'pending' ? '⏳ View Submission' :
+                                                                 'Solve Challenge'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </>
+                            );
+                        })()}
 
                         {/* Submit Test Button */}
                         {onSubmitTest && totalQuestions > 0 && (

@@ -936,16 +936,17 @@ export const ChallengeEditor: React.FC<ChallengeEditorProps> = ({ question, phas
     return (
         <div className="flex flex-col h-screen bg-[#1e1e1e] text-white overflow-hidden">
             <style>{`
-                .hl-tag { color: #569CD6; }
-                .hl-attr { color: #9CDCFE; }
-                .hl-string { color: #CE9178; }
-                .hl-comment { color: #6A9955; font-style: italic; }
-                .hl-bracket { color: #808080; }
-                .hl-keyword { color: #C586C0; }
-                .hl-csssel { color: #D7BA7D; }
-                .hl-cssprop { color: #9CDCFE; }
-                .hl-cssval { color: #CE9178; }
-                .hl-num { color: #B5CEA8; }
+                .hl-tag { color: #569CD6; transition: color 0.2s; }
+                .hl-attr { color: #9CDCFE; transition: color 0.2s; }
+                .hl-string { color: #CE9178; transition: color 0.2s; }
+                .hl-comment { color: #6A9955; font-style: italic; transition: color 0.2s; }
+                .hl-bracket { color: #808080; transition: color 0.2s; }
+                .hl-keyword { color: #C586C0; transition: color 0.2s; }
+                .hl-csssel { color: #D7BA7D; transition: color 0.2s; }
+                .hl-cssprop { color: #9CDCFE; transition: color 0.2s; }
+                .hl-cssval { color: #CE9178; transition: color 0.2s; }
+                .hl-num { color: #B5CEA8; transition: color 0.2s; }
+                pre { background: transparent; }
             `}</style>
 
             {/* Top Bar */}

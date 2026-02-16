@@ -52,6 +52,8 @@ export const QuestionManager: React.FC = () => {
 
     // Check if selected module is a Phase (admin-reviewed, no auto-correct answer)
     const isPhaseModule = ['phase-1', 'phase-2', 'phase-3', 'phase-4', 'phase-5', 'phase-6', 'phase-7'].includes(selectedModule);
+    // Allow MCQ for phase modules
+    const allowMCQ = true;
 
     useEffect(() => {
         fetchQuestions();
@@ -561,8 +563,8 @@ export const QuestionManager: React.FC = () => {
                             <p className="text-xs text-violet-300/60 mt-2">💡 Test में यह name बड़े letters में दिखेगा (जैसे BODMAS, HCF & LCM)</p>
                         </div>
 
-                        {/* Question Type - Only for non-phase modules */}
-                        {!isPhaseModule && (
+                        {/* Question Type - Now for all modules including phases */}
+                        {(allowMCQ || !isPhaseModule) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-purple-200 mb-1">Question Type</label>
@@ -579,8 +581,8 @@ export const QuestionManager: React.FC = () => {
                         </div>
                         )}
 
-                        {/* MCQ Options - Show only when MCQ is selected and not a phase */}
-                        {!isPhaseModule && type === 'mcq' && (
+                        {/* MCQ Options - Show when MCQ is selected for any module */}
+                        {type === 'mcq' && (
                             <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-4 rounded-xl">
                                 <label className="block text-sm font-medium text-cyan-300 mb-3">📋 MCQ Options (Enter 4 options)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
